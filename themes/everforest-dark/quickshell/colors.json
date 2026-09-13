@@ -1,0 +1,21 @@
+{
+  "name": "Everforest Dark",
+  "variant": "dark",
+  "island": "#2d353b",
+  "border": "#3a444a",
+  "tile": "#3a444a",
+  "tileHover": "#475258",
+  "control": "#475258",
+  "controlHover": "#859289",
+  "fill": "#d3c6aa",
+  "onFill": "#2d353b",
+  "text": "#d3c6aa",
+  "textDim": "#9da9a0",
+  "muted": "#859289",
+  "accent": "#a7c080",
+  "onAccent": "#2d353b",
+  "success": "#a7c080",
+  "warning": "#dbbc7f",
+  "caution": "#e69875",
+  "danger": "#e67e80"
+}

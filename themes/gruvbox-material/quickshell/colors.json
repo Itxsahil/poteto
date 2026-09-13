@@ -1,0 +1,21 @@
+{
+  "name": "Gruvbox Material",
+  "variant": "dark",
+  "island": "#282828",
+  "border": "#3c3836",
+  "tile": "#3c3836",
+  "tileHover": "#504945",
+  "control": "#504945",
+  "controlHover": "#665c54",
+  "fill": "#ebdbb2",
+  "onFill": "#282828",
+  "text": "#ebdbb2",
+  "textDim": "#a89984",
+  "muted": "#665c54",
+  "accent": "#a9b665",
+  "onAccent": "#282828",
+  "success": "#a9b665",
+  "warning": "#d8a657",
+  "caution": "#e78a4e",
+  "danger": "#ea6962"
+}

@@ -1,0 +1,21 @@
+{
+  "name": "Osaka Jade",
+  "variant": "dark",
+  "island": "#111c18",
+  "border": "#32423a",
+  "tile": "#32423a",
+  "tileHover": "#53685b",
+  "control": "#53685b",
+  "controlHover": "#53685b",
+  "fill": "#c1c497",
+  "onFill": "#111c18",
+  "text": "#c1c497",
+  "textDim": "#81b8a8",
+  "muted": "#53685b",
+  "accent": "#509475",
+  "onAccent": "#111c18",
+  "success": "#549e6a",
+  "warning": "#e5c736",
+  "caution": "#a2734b",
+  "danger": "#ff5345"
+}

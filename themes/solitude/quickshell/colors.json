@@ -1,0 +1,21 @@
+{
+  "name": "Solitude",
+  "variant": "dark",
+  "island": "#101315",
+  "border": "#22282b",
+  "tile": "#22282b",
+  "tileHover": "#343d41",
+  "control": "#343d41",
+  "controlHover": "#4b4e55",
+  "fill": "#cacccc",
+  "onFill": "#101315",
+  "text": "#cacccc",
+  "textDim": "#4b4e55",
+  "muted": "#4b4e55",
+  "accent": "#798186",
+  "onAccent": "#101315",
+  "success": "#9fa5a9",
+  "warning": "#d9dbdc",
+  "caution": "#c9c2b4",
+  "danger": "#de6145"
+}

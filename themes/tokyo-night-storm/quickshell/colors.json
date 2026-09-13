@@ -1,0 +1,21 @@
+{
+  "name": "Tokyo Night Storm",
+  "variant": "dark",
+  "island": "#24283b",
+  "border": "#323852",
+  "tile": "#323852",
+  "tileHover": "#414868",
+  "control": "#414868",
+  "controlHover": "#565f89",
+  "fill": "#c0caf5",
+  "onFill": "#24283b",
+  "text": "#c0caf5",
+  "textDim": "#565f89",
+  "muted": "#565f89",
+  "accent": "#7aa2f7",
+  "onAccent": "#24283b",
+  "success": "#9ece6a",
+  "warning": "#e0af68",
+  "caution": "#ff9e64",
+  "danger": "#f7768e"
+}

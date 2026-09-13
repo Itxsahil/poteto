@@ -1,0 +1,21 @@
+{
+  "name": "Rosé Pine",
+  "variant": "dark",
+  "island": "#191724",
+  "border": "#201d2f",
+  "tile": "#201d2f",
+  "tileHover": "#26233a",
+  "control": "#26233a",
+  "controlHover": "#6e6a86",
+  "fill": "#e0def4",
+  "onFill": "#191724",
+  "text": "#e0def4",
+  "textDim": "#6e6a86",
+  "muted": "#6e6a86",
+  "accent": "#31748f",
+  "onAccent": "#e0def4",
+  "success": "#9ccfd8",
+  "warning": "#f6c177",
+  "caution": "#ebbcba",
+  "danger": "#eb6f92"
+}

@@ -1,0 +1,21 @@
+{
+  "name": "Dracula",
+  "variant": "dark",
+  "island": "#282a36",
+  "border": "#363848",
+  "tile": "#363848",
+  "tileHover": "#44475a",
+  "control": "#44475a",
+  "controlHover": "#6272a4",
+  "fill": "#f8f8f2",
+  "onFill": "#282a36",
+  "text": "#f8f8f2",
+  "textDim": "#6272a4",
+  "muted": "#6272a4",
+  "accent": "#bd93f9",
+  "onAccent": "#282a36",
+  "success": "#50fa7b",
+  "warning": "#f1fa8c",
+  "caution": "#ffb86c",
+  "danger": "#ff5555"
+}
