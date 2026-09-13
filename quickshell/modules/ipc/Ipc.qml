@@ -38,6 +38,14 @@ Scope {
     }
 
     IpcHandler {
+        target: "session"
+        function toggle(): void { ShellState.toggle("power"); }
+        function open(): void { ShellState.open("power"); }
+        function close(): void { ShellState.close("power"); }
+        function lock(): void { Session.run("lock"); }
+    }
+
+    IpcHandler {
         target: "notifications"
         function toggleDnd(): void { Notifications.dnd = !Notifications.dnd; }
         function dnd(): bool { return Notifications.dnd; }
@@ -75,6 +83,12 @@ Scope {
         name: "themes"
         description: "Toggle theme switcher"
         onPressed: ShellState.toggle("themes")
+    }
+
+    GlobalShortcut {
+        name: "power"
+        description: "Toggle power menu"
+        onPressed: ShellState.toggle("power")
     }
 
     GlobalShortcut {

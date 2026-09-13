@@ -173,7 +173,8 @@ hl.bind("SUPER + V", hl.dsp.exec_cmd("qs ipc call clipboard toggle"))
 hl.bind(var_mainMod .. " + SHIFT + semicolon", hl.dsp.exec_cmd("hyprlock"))
 
 -- Power menu/logout
-hl.bind(var_mainMod .. " + X", hl.dsp.exec_cmd("wlogout"))
+-- hl.bind(var_mainMod .. " + X", hl.dsp.exec_cmd("wlogout"))
+hl.bind(var_mainMod .. " + X", hl.dsp.exec_cmd("qs ipc call session toggle"))
 
 -- Reload config
 -- hl.bind(var_mainMod .. " + SHIFT + R", hl.dsp.exec_cmd("sh -c 'killall waybar; hyprctl reload; waybar & notify-send \"Hyprland\" \"Reloaded ✨\"'"))

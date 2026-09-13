@@ -2,7 +2,7 @@
 
 An opinionated Hyprland desktop built around a **dynamic island**: one pill at the top of the
 screen that shows the time, grows into a control center on hover, and morphs into the app
-launcher, clipboard history, wallpaper switcher and theme switcher.
+launcher, clipboard history, wallpaper switcher, theme switcher and power menu.
 
 Everything lives in this repository and is symlinked into `~/.config`.
 
@@ -30,6 +30,7 @@ quick-shell/
 | **Clipboard** | cliphist history with text and image previews, search, filters, delete |
 | **Wallpapers** | Thumbnail grid of your wallpaper folders, applied with awww |
 | **Themes** | Nine color schemes that restyle Quickshell, Hyprland borders, kitty, NvChad, VS Code, hyprlock and the wallpaper |
+| **Power menu** | Lock, logout, suspend, hibernate, reboot, shutdown with letter keys; logout/reboot/shutdown ask for a second press |
 | **Screenshots** | Frozen-screen region / window / full-screen capture, saved and copied, with a draggable preview |
 
 ---
@@ -46,6 +47,7 @@ quick-shell/
 | `Super + V` | Clipboard history |
 | `Super + Shift + 3` | Screenshot (full screen) |
 | `Super + Shift + 4` | Screenshot (region) |
+| `mod + X` | Power menu (L lock · E logout · S suspend · H hibernate · R reboot · P shutdown) |
 | `mod + Shift + ;` | Lock screen |
 | Hover the island | Control center |
 
@@ -236,6 +238,7 @@ quickshell/
 │   ├── Clipboard.qml          cliphist
 │   ├── Notifications.qml      notification server, popups, history, Do Not Disturb
 │   ├── Screenshot.qml         grim freeze → ImageMagick crop → wl-copy
+│   ├── Session.qml            power actions and logind capabilities, uptime
 │   ├── ShellState.qml         which island view is open
 │   ├── ThemeManager.qml       lists themes, applies them, theme thumbnails
 │   ├── Wallpaper.qml          awww, wallpaper folders, thumbnails, hyprlock path
@@ -251,7 +254,7 @@ quickshell/
     ├── island/                island window, idle row, volume/brightness OSD
     ├── controlcenter/         grid, tiles/, controls/, wifi/, bluetooth/, notifications/
     ├── notifications/         notification card + popup stack
-    ├── launcher/  clipboard/  wallpaper/  themes/
+    ├── launcher/  clipboard/  wallpaper/  themes/  power/
     └── screenshot/            overlay + floating preview
 ```
 
@@ -276,10 +279,12 @@ qs ipc call theme      toggle|open|close|list|current
 qs ipc call theme      apply gruvbox-material
 qs ipc call screenshot region|window|screen|cancel
 qs ipc call notifications toggleDnd|dnd|clear|count
+qs ipc call session    toggle|open|close|lock
 ```
 
 The same actions are registered as Hyprland global shortcuts named `quickshell:launcher`,
-`quickshell:clipboard`, `quickshell:wallpaper`, `quickshell:themes` and `quickshell:screenshot`.
+`quickshell:clipboard`, `quickshell:wallpaper`, `quickshell:themes`, `quickshell:power` and
+`quickshell:screenshot`.
 
 ---
 
@@ -292,6 +297,7 @@ The same actions are registered as Hyprland global shortcuts named `quickshell:l
 | Always-visible workspaces | `persistentCount` in `quickshell/modules/bar/Workspaces.qml` |
 | Default theme on first run | `defaultTheme` in `quickshell/services/ThemeManager.qml` |
 | VS Code settings path | `vscodeSettings` in `quickshell/services/ThemeManager.qml` |
+| Power menu actions and commands | `actions` / `commands` in `quickshell/services/Session.qml` |
 | Popup timeout, history size, max popups | `defaultTimeout`, `maxHistory`, `maxPopups` in `quickshell/services/Notifications.qml` |
 | Screenshot folder | `saveDir` in `quickshell/services/Screenshot.qml` (default `~/Pictures/Screenshots`) |
 | Icon theme | first line of `quickshell/shell.qml` (`//@ pragma IconTheme breeze-dark`) |
