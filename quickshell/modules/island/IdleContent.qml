@@ -46,4 +46,13 @@ Row {
         boltStroke: Theme.islandBg
         charging: Battery.charging
     }
+
+    Rectangle {
+        anchors.verticalCenter: parent.verticalCenter
+        width: 7
+        height: 7
+        radius: 3.5
+        color: Theme.accent
+        visible: Notifications.unread > 0 && !Notifications.dnd
+    }
 }

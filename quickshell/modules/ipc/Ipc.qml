@@ -38,6 +38,14 @@ Scope {
     }
 
     IpcHandler {
+        target: "notifications"
+        function toggleDnd(): void { Notifications.dnd = !Notifications.dnd; }
+        function dnd(): bool { return Notifications.dnd; }
+        function clear(): void { Notifications.clearAll(); }
+        function count(): int { return Notifications.count; }
+    }
+
+    IpcHandler {
         target: "screenshot"
         function region(): void { Screenshot.start("region"); }
         function window(): void { Screenshot.start("window"); }

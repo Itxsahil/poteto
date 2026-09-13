@@ -20,10 +20,11 @@ quick-shell/
 | | |
 |---|---|
 | **Island (idle)** | Wi-Fi strength · 12-hour clock · battery, colored by level |
-| **Control center** (hover the island) | Clock, battery with health, calendar, Wi-Fi and Bluetooth tiles, brightness and volume sliders |
+| **Control center** (hover the island) | Clock, battery with health, calendar, Wi-Fi, Bluetooth and Notifications tiles, brightness and volume sliders |
 | **Wi-Fi page** | Scan, connect (with password), disconnect, forget |
 | **Bluetooth page** | Scan, pair + connect, disconnect, forget, device battery |
 | **OSD** | Volume / brightness keys briefly turn the island into a level bar |
+| **Notifications** | Popups under the island with icons, images, actions and markup; history page and Do Not Disturb in the control center; unread dot in the island |
 | **Workspaces** | Separate pill top-left: click to switch, scroll to cycle |
 | **Launcher** | Fuzzy app search, terminal apps open in kitty, built-in calculator |
 | **Clipboard** | cliphist history with text and image previews, search, filters, delete |
@@ -71,6 +72,9 @@ sudo pacman -S quickshell hyprland hyprlock awww kitty neovim \
 - **NvChad** (base46 themes) and **VS Code** (`code` on `PATH`) are optional; themes skip them if
   they are missing.
 - `inter-font` is optional; without it the shell falls back to the default sans-serif font.
+- **No other notification daemon** may run (dunst, mako, swaync). Quickshell registers
+  `org.freedesktop.Notifications` itself. If dunst is installed, mask it so D-Bus cannot start it:
+  `systemctl --user mask --now dunst.service`.
 
 ---
 
@@ -230,6 +234,7 @@ quickshell/
 │   ├── BluetoothManager.qml   Quickshell.Bluetooth (BlueZ)
 │   ├── Brightness.qml         brightnessctl + udev backlight events
 │   ├── Clipboard.qml          cliphist
+│   ├── Notifications.qml      notification server, popups, history, Do Not Disturb
 │   ├── Screenshot.qml         grim freeze → ImageMagick crop → wl-copy
 │   ├── ShellState.qml         which island view is open
 │   ├── ThemeManager.qml       lists themes, applies them, theme thumbnails
@@ -239,12 +244,13 @@ quickshell/
 │   └── Calc.js                safe expression parser for the launcher
 ├── components/                reusable UI
 │   ├── CircleButton  ControlSlider  PillButton  Spinner  Tile  Toggle
-│   └── icons/                 Battery, Bluetooth, Check, Speaker, Sun, Wifi
+│   └── icons/                 Battery, Bell, Bluetooth, Check, Speaker, Sun, Wifi
 └── modules/                   one folder per feature
     ├── ipc/Ipc.qml            every `qs ipc` target and global shortcut
     ├── bar/                   workspace pill
     ├── island/                island window, idle row, volume/brightness OSD
-    ├── controlcenter/         grid, tiles/, controls/, wifi/, bluetooth/
+    ├── controlcenter/         grid, tiles/, controls/, wifi/, bluetooth/, notifications/
+    ├── notifications/         notification card + popup stack
     ├── launcher/  clipboard/  wallpaper/  themes/
     └── screenshot/            overlay + floating preview
 ```
@@ -269,6 +275,7 @@ qs ipc call wallpaper  toggle|open|close|random
 qs ipc call theme      toggle|open|close|list|current
 qs ipc call theme      apply gruvbox-material
 qs ipc call screenshot region|window|screen|cancel
+qs ipc call notifications toggleDnd|dnd|clear|count
 ```
 
 The same actions are registered as Hyprland global shortcuts named `quickshell:launcher`,
@@ -285,6 +292,7 @@ The same actions are registered as Hyprland global shortcuts named `quickshell:l
 | Always-visible workspaces | `persistentCount` in `quickshell/modules/bar/Workspaces.qml` |
 | Default theme on first run | `defaultTheme` in `quickshell/services/ThemeManager.qml` |
 | VS Code settings path | `vscodeSettings` in `quickshell/services/ThemeManager.qml` |
+| Popup timeout, history size, max popups | `defaultTimeout`, `maxHistory`, `maxPopups` in `quickshell/services/Notifications.qml` |
 | Screenshot folder | `saveDir` in `quickshell/services/Screenshot.qml` (default `~/Pictures/Screenshots`) |
 | Icon theme | first line of `quickshell/shell.qml` (`//@ pragma IconTheme breeze-dark`) |
 | Fonts | `fontFamily` in `quickshell/config/Theme.qml` |
@@ -321,4 +329,6 @@ All of them can be deleted safely; they are rebuilt on demand.
   that ask you to confirm a code need `bluetoothctl` once.
 - The Wi-Fi password is passed to `nmcli` as an argument, so it is briefly visible in the process list.
 - Screenshots capture only the focused monitor.
+- Notification history lives in memory: it survives shell reloads but not a restart or logout.
+  Inline replies are not supported.
 - osaka-jade and solitude have no real NvChad or VS Code counterpart; the closest themes are used.

@@ -5,6 +5,7 @@ import qs.modules.ipc
 import qs.modules.bar
 import qs.modules.island
 import qs.modules.screenshot
+import qs.modules.notifications
 
 ShellRoot {
     Ipc {}
@@ -29,6 +30,10 @@ ShellRoot {
             }
 
             ScreenshotPreview {
+                targetScreen: screenScope.modelData
+            }
+
+            NotificationPopups {
                 targetScreen: screenScope.modelData
             }
         }

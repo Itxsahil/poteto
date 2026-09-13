@@ -4,6 +4,7 @@ import qs.modules.controlcenter.tiles
 import qs.modules.controlcenter.controls
 import qs.modules.controlcenter.wifi
 import qs.modules.controlcenter.bluetooth
+import qs.modules.controlcenter.notifications
 
 Item {
     id: root
@@ -21,6 +22,7 @@ Item {
         calendar.reset();
         wifiPage.reset();
         bluetoothPage.reset();
+        notificationsPage.reset();
     }
 
     implicitWidth: colWidth * 2 + gap
@@ -34,6 +36,8 @@ Item {
             BluetoothManager.startScan();
         else
             BluetoothManager.stopScan();
+        if (page === "notifications")
+            Notifications.markRead();
     }
 
     component Page: Item {
@@ -98,6 +102,12 @@ Item {
             }
         }
 
+        NotificationsTile {
+            width: parent.width
+            height: 64
+            onOpenRequested: root.page = "notifications"
+        }
+
         BrightnessSlider {
             id: brightness
             width: parent.width
@@ -114,6 +124,16 @@ Item {
 
         WifiPage {
             id: wifiPage
+            anchors.fill: parent
+            onBackRequested: root.page = ""
+        }
+    }
+
+    Page {
+        name: "notifications"
+
+        NotificationsPage {
+            id: notificationsPage
             anchors.fill: parent
             onBackRequested: root.page = ""
         }
