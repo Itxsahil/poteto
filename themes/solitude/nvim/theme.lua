@@ -1,1 +1,1 @@
-return "tomorrow_night"
+return "monochrome"
