@@ -31,7 +31,14 @@ Tile {
     }
 
     WheelHandler {
-        onWheel: event => root.shift(event.angleDelta.y > 0 ? -1 : 1)
+        property real accumulated: 0
+        onWheel: event => {
+            accumulated += event.angleDelta.y;
+            while (Math.abs(accumulated) >= 120) {
+                root.shift(accumulated > 0 ? -1 : 1);
+                accumulated -= Math.sign(accumulated) * 120;
+            }
+        }
     }
 
     Column {

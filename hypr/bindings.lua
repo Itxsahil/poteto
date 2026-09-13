@@ -153,12 +153,13 @@ hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("playerctl previous"), { locked = true 
 --)
 hl.bind( "SUPER + SHIFT + 3" ,hl.dsp.exec_cmd("qs ipc call screenshot screen"))
 -- Region screenshot
-hl.bind(
-    "SUPER + SHIFT + 4",
-    hl.dsp.exec_cmd(
-        "sh -c 'file=\"$HOME/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png\" && geometry=\"$(slurp)\" && [ -n \"$geometry\" ] && grim -g \"$geometry\" \"$file\" && \"$HOME/.config/hypr/scripts/screenshot-preview.py\" \"$file\" &'"
-    )
-)
+-- hl.bind(
+--     "SUPER + SHIFT + 4",
+--     hl.dsp.exec_cmd(
+--         "sh -c 'file=\"$HOME/Pictures/Screenshots/$(date +%Y-%m-%d_%H-%M-%S).png\" && geometry=\"$(slurp)\" && [ -n \"$geometry\" ] && grim -g \"$geometry\" \"$file\" && \"$HOME/.config/hypr/scripts/screenshot-preview.py\" \"$file\" &'"
+--     )
+-- )
+hl.bind("SUPER + SHIFT + 4", hl.dsp.exec_cmd("qs ipc call screenshot region"))
 
 -- -----------------------------------------------------------------------------
 -- CLIPBOARD (matches your existing config)

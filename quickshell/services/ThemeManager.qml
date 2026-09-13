@@ -19,6 +19,8 @@ Singleton {
     property bool applying: false
     property string pending: ""
     property int thumbsVersion: 0
+    property var thumbAttempted: ({})
+    readonly property string defaultTheme: "gruvbox-material"
 
     signal applied(string id, bool ok)
 
@@ -52,6 +54,8 @@ Singleton {
                     const id = root.pending;
                     root.pending = "";
                     root.apply(id);
+                } else if (!root.current) {
+                    root.apply(root.defaultTheme);
                 }
             }
         }
@@ -95,8 +99,10 @@ Singleton {
                             thumb: wallpaper ? thumb : "",
                             hasThumb: fresh === "1"
                         });
-                        if (wallpaper && fresh !== "1")
+                        if (wallpaper && fresh !== "1" && !root.thumbAttempted[wallpaper]) {
                             missing.push(wallpaper, thumb);
+                            root.thumbAttempted[wallpaper] = true;
+                        }
                     } catch (e) {
                         console.warn("ThemeManager: invalid colors.json in", id);
                     }
@@ -116,8 +122,8 @@ Singleton {
     Process {
         id: thumbProc
         onExited: {
-            root.themes = root.themes.map(t => Object.assign({}, t, { hasThumb: t.thumb !== "" }));
             root.thumbsVersion++;
+            root.refresh();
         }
     }
 
@@ -130,19 +136,22 @@ Singleton {
             [ -f "$theme/quickshell/colors.json" ] || { echo "no theme named $2" >&2; exit 1; }
             mkdir -p "$links"
 
-            ln -sfn "$theme"                           "$links/current"
-            ln -sfn "$theme/quickshell/colors.json"    "$links/colors.json"
-            ln -sfn "$theme/kitty/$2.conf"             "$links/kitty.conf"
-            ln -sfn "$theme/hyprlock/colors.conf"      "$links/hyprlock.conf"
-            ln -sfn "$theme/nvim/theme.lua"            "$links/nvim.lua"
+            link() { if [ -e "$1" ]; then ln -sfn "$1" "$2"; else rm -f "$2"; fi; }
+            ln -sfn "$theme" "$links/current"
+            link "$theme/quickshell/colors.json" "$links/colors.json"
+            link "$theme/kitty/$2.conf"          "$links/kitty.conf"
+            link "$theme/hyprlock/colors.conf"   "$links/hyprlock.conf"
+            link "$theme/nvim/theme.lua"         "$links/nvim.lua"
 
             pkill -USR1 -x kitty || true
 
-            nvtheme=$(sed -n 's/^return "\\(.*\\)"$/\\1/p' "$theme/nvim/theme.lua")
-            for sock in "\${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"/nvim.*; do
-                [ -S "$sock" ] || continue
-                nvim --server "$sock" --remote-expr "execute('lua require(\\"nvconfig\\").base46.theme = \\"$nvtheme\\"; require(\\"base46\\").load_all_highlights()')" >/dev/null 2>&1 || true
-            done
+            if [ -f "$theme/nvim/theme.lua" ]; then
+                nvtheme=$(sed -n 's/^return "\\(.*\\)"$/\\1/p' "$theme/nvim/theme.lua")
+                for sock in "\${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"/nvim.*; do
+                    [ -S "$sock" ] || continue
+                    nvim --server "$sock" --remote-expr "execute('lua require(\\"nvconfig\\").base46.theme = \\"$nvtheme\\"; require(\\"base46\\").load_all_highlights()')" >/dev/null 2>&1 || true
+                done
+            fi
 
             if [ -f "$vscode" ] && [ -f "$theme/vscode/theme" ]; then
                 vstheme=$(head -n1 "$theme/vscode/theme" | sed 's/[&|\\\\]/\\\\&/g')

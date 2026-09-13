@@ -25,6 +25,7 @@ Singleton {
     property bool loading: false
     property bool generating: false
     property int thumbsVersion: 0
+    property var thumbAttempted: ({})
 
     signal applied(string path)
 
@@ -98,8 +99,10 @@ Singleton {
                         folderName: folder.split("/").pop(),
                         label: root.labelFor(path)
                     });
-                    if (exists !== "1")
+                    if (exists !== "1" && !root.thumbAttempted[path]) {
                         missing.push(path, thumb);
+                        root.thumbAttempted[path] = true;
+                    }
                 }
                 root.wallpapers = list;
                 root.loading = false;
@@ -119,8 +122,8 @@ Singleton {
         id: genProc
         onExited: {
             root.generating = false;
-            root.wallpapers = root.wallpapers.map(w => Object.assign({}, w, { hasThumb: true }));
             root.thumbsVersion++;
+            root.refresh();
         }
     }
 

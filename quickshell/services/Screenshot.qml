@@ -45,6 +45,7 @@ Singleton {
         const stamp = Qt.formatDateTime(new Date(), "yyyy-MM-dd_HH-mm-ss");
         const out = `${saveDir}/${stamp}.png`;
         cropProc.out = out;
+        cropProc.frozen = frozenPath;
         cropProc.command = ["sh", "-c",
             'mkdir -p "$1" && magick "$2" -crop "$3" +repage "$4" && wl-copy --type image/png < "$4"',
             "sh", saveDir, frozenPath, geom, out];
@@ -57,8 +58,17 @@ Singleton {
         property var monitor: null
         stdout: StdioCollector {
             onStreamFinished: {
-                const mons = JSON.parse(text);
+                let mons = [];
+                try {
+                    mons = JSON.parse(text);
+                } catch (e) {
+                    console.warn("Screenshot: could not read monitors from hyprctl");
+                }
                 const m = mons.find(x => x.focused) ?? mons[0];
+                if (!m) {
+                    root.busy = false;
+                    return;
+                }
                 monitorsProc.monitor = m;
                 root.screenName = m.name;
                 root.screenScale = m.scale;
@@ -76,6 +86,8 @@ Singleton {
         stdout: StdioCollector {
             onStreamFinished: {
                 const m = monitorsProc.monitor;
+                if (!m)
+                    return;
                 const wsIds = [m.activeWorkspace?.id, m.specialWorkspace?.id].filter(id => id);
                 root.windows = JSON.parse(text)
                     .filter(c => c.mapped && !c.hidden && wsIds.includes(c.workspace.id))
@@ -104,9 +116,10 @@ Singleton {
     Process {
         id: cropProc
         property string out: ""
+        property string frozen: ""
         onExited: code => {
-            cleanupProc.command = ["rm", "-f", root.frozenPath];
-            cleanupProc.running = true;
+            cropCleanupProc.command = ["rm", "-f", frozen];
+            cropCleanupProc.running = true;
             if (code === 0) {
                 root.lastPath = out;
                 root.captured(out);
@@ -116,5 +129,9 @@ Singleton {
 
     Process {
         id: cleanupProc
+    }
+
+    Process {
+        id: cropCleanupProc
     }
 }

@@ -75,7 +75,7 @@ PanelWindow {
         x: root.open ? root.margin : -width - root.margin
         radius: 14
         color: Theme.islandBg
-        border.color: hover.hovered ? "#55ffffff" : Theme.islandBorder
+        border.color: hover.hovered ? Qt.alpha(Theme.textPrimary, 0.35) : Theme.islandBorder
         border.width: 1
         opacity: root.open ? 1 : 0
         scale: dragArea.pressed ? 0.97 : 1
@@ -166,8 +166,8 @@ PanelWindow {
             width: 26
             height: 26
             radius: 13
-            color: cbMouse.containsMouse ? Theme.controlHover : "#e61c1c1e"
-            border.color: "#33ffffff"
+            color: cbMouse.containsMouse ? Theme.controlHover : Qt.alpha(Theme.tileBg, 0.9)
+            border.color: Qt.alpha(Theme.textPrimary, 0.2)
             border.width: 1
             opacity: hover.hovered ? 1 : 0
             scale: hover.hovered ? 1 : 0.6
@@ -253,8 +253,8 @@ PanelWindow {
             width: tipText.implicitWidth + 18
             height: 22
             radius: 11
-            color: "#e61c1c1e"
-            border.color: "#33ffffff"
+            color: Qt.alpha(Theme.tileBg, 0.9)
+            border.color: Qt.alpha(Theme.textPrimary, 0.2)
             opacity: hover.hovered && !dragArea.drag.active ? 1 : 0
             Behavior on opacity { NumberAnimation { duration: 150 } }
 

@@ -299,6 +299,7 @@ Item {
                             echoMode: showBtn.revealed ? TextInput.Normal : TextInput.Password
                             color: Theme.textPrimary
                             selectionColor: Theme.accent
+                            selectedTextColor: Theme.onAccent
                             font.pixelSize: 13
                             font.family: Theme.fontFamily
                             clip: true

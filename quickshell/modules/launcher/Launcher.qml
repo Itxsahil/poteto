@@ -136,6 +136,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             color: Theme.textPrimary
             selectionColor: Theme.accent
+            selectedTextColor: Theme.onAccent
             font.pixelSize: 16
             font.family: Theme.fontFamily
             clip: true

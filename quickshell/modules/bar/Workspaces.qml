@@ -31,7 +31,14 @@ Rectangle {
     Behavior on implicitWidth { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
 
     WheelHandler {
-        onWheel: event => Hyprland.dispatch(`hl.dsp.focus({ workspace = "${event.angleDelta.y > 0 ? "e-1" : "e+1"}" })`)
+        property real accumulated: 0
+        onWheel: event => {
+            accumulated += event.angleDelta.y;
+            if (Math.abs(accumulated) < 120)
+                return;
+            Hyprland.dispatch(`hl.dsp.focus({ workspace = "${accumulated > 0 ? "e-1" : "e+1"}" })`);
+            accumulated = 0;
+        }
     }
 
     Row {

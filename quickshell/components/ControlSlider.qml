@@ -79,7 +79,7 @@ Item {
         }
 
         WheelHandler {
-            onWheel: event => root.setValue(root.value + (event.angleDelta.y > 0 ? 0.05 : -0.05))
+            onWheel: event => root.setValue(root.value + event.angleDelta.y / 120 * 0.05)
         }
     }
 }

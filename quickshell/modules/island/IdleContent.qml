@@ -42,7 +42,7 @@ Row {
         visible: Battery.present
         level: Battery.level
         fillColor: Battery.color
-        outlineColor: "#99ffffff"
+        outlineColor: Qt.alpha(Theme.textPrimary, 0.6)
         boltStroke: Theme.islandBg
         charging: Battery.charging
     }

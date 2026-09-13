@@ -105,7 +105,7 @@ Item {
             Text {
                 visible: chip.count >= 0
                 text: chip.count
-                color: chip.selected ? "#80000000" : Theme.textSecondary
+                color: chip.selected ? Qt.alpha(Theme.wsActiveText, 0.55) : Theme.textSecondary
                 font.pixelSize: 11
                 font.family: Theme.fontFamily
             }
@@ -162,6 +162,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             color: Theme.textPrimary
             selectionColor: Theme.accent
+            selectedTextColor: Theme.onAccent
             font.pixelSize: 16
             font.family: Theme.fontFamily
             clip: true
@@ -385,7 +386,7 @@ Item {
                             anchors.right: parent.right
                             anchors.bottom: parent.bottom
                             height: 30
-                            color: "#b3000000"
+                            color: Qt.alpha(Theme.islandBg, 0.8)
                             opacity: cell.isSelected ? 1 : 0
                             Behavior on opacity { NumberAnimation { duration: 140 } }
 

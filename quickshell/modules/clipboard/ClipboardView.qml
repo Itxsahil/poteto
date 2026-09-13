@@ -80,6 +80,10 @@ Item {
         onTriggered: {
             if (!root.current || root.current.isImage)
                 return;
+            if (decodeProc.running) {
+                restart();
+                return;
+            }
             decodeProc.entryId = root.current.id;
             decodeProc.command = ["sh", "-c", 'printf "%s\\t%s\\n" "$1" "$2" | cliphist decode | head -c 20000', "sh", root.current.id, root.current.raw];
             decodeProc.running = true;
@@ -170,6 +174,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             color: Theme.textPrimary
             selectionColor: Theme.accent
+            selectedTextColor: Theme.onAccent
             font.pixelSize: 16
             font.family: Theme.fontFamily
             clip: true
@@ -283,7 +288,7 @@ Item {
                 width: ListView.view.width
                 height: modelData.isImage ? 64 : 44
                 radius: 12
-                color: isSelected ? Theme.tileHover : rowMouse.containsMouse ? "#121214" : "transparent"
+                color: isSelected ? Theme.tileHover : rowMouse.containsMouse ? Qt.alpha(Theme.tileHover, 0.5) : "transparent"
                 Behavior on color { ColorAnimation { duration: 90 } }
 
                 Rectangle {
