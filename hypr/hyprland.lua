@@ -39,6 +39,12 @@ hl.config({
     },
 })
 
+-- Border colors come from the active theme (~/.cache/quickshell/theme/hyprland.lua → themes/<id>/hyprland/colors.lua)
+local theme_ok, theme = pcall(dofile, os.getenv("HOME") .. "/.cache/quickshell/theme/hyprland.lua")
+if not theme_ok or type(theme) ~= "table" then
+    theme = {}
+end
+
 -- General settings (matches your config)
 hl.config({
     general = {
@@ -46,8 +52,8 @@ hl.config({
         gaps_out = 12,
         border_size = 1,
         col = {
-            active_border = "rgba(cba6f7ff)",
-            inactive_border = "rgba(585b70aa)",
+            active_border = theme.active_border or "rgba(cba6f7ff)",
+            inactive_border = theme.inactive_border or "rgba(585b70aa)",
         },
         resize_on_border = true,
         allow_tearing = false,

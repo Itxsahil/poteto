@@ -142,8 +142,10 @@ Singleton {
             link "$theme/kitty/$2.conf"          "$links/kitty.conf"
             link "$theme/hyprlock/colors.conf"   "$links/hyprlock.conf"
             link "$theme/nvim/theme.lua"         "$links/nvim.lua"
+            link "$theme/hyprland/colors.lua"    "$links/hyprland.lua"
 
             pkill -USR1 -x kitty || true
+            hyprctl reload >/dev/null 2>&1 || true
 
             if [ -f "$theme/nvim/theme.lua" ]; then
                 nvtheme=$(sed -n 's/^return "\\(.*\\)"$/\\1/p' "$theme/nvim/theme.lua")

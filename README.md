@@ -28,7 +28,7 @@ quick-shell/
 | **Launcher** | Fuzzy app search, terminal apps open in kitty, built-in calculator |
 | **Clipboard** | cliphist history with text and image previews, search, filters, delete |
 | **Wallpapers** | Thumbnail grid of your wallpaper folders, applied with awww |
-| **Themes** | Nine color schemes that restyle Quickshell, kitty, NvChad, VS Code, hyprlock and the wallpaper |
+| **Themes** | Nine color schemes that restyle Quickshell, Hyprland borders, kitty, NvChad, VS Code, hyprlock and the wallpaper |
 | **Screenshots** | Frozen-screen region / window / full-screen capture, saved and copied, with a draggable preview |
 
 ---
@@ -127,6 +127,9 @@ M.base46 = {
 }
 ```
 
+**Hyprland borders**: already done. `hypr/hyprland.lua` reads `active_border` and
+`inactive_border` from `~/.cache/quickshell/theme/hyprland.lua`, falling back to fixed colors.
+
 **hyprlock**: already done. `hypr/hyprlock.conf` starts with
 `source = ~/.cache/quickshell/theme/hyprlock.conf` and uses `$accent`, `$surface`, `$text`,
 `$time`, `$date`, `$warning` and `$danger`.
@@ -146,6 +149,7 @@ Each theme is a folder of ready-made files. Nothing is generated; switching only
 ```
 themes/everforest-dark/
 ├── kitty/everforest-dark.conf   kitty colors (file name must match the folder name)
+├── hyprland/colors.lua          return { active_border = "rgba(…ff)", inactive_border = "rgba(…aa)" }
 ├── hyprlock/colors.conf         $accent, $surface, $text, $time, $date, $warning, $danger
 ├── quickshell/colors.json       shell colors (see below)
 ├── nvim/theme.lua               return "everforest"     (NvChad base46 theme name)
@@ -155,8 +159,8 @@ themes/everforest-dark/
 
 Switching a theme (`mod + T`, or `qs ipc call theme apply <id>`):
 
-1. links `colors.json`, `kitty.conf`, `hyprlock.conf`, `nvim.lua` and `current` into `~/.cache/quickshell/theme/`
-2. reloads every open kitty window (`SIGUSR1`)
+1. links `colors.json`, `kitty.conf`, `hyprland.lua`, `hyprlock.conf`, `nvim.lua` and `current` into `~/.cache/quickshell/theme/`
+2. reloads every open kitty window (`SIGUSR1`) and runs `hyprctl reload` for the new border colors
 3. recolors every running Neovim through its socket
 4. replaces `workbench.colorTheme` in VS Code's `settings.json`
 5. sets the theme wallpaper with awww and updates hyprlock's background path
