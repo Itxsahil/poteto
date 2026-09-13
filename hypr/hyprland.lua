@@ -12,8 +12,9 @@ var_mainMod = "ALT"
 
 -- Default applications (matches your config)
 var_terminal = "kitty"
-var_fileManager = "dolphin"
-var_menu = "wofi --show drun"
+var_fileManager = "nautilus"
+-- var_menu = "wofi --show drun"
+var_menu = "qs ipc call launcher toggle"
 
 -- Monitor configuration
 hl.monitor({

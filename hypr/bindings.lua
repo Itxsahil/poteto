@@ -6,7 +6,7 @@
 -- Variables (match your existing config)
 var_mainMod = "ALT"
 var_terminal = "kitty"
-var_fileManager = "dolphin"
+var_fileManager = "nautilus"
 -- var_menu = "rofi -show drun"
 var_menu = "qs ipc call launcher toggle"
 -- -----------------------------------------------------------------------------
