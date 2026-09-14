@@ -10,6 +10,7 @@ import qs.modules.clipboard
 import qs.modules.wallpaper
 import qs.modules.themes
 import qs.modules.power
+import qs.modules.emoji
 
 PanelWindow {
     id: root
@@ -60,6 +61,7 @@ PanelWindow {
             : view === "wallpaper" ? wallpaperView
             : view === "themes" ? themeView
             : view === "power" ? powerView
+            : view === "emoji" ? emojiView
             : null
         readonly property bool showPanel: expanded && !viewOpen
         readonly property bool showOsd: osd.osdVisible && !showPanel && !viewOpen
@@ -182,6 +184,18 @@ PanelWindow {
             anchors.topMargin: 12
             anchors.horizontalCenter: parent.horizontalCenter
             active: pill.view === "clipboard"
+            opacity: active ? 1 : 0
+            visible: opacity > 0
+            Behavior on opacity { NumberAnimation { duration: 200 } }
+            onCloseRequested: ShellState.close()
+        }
+
+        EmojiView {
+            id: emojiView
+            anchors.top: parent.top
+            anchors.topMargin: 12
+            anchors.horizontalCenter: parent.horizontalCenter
+            active: pill.view === "emoji"
             opacity: active ? 1 : 0
             visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: 200 } }

@@ -46,6 +46,13 @@ Scope {
     }
 
     IpcHandler {
+        target: "emoji"
+        function toggle(): void { ShellState.toggle("emoji"); }
+        function open(): void { ShellState.open("emoji"); }
+        function close(): void { ShellState.close("emoji"); }
+    }
+
+    IpcHandler {
         target: "mpd"
         function toggle(): void { Mpd.toggle(); }
         function next(): void { Mpd.next(); }
@@ -91,6 +98,12 @@ Scope {
         name: "themes"
         description: "Toggle theme switcher"
         onPressed: ShellState.toggle("themes")
+    }
+
+    GlobalShortcut {
+        name: "emoji"
+        description: "Toggle emoji picker"
+        onPressed: ShellState.toggle("emoji")
     }
 
     GlobalShortcut {

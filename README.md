@@ -2,7 +2,7 @@
 
 An opinionated Hyprland desktop built around a **dynamic island**: one pill at the top of the
 screen that shows the time, grows into a control center on hover, and morphs into the app
-launcher, clipboard history, wallpaper switcher, theme switcher and power menu.
+launcher, clipboard history, emoji picker, wallpaper switcher, theme switcher and power menu.
 
 Everything lives in this repository and is symlinked into `~/.config`.
 
@@ -28,6 +28,7 @@ poteto/
 | **Workspaces** | Separate pill top-left: click to switch, scroll to cycle |
 | **Status pill** | Top-right: MPD track with a live cava visualizer (click play/pause, right click next, middle click previous) and the date |
 | **Launcher** | Fuzzy app search, terminal apps open in kitty, built-in calculator |
+| **Emoji picker** | 1,900 emoji (Unicode 17) in 9 categories plus recently used, search by name, Enter to copy |
 | **Clipboard** | cliphist history with text and image previews, search, filters, delete |
 | **Wallpapers** | Thumbnail grid of your wallpaper folders, applied with awww |
 | **Themes** | Nine color schemes that restyle Quickshell, Hyprland borders, kitty, NvChad, VS Code, rmpc, hyprlock and the wallpaper |
@@ -46,6 +47,7 @@ poteto/
 | `mod + W` | Wallpaper switcher |
 | `mod + T` | Theme switcher |
 | `Super + V` | Clipboard history |
+| `Super + .` | Emoji picker |
 | `Super + Shift + 3` | Screenshot (full screen) |
 | `Super + Shift + 4` | Screenshot (region) |
 | `mod + X` | Power menu (L lock · E logout · S suspend · H hibernate · R reboot · P shutdown) |
@@ -65,7 +67,7 @@ Arch packages:
 sudo pacman -S quickshell hyprland hyprlock awww kitty neovim \
   networkmanager bluez bluez-utils wireplumber upower brightnessctl \
   cliphist wl-clipboard grim imagemagick glib2 xdg-utils libnotify playerctl mpd cava \
-  breeze-icons ttf-jetbrains-mono-nerd inter-font
+  breeze-icons ttf-jetbrains-mono-nerd noto-fonts-emoji inter-font
 ```
 
 - **Quickshell 0.3+** is required: the code uses `import qs.*` modules and the built-in Bluetooth,
@@ -259,6 +261,7 @@ quickshell/
 │   ├── BluetoothManager.qml   Quickshell.Bluetooth (BlueZ)
 │   ├── Brightness.qml         brightnessctl + udev backlight events
 │   ├── Cava.qml               cava on the MPD fifo, only while MPD is playing
+│   ├── Emoji.qml              emoji search and recently used (~/.cache/quickshell/emoji-recent.json)
 │   ├── Clipboard.qml          cliphist
 │   ├── Mpd.qml                MPD protocol client (idle events, play/pause/next/previous)
 │   ├── Notifications.qml      notification server, popups, history, Do Not Disturb
@@ -268,6 +271,8 @@ quickshell/
 │   ├── ThemeManager.qml       lists themes, applies them, theme thumbnails
 │   ├── Wallpaper.qml          awww, wallpaper folders, thumbnails, hyprlock path
 │   └── Wifi.qml               nmcli
+├── assets/
+│   └── emoji.json             emoji, names and categories (generated from Unicode emoji-test.txt)
 ├── utils/
 │   └── Calc.js                safe expression parser for the launcher
 ├── components/                reusable UI
@@ -279,7 +284,7 @@ quickshell/
     ├── island/                island window, idle row, volume/brightness OSD
     ├── controlcenter/         grid, tiles/, controls/, wifi/, bluetooth/, notifications/
     ├── notifications/         notification card + popup stack
-    ├── launcher/  clipboard/  wallpaper/  themes/  power/
+    ├── launcher/  clipboard/  emoji/  wallpaper/  themes/  power/
     └── screenshot/            overlay + floating preview
 ```
 
@@ -299,6 +304,7 @@ qs ipc show                               # list everything
 
 qs ipc call launcher   toggle|open|close
 qs ipc call clipboard  toggle|open|close
+qs ipc call emoji      toggle|open|close
 qs ipc call wallpaper  toggle|open|close|random
 qs ipc call theme      toggle|open|close|list|current
 qs ipc call theme      apply gruvbox-material
