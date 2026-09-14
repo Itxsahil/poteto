@@ -1,4 +1,4 @@
-# quick-shell
+# poteto
 
 An opinionated Hyprland desktop built around a **dynamic island**: one pill at the top of the
 screen that shows the time, grows into a control center on hover, and morphs into the app
@@ -7,7 +7,7 @@ launcher, clipboard history, wallpaper switcher, theme switcher and power menu.
 Everything lives in this repository and is symlinked into `~/.config`.
 
 ```
-quick-shell/
+poteto/
 ├── quickshell/   the shell (Quickshell / QML)          → ~/.config/quickshell
 ├── hypr/         Hyprland, keybinds, hyprlock          → ~/.config/hypr
 └── themes/       color schemes + default wallpapers
@@ -83,8 +83,8 @@ sudo pacman -S quickshell hyprland hyprlock awww kitty neovim \
 ## Installation
 
 ```sh
-git clone <this repo> ~/Templates/quick-shell
-cd ~/Templates/quick-shell
+git clone <this repo> ~/Templates/poteto
+cd ~/Templates/poteto
 
 # Link the configs (back up anything that is already there first)
 ln -s "$PWD/quickshell" ~/.config/quickshell
