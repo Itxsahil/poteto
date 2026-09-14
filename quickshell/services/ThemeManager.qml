@@ -143,9 +143,15 @@ Singleton {
             link "$theme/hyprlock/colors.conf"   "$links/hyprlock.conf"
             link "$theme/nvim/theme.lua"         "$links/nvim.lua"
             link "$theme/hyprland/colors.lua"    "$links/hyprland.lua"
+            link "$theme/rmpc/theme.ron"         "$links/rmpc.ron"
 
             pkill -USR1 -x kitty || true
             hyprctl reload >/dev/null 2>&1 || true
+            if [ -e "$links/rmpc.ron" ] && command -v rmpc >/dev/null; then
+                for pid in $(pgrep -x rmpc); do
+                    rmpc remote --pid "$pid" set theme "$links/rmpc.ron" >/dev/null 2>&1 || true
+                done
+            fi
 
             if [ -f "$theme/nvim/theme.lua" ]; then
                 nvtheme=$(sed -n 's/^return "\\(.*\\)"$/\\1/p' "$theme/nvim/theme.lua")
