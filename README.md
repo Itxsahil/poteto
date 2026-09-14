@@ -26,10 +26,11 @@ poteto/
 | **OSD** | Volume / brightness keys briefly turn the island into a level bar |
 | **Notifications** | Popups under the island with icons, images, actions and markup; history page and Do Not Disturb in the control center; unread dot in the island |
 | **Workspaces** | Separate pill top-left: click to switch, scroll to cycle |
+| **Status pill** | Top-right: MPD track with a live cava visualizer (click play/pause, right click next, middle click previous) and the date |
 | **Launcher** | Fuzzy app search, terminal apps open in kitty, built-in calculator |
 | **Clipboard** | cliphist history with text and image previews, search, filters, delete |
 | **Wallpapers** | Thumbnail grid of your wallpaper folders, applied with awww |
-| **Themes** | Nine color schemes that restyle Quickshell, Hyprland borders, kitty, NvChad, VS Code, hyprlock and the wallpaper |
+| **Themes** | Nine color schemes that restyle Quickshell, Hyprland borders, kitty, NvChad, VS Code, rmpc, hyprlock and the wallpaper |
 | **Power menu** | Lock, logout, suspend, hibernate, reboot, shutdown with letter keys; logout/reboot/shutdown ask for a second press |
 | **Screenshots** | Frozen-screen region / window / full-screen capture, saved and copied, with a draggable preview |
 
@@ -63,7 +64,7 @@ Arch packages:
 ```sh
 sudo pacman -S quickshell hyprland hyprlock awww kitty neovim \
   networkmanager bluez bluez-utils wireplumber upower brightnessctl \
-  cliphist wl-clipboard grim imagemagick glib2 xdg-utils libnotify playerctl \
+  cliphist wl-clipboard grim imagemagick glib2 xdg-utils libnotify playerctl mpd cava \
   breeze-icons ttf-jetbrains-mono-nerd inter-font
 ```
 
@@ -74,6 +75,17 @@ sudo pacman -S quickshell hyprland hyprlock awww kitty neovim \
 - **NvChad** (base46 themes) and **VS Code** (`code` on `PATH`) are optional; themes skip them if
   they are missing.
 - `inter-font` is optional; without it the shell falls back to the default sans-serif font.
+- **MPD + cava** are optional. The shell talks to MPD on `127.0.0.1:6600` (or `MPD_HOST` / `MPD_PORT`).
+  The visualizer needs a fifo output in `mpd.conf`:
+
+  ```conf
+  audio_output {
+      type   "fifo"
+      name   "Visualizer feed"
+      path   "/tmp/mpd.fifo"
+      format "44100:16:2"
+  }
+  ```
 - **No other notification daemon** may run (dunst, mako, swaync). Quickshell registers
   `org.freedesktop.Notifications` itself. If dunst is installed, mask it so D-Bus cannot start it:
   `systemctl --user mask --now dunst.service`.
@@ -133,6 +145,16 @@ M.base46 = {
 }
 ```
 
+**rmpc**: link the active theme into rmpc's theme folder and select it in `~/.config/rmpc/config.ron`:
+
+```sh
+ln -s ~/.cache/quickshell/theme/rmpc.ron ~/.config/rmpc/themes/quickshell.ron
+```
+
+```ron
+theme: Some("quickshell"),
+```
+
 **Hyprland borders**: already done. `hypr/hyprland.lua` reads `active_border` and
 `inactive_border` from `~/.cache/quickshell/theme/hyprland.lua`, falling back to fixed colors.
 
@@ -159,14 +181,15 @@ themes/everforest-dark/
 ├── hyprlock/colors.conf         $accent, $surface, $text, $time, $date, $warning, $danger
 ├── quickshell/colors.json       shell colors (see below)
 ├── nvim/theme.lua               return "everforest"     (NvChad base46 theme name)
+├── rmpc/theme.ron               rmpc theme
 ├── vscode/theme                 Everforest Night Medium  (exact VS Code theme label)
 └── wallpaper/wall.jpg           default wallpaper (.jpg / .png / .webp)
 ```
 
 Switching a theme (`mod + T`, or `qs ipc call theme apply <id>`):
 
-1. links `colors.json`, `kitty.conf`, `hyprland.lua`, `hyprlock.conf`, `nvim.lua` and `current` into `~/.cache/quickshell/theme/`
-2. reloads every open kitty window (`SIGUSR1`) and runs `hyprctl reload` for the new border colors
+1. links `colors.json`, `kitty.conf`, `hyprland.lua`, `hyprlock.conf`, `nvim.lua`, `rmpc.ron` and `current` into `~/.cache/quickshell/theme/`
+2. reloads every open kitty window (`SIGUSR1`), runs `hyprctl reload` for the new border colors, and sends the new theme to every running rmpc (`rmpc remote --pid … set theme`)
 3. recolors every running Neovim through its socket
 4. replaces `workbench.colorTheme` in VS Code's `settings.json`
 5. sets the theme wallpaper with awww and updates hyprlock's background path
@@ -176,11 +199,11 @@ Switching a theme (`mod + T`, or `qs ipc call theme apply <id>`):
 | catppuccin-latte | catppuccin-latte | Catppuccin Latte (`catppuccin.catppuccin-vsc`) |
 | catppuccin-macchiato | catppuccin | Catppuccin Macchiato (`catppuccin.catppuccin-vsc`) |
 | dracula | chadracula | Dracula Theme (`dracula-theme.theme-dracula`) |
-| everforest-dark | everforest | Everforest Night Medium (`jarith.everforest-night-vscode`) |
-| gruvbox-material | gruvbox-material | Gruvbox Material Dark (`sainnhe.gruvbox-material`) |
-| osaka-jade | gruvchad *(closest)* | Everforest Night Hard *(closest)* |
-| rose-pine | rosepine | Rosé Pine (`mvllow.rose-pine`) |
-| solitude | tomorrow_night *(closest)* | Default Dark Modern (built in) |
+| everforest-dark | everforest | Everforest Night Hard (`jarith.everforest-night-vscode`) |
+| gruvbox-material | gruvbox-material | Gruvbox Dark Hard (`jdinhlife.gruvbox`) |
+| osaka-jade | scaryforest | Ocean Green: Dark (`jovejonovski.ocean-green`) |
+| rose-pine | rosepine | Rosé Pine Moon (`mvllow.rose-pine`) |
+| solitude | monochrome | Noctokai (`farigab.noctokai-theme`) |
 | tokyo-night-storm | tokyonight | Tokyo Night Storm (`enkia.tokyo-night`) |
 
 ### `quickshell/colors.json`
@@ -235,7 +258,9 @@ quickshell/
 │   ├── Battery.qml            UPower
 │   ├── BluetoothManager.qml   Quickshell.Bluetooth (BlueZ)
 │   ├── Brightness.qml         brightnessctl + udev backlight events
+│   ├── Cava.qml               cava on the MPD fifo, only while MPD is playing
 │   ├── Clipboard.qml          cliphist
+│   ├── Mpd.qml                MPD protocol client (idle events, play/pause/next/previous)
 │   ├── Notifications.qml      notification server, popups, history, Do Not Disturb
 │   ├── Screenshot.qml         grim freeze → ImageMagick crop → wl-copy
 │   ├── Session.qml            power actions and logind capabilities, uptime
@@ -250,7 +275,7 @@ quickshell/
 │   └── icons/                 Battery, Bell, Bluetooth, Check, Speaker, Sun, Wifi
 └── modules/                   one folder per feature
     ├── ipc/Ipc.qml            every `qs ipc` target and global shortcut
-    ├── bar/                   workspace pill
+    ├── bar/                   workspace pill (left), status pill with MPD and date (right)
     ├── island/                island window, idle row, volume/brightness OSD
     ├── controlcenter/         grid, tiles/, controls/, wifi/, bluetooth/, notifications/
     ├── notifications/         notification card + popup stack
@@ -280,6 +305,7 @@ qs ipc call theme      apply gruvbox-material
 qs ipc call screenshot region|window|screen|cancel
 qs ipc call notifications toggleDnd|dnd|clear|count
 qs ipc call session    toggle|open|close|lock
+qs ipc call mpd        toggle|next|previous|status
 ```
 
 The same actions are registered as Hyprland global shortcuts named `quickshell:launcher`,
@@ -337,4 +363,3 @@ All of them can be deleted safely; they are rebuilt on demand.
 - Screenshots capture only the focused monitor.
 - Notification history lives in memory: it survives shell reloads but not a restart or logout.
   Inline replies are not supported.
-- osaka-jade and solitude have no real NvChad or VS Code counterpart; the closest themes are used.

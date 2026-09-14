@@ -26,9 +26,7 @@ PanelWindow {
 
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.namespace: "dynamic-island"
-    WlrLayershell.keyboardFocus: pill.viewOpen ? WlrKeyboardFocus.Exclusive
-        : controlCenter.typing || (pill.expanded && controlCenter.page === "wifi") ? WlrKeyboardFocus.OnDemand
-        : WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: pill.viewOpen || pill.showPanel ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
     mask: Region {
         item: pill
@@ -65,6 +63,17 @@ PanelWindow {
             : null
         readonly property bool showPanel: expanded && !viewOpen
         readonly property bool showOsd: osd.osdVisible && !showPanel && !viewOpen
+
+        function collapse() {
+            closeTimer.stop();
+            expanded = false;
+            controlCenter.reset();
+        }
+
+        onShowPanelChanged: {
+            if (showPanel)
+                panelKeys.forceActiveFocus();
+        }
 
         onViewOpenChanged: {
             if (viewOpen)
@@ -111,8 +120,18 @@ PanelWindow {
                     restart();
                     return;
                 }
-                pill.expanded = false;
-                controlCenter.reset();
+                pill.collapse();
+            }
+        }
+
+        Item {
+            id: panelKeys
+            focus: pill.showPanel
+            Keys.onEscapePressed: {
+                if (controlCenter.page !== "")
+                    controlCenter.page = "";
+                else
+                    pill.collapse();
             }
         }
 

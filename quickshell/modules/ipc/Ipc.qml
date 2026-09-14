@@ -46,6 +46,14 @@ Scope {
     }
 
     IpcHandler {
+        target: "mpd"
+        function toggle(): void { Mpd.toggle(); }
+        function next(): void { Mpd.next(); }
+        function previous(): void { Mpd.previous(); }
+        function status(): string { return Mpd.connected ? `${Mpd.state}: ${Mpd.title}` : "disconnected"; }
+    }
+
+    IpcHandler {
         target: "notifications"
         function toggleDnd(): void { Notifications.dnd = !Notifications.dnd; }
         function dnd(): bool { return Notifications.dnd; }

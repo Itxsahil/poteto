@@ -21,6 +21,10 @@ ShellRoot {
                 targetScreen: screenScope.modelData
             }
 
+            StatusBar {
+                targetScreen: screenScope.modelData
+            }
+
             Island {
                 targetScreen: screenScope.modelData
             }

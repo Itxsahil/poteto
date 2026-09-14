@@ -65,8 +65,8 @@ hl.config({
 -- Decoration (matches your config)
 hl.config({
     decoration = {
-        active_opacity = 1.0,
-        inactive_opacity = 1.0,
+        -- active_opacity = 1.0,
+        -- inactive_opacity = 1.0,
         fullscreen_opacity = 1.0,
         blur = {
             enabled = false,
