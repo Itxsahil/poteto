@@ -46,6 +46,13 @@ Scope {
     }
 
     IpcHandler {
+        target: "colorpicker"
+        function pick(): void { ColorPicker.start(); }
+        function cancel(): void { ColorPicker.cancel(); }
+        function last(): string { return ColorPicker.history[0] ?? ""; }
+    }
+
+    IpcHandler {
         target: "emoji"
         function toggle(): void { ShellState.toggle("emoji"); }
         function open(): void { ShellState.open("emoji"); }
@@ -98,6 +105,12 @@ Scope {
         name: "themes"
         description: "Toggle theme switcher"
         onPressed: ShellState.toggle("themes")
+    }
+
+    GlobalShortcut {
+        name: "colorpicker"
+        description: "Pick a color from the screen"
+        onPressed: ColorPicker.start()
     }
 
     GlobalShortcut {

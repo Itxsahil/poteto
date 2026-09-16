@@ -33,6 +33,7 @@ poteto/
 | **Wallpapers** | Thumbnail grid of your wallpaper folders, applied with awww |
 | **Themes** | Nine color schemes that restyle Quickshell, Hyprland borders, kitty, NvChad, VS Code, rmpc, hyprlock and the wallpaper |
 | **Power menu** | Lock, logout, suspend, hibernate, reboot, shutdown with letter keys; logout/reboot/shutdown ask for a second press |
+| **Color picker** | Frozen-screen picker with a pixel magnifier, arrow-key nudging, HEX / RGB / HSL copy, a notification swatch and a recent-colors bar |
 | **Screenshots** | Frozen-screen region / window / full-screen capture, saved and copied, with a draggable preview |
 
 ---
@@ -48,6 +49,7 @@ poteto/
 | `mod + T` | Theme switcher |
 | `Super + V` | Clipboard history |
 | `Super + .` | Emoji picker |
+| `Super + Shift + C` | Color picker |
 | `Super + Shift + 3` | Screenshot (full screen) |
 | `Super + Shift + 4` | Screenshot (region) |
 | `mod + X` | Power menu (L lock · E logout · S suspend · H hibernate · R reboot · P shutdown) |
@@ -263,6 +265,7 @@ quickshell/
 │   ├── Cava.qml               cava on the MPD fifo, only while MPD is playing
 │   ├── Emoji.qml              emoji search and recently used (~/.cache/quickshell/emoji-recent.json)
 │   ├── Clipboard.qml          cliphist
+│   ├── ColorPicker.qml        screen freeze, color formats, recent colors (~/.cache/quickshell/color-picker.json)
 │   ├── Mpd.qml                MPD protocol client (idle events, play/pause/next/previous)
 │   ├── Notifications.qml      notification server, popups, history, Do Not Disturb
 │   ├── Screenshot.qml         grim freeze → ImageMagick crop → wl-copy
@@ -285,7 +288,8 @@ quickshell/
     ├── controlcenter/         grid, tiles/, controls/, wifi/, bluetooth/, notifications/
     ├── notifications/         notification card + popup stack
     ├── launcher/  clipboard/  emoji/  wallpaper/  themes/  power/
-    └── screenshot/            overlay + floating preview
+    ├── screenshot/            overlay + floating preview
+    └── colorpicker/           color picker overlay
 ```
 
 Conventions:
@@ -305,6 +309,7 @@ qs ipc show                               # list everything
 qs ipc call launcher   toggle|open|close
 qs ipc call clipboard  toggle|open|close
 qs ipc call emoji      toggle|open|close
+qs ipc call colorpicker pick|cancel|last
 qs ipc call wallpaper  toggle|open|close|random
 qs ipc call theme      toggle|open|close|list|current
 qs ipc call theme      apply gruvbox-material

@@ -167,6 +167,7 @@ hl.bind("SUPER + SHIFT + 4", hl.dsp.exec_cmd("qs ipc call screenshot region"))
 -- hl.bind("SUPER + V", hl.dsp.exec_cmd("cliphist list | rofi -dmenu -p \"Clipboard\" | cliphist decode | wl-copy"))
 hl.bind("SUPER + V", hl.dsp.exec_cmd("qs ipc call clipboard toggle"))
 hl.bind("SUPER + period", hl.dsp.exec_cmd("qs ipc call emoji toggle"))
+hl.bind("SUPER + SHIFT + C", hl.dsp.exec_cmd("qs ipc call colorpicker pick"))
 -- -----------------------------------------------------------------------------
 -- SYSTEM CONTROLS
 -- -----------------------------------------------------------------------------
