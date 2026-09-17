@@ -168,6 +168,7 @@ hl.bind("SUPER + SHIFT + 4", hl.dsp.exec_cmd("qs ipc call screenshot region"))
 hl.bind("SUPER + V", hl.dsp.exec_cmd("qs ipc call clipboard toggle"))
 hl.bind("SUPER + period", hl.dsp.exec_cmd("qs ipc call emoji toggle"))
 hl.bind("SUPER + SHIFT + C", hl.dsp.exec_cmd("qs ipc call colorpicker pick"))
+hl.bind("SUPER + SHIFT + R", hl.dsp.exec_cmd("qs ipc call recorder toggle"))
 -- -----------------------------------------------------------------------------
 -- SYSTEM CONTROLS
 -- -----------------------------------------------------------------------------

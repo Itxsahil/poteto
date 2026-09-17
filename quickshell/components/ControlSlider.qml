@@ -42,6 +42,7 @@ Item {
 
         Item {
             id: iconSlot
+            z: 1
             width: 22
             height: 22
             anchors.left: parent.left

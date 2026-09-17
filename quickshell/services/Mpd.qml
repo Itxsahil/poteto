@@ -24,8 +24,6 @@ Singleton {
     readonly property bool playing: connected && state === "play"
     readonly property bool active: connected && state !== "stop" && title !== ""
 
-    property var pending: ({})
-
     function toggle() {
         send(state === "stop" ? "play" : "pause");
     }

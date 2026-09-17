@@ -11,6 +11,7 @@ import qs.modules.wallpaper
 import qs.modules.themes
 import qs.modules.power
 import qs.modules.emoji
+import qs.modules.recorder
 
 PanelWindow {
     id: root
@@ -21,7 +22,7 @@ PanelWindow {
     anchors.top: true
     margins.top: 8
     implicitWidth: 800
-    implicitHeight: 600
+    implicitHeight: 680
     color: "transparent"
     exclusiveZone: 44
 
@@ -62,6 +63,7 @@ PanelWindow {
             : view === "themes" ? themeView
             : view === "power" ? powerView
             : view === "emoji" ? emojiView
+            : view === "recordname" ? recordNameView
             : null
         readonly property bool showPanel: expanded && !viewOpen
         readonly property bool showOsd: osd.osdVisible && !showPanel && !viewOpen
@@ -188,6 +190,18 @@ PanelWindow {
             visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: 200 } }
             onCloseRequested: ShellState.close()
+        }
+
+        RecordNameView {
+            id: recordNameView
+            anchors.top: parent.top
+            anchors.topMargin: 12
+            anchors.horizontalCenter: parent.horizontalCenter
+            active: pill.view === "recordname"
+            opacity: active ? 1 : 0
+            visible: opacity > 0
+            Behavior on opacity { NumberAnimation { duration: 200 } }
+            onCloseRequested: ShellState.close("recordname")
         }
 
         EmojiView {

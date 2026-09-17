@@ -19,11 +19,11 @@ poteto/
 
 | | |
 |---|---|
-| **Island (idle)** | Wi-Fi strength · 12-hour clock · battery, colored by level |
-| **Control center** (hover the island) | Clock, battery with health, calendar, Wi-Fi, Bluetooth and Notifications tiles, brightness and volume sliders |
+| **Island (idle)** | Wi-Fi strength · 12-hour clock · battery, colored by level · red mic icon while the mic is muted |
+| **Control center** (hover the island) | Clock, battery with health, calendar, Wi-Fi, Bluetooth and Notifications tiles, brightness, volume and microphone sliders (click the mic icon or right click to mute) |
 | **Wi-Fi page** | Scan, connect (with password), disconnect, forget |
 | **Bluetooth page** | Scan, pair + connect, disconnect, forget, device battery |
-| **OSD** | Volume / brightness keys briefly turn the island into a level bar |
+| **OSD** | Volume, brightness and mic changes (including the Fn mic-mute key) briefly turn the island into a level bar |
 | **Notifications** | Popups under the island with icons, images, actions and markup; history page and Do Not Disturb in the control center; unread dot in the island |
 | **Workspaces** | Separate pill top-left: click to switch, scroll to cycle |
 | **Status pill** | Top-right: MPD track with a live cava visualizer (click play/pause, right click next, middle click previous) and the date |
@@ -34,6 +34,7 @@ poteto/
 | **Themes** | Nine color schemes that restyle Quickshell, Hyprland borders, kitty, NvChad, VS Code, rmpc, hyprlock and the wallpaper |
 | **Power menu** | Lock, logout, suspend, hibernate, reboot, shutdown with letter keys; logout/reboot/shutdown ask for a second press |
 | **Color picker** | Frozen-screen picker with a pixel magnifier, arrow-key nudging, HEX / RGB / HSL copy, a notification swatch and a recent-colors bar |
+| **Screen recorder** | Whole screen or a region at native resolution and 60 fps (NVENC, falls back to x264), system audio and/or mic mixed in, recording timer with a stop button, a name prompt while it saves (Enter to save, Esc keeps the date name), notification with Open / Show in folder |
 | **Screenshots** | Frozen-screen region / window / full-screen capture, saved and copied, with a draggable preview |
 
 ---
@@ -50,6 +51,7 @@ poteto/
 | `Super + V` | Clipboard history |
 | `Super + .` | Emoji picker |
 | `Super + Shift + C` | Color picker |
+| `Super + Shift + R` | Screen recorder (again to stop) |
 | `Super + Shift + 3` | Screenshot (full screen) |
 | `Super + Shift + 4` | Screenshot (region) |
 | `mod + X` | Power menu (L lock · E logout · S suspend · H hibernate · R reboot · P shutdown) |
@@ -69,6 +71,7 @@ Arch packages:
 sudo pacman -S quickshell hyprland hyprlock awww kitty neovim \
   networkmanager bluez bluez-utils wireplumber upower brightnessctl \
   cliphist wl-clipboard grim imagemagick glib2 xdg-utils libnotify playerctl mpd cava \
+  wf-recorder ffmpeg \
   breeze-icons ttf-jetbrains-mono-nerd noto-fonts-emoji inter-font
 ```
 
@@ -268,6 +271,7 @@ quickshell/
 │   ├── ColorPicker.qml        screen freeze, color formats, recent colors (~/.cache/quickshell/color-picker.json)
 │   ├── Mpd.qml                MPD protocol client (idle events, play/pause/next/previous)
 │   ├── Notifications.qml      notification server, popups, history, Do Not Disturb
+│   ├── Recorder.qml           wf-recorder video + ffmpeg audio, merged into ~/Videos/Recordings
 │   ├── Screenshot.qml         grim freeze → ImageMagick crop → wl-copy
 │   ├── Session.qml            power actions and logind capabilities, uptime
 │   ├── ShellState.qml         which island view is open
@@ -289,7 +293,8 @@ quickshell/
     ├── notifications/         notification card + popup stack
     ├── launcher/  clipboard/  emoji/  wallpaper/  themes/  power/
     ├── screenshot/            overlay + floating preview
-    └── colorpicker/           color picker overlay
+    ├── colorpicker/           color picker overlay
+    └── recorder/              recording mode bar and region selection
 ```
 
 Conventions:
@@ -310,6 +315,7 @@ qs ipc call launcher   toggle|open|close
 qs ipc call clipboard  toggle|open|close
 qs ipc call emoji      toggle|open|close
 qs ipc call colorpicker pick|cancel|last
+qs ipc call recorder   toggle|stop|status
 qs ipc call wallpaper  toggle|open|close|random
 qs ipc call theme      toggle|open|close|list|current
 qs ipc call theme      apply gruvbox-material

@@ -15,7 +15,7 @@ Item {
     property date date: new Date()
     property string page: ""
     readonly property bool typing: wifiPage.typing
-    readonly property bool busy: brightness.pressed || volume.pressed || wifiPage.typing
+    readonly property bool busy: brightness.pressed || volume.pressed || mic.pressed || wifiPage.typing
 
     function reset() {
         page = "";
@@ -115,6 +115,11 @@ Item {
 
         VolumeSlider {
             id: volume
+            width: parent.width
+        }
+
+        MicSlider {
+            id: mic
             width: parent.width
         }
     }

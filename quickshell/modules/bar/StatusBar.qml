@@ -49,6 +49,15 @@ PanelWindow {
             anchors.centerIn: parent
             spacing: 10
 
+            RecordingWidget {
+                id: recordingWidget
+                anchors.verticalCenter: parent.verticalCenter
+            }
+
+            Divider {
+                visible: recordingWidget.shown
+            }
+
             MpdWidget {
                 id: mpd
                 anchors.verticalCenter: parent.verticalCenter

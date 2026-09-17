@@ -2,6 +2,7 @@ import QtQuick
 import qs.config
 import qs.components.icons
 import qs.services
+import Quickshell.Services.Pipewire
 
 Row {
     id: root
@@ -15,6 +16,15 @@ Row {
         : Theme.signalWeak
 
     spacing: 12
+
+    Rectangle {
+        anchors.verticalCenter: parent.verticalCenter
+        width: 8
+        height: 8
+        radius: 4
+        color: Theme.danger
+        visible: Recorder.recording || Recorder.finishing
+    }
 
     WifiIcon {
         anchors.verticalCenter: parent.verticalCenter
@@ -45,6 +55,19 @@ Row {
         outlineColor: Qt.alpha(Theme.textPrimary, 0.6)
         boltStroke: Theme.islandBg
         charging: Battery.charging
+    }
+
+    PwObjectTracker {
+        objects: [Pipewire.defaultAudioSource]
+    }
+
+    MicIcon {
+        anchors.verticalCenter: parent.verticalCenter
+        width: 15
+        height: 15
+        muted: true
+        color: Theme.danger
+        visible: Pipewire.defaultAudioSource?.audio?.muted ?? false
     }
 
     Rectangle {

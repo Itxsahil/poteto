@@ -71,8 +71,12 @@ Singleton {
             times[notification.id] = Date.now();
             root.arrivedAt = times;
 
+            const id = notification.id;
             notification.closed.connect(() => {
                 root.popups = root.popups.filter(n => n !== notification);
+                const remaining = Object.assign({}, root.arrivedAt);
+                delete remaining[id];
+                root.arrivedAt = remaining;
             });
 
             const tracked = server.trackedNotifications.values;

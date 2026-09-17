@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell.Services.Pipewire
+import qs.config
 import qs.components.icons
 import qs.services
 
@@ -11,6 +12,7 @@ Item {
     property bool osdVisible: false
     property string kind: "volume"
     readonly property var sinkAudio: Pipewire.defaultAudioSink?.audio ?? null
+    readonly property var sourceAudio: Pipewire.defaultAudioSource?.audio ?? null
 
     function trigger(newKind) {
         if (armTimer.running || suppressed)
@@ -24,7 +26,12 @@ Item {
     implicitHeight: 22
 
     PwObjectTracker {
-        objects: [Pipewire.defaultAudioSink]
+        objects: [Pipewire.defaultAudioSink, Pipewire.defaultAudioSource]
+    }
+
+    Connections {
+        target: root.sourceAudio
+        function onMutedChanged() { root.trigger("mic"); }
     }
 
     Connections {
@@ -65,6 +72,24 @@ Item {
             anchors.fill: parent
             level: volumeOsd.level
             muted: volumeOsd.muted
+        }
+    }
+
+    Osd {
+        id: micOsd
+        readonly property bool muted: root.sourceAudio?.muted ?? false
+        anchors.fill: parent
+        level: Math.min(1, root.sourceAudio?.volume ?? 0)
+        dimmed: muted
+        label: muted ? "Off" : Math.round(level * 100) + "%"
+        opacity: root.shown && root.kind === "mic" ? 1 : 0
+        visible: opacity > 0
+        Behavior on opacity { NumberAnimation { duration: 200 } }
+
+        MicIcon {
+            anchors.fill: parent
+            muted: micOsd.muted
+            color: micOsd.muted ? Theme.danger : Theme.textPrimary
         }
     }
 

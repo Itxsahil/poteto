@@ -7,6 +7,7 @@ import qs.modules.island
 import qs.modules.screenshot
 import qs.modules.notifications
 import qs.modules.colorpicker
+import qs.modules.recorder
 
 ShellRoot {
     Ipc {}
@@ -39,6 +40,10 @@ ShellRoot {
             }
 
             ColorPickerOverlay {
+                targetScreen: screenScope.modelData
+            }
+
+            RecorderOverlay {
                 targetScreen: screenScope.modelData
             }
 

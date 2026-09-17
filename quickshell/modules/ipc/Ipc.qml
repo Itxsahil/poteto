@@ -5,6 +5,11 @@ import Quickshell.Hyprland
 import qs.services
 
 Scope {
+    Connections {
+        target: Recorder
+        function onNameRequested() { ShellState.open("recordname"); }
+    }
+
     IpcHandler {
         target: "launcher"
         function toggle(): void { ShellState.toggle("launcher"); }
@@ -43,6 +48,13 @@ Scope {
         function open(): void { ShellState.open("power"); }
         function close(): void { ShellState.close("power"); }
         function lock(): void { Session.run("lock"); }
+    }
+
+    IpcHandler {
+        target: "recorder"
+        function toggle(): void { Recorder.toggle(); }
+        function stop(): void { Recorder.stop(); }
+        function status(): string { return Recorder.recording ? `recording ${Recorder.formatElapsed(Recorder.elapsed)}` : Recorder.finishing ? "saving" : "idle"; }
     }
 
     IpcHandler {
@@ -105,6 +117,12 @@ Scope {
         name: "themes"
         description: "Toggle theme switcher"
         onPressed: ShellState.toggle("themes")
+    }
+
+    GlobalShortcut {
+        name: "recorder"
+        description: "Start or stop screen recording"
+        onPressed: Recorder.toggle()
     }
 
     GlobalShortcut {
