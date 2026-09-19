@@ -12,6 +12,8 @@ import qs.modules.themes
 import qs.modules.power
 import qs.modules.emoji
 import qs.modules.recorder
+import qs.modules.logintheme
+import qs.modules.polkit
 
 PanelWindow {
     id: root
@@ -64,6 +66,8 @@ PanelWindow {
             : view === "power" ? powerView
             : view === "emoji" ? emojiView
             : view === "recordname" ? recordNameView
+            : view === "logintheme" ? loginThemeView
+            : view === "polkit" ? polkitView
             : null
         readonly property bool showPanel: expanded && !viewOpen
         readonly property bool showOsd: osd.osdVisible && !showPanel && !viewOpen
@@ -238,6 +242,30 @@ PanelWindow {
             visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: 200 } }
             onCloseRequested: ShellState.close()
+        }
+
+        LoginThemeView {
+            id: loginThemeView
+            anchors.top: parent.top
+            anchors.topMargin: 12
+            anchors.horizontalCenter: parent.horizontalCenter
+            active: pill.view === "logintheme"
+            opacity: active ? 1 : 0
+            visible: opacity > 0
+            Behavior on opacity { NumberAnimation { duration: 200 } }
+            onCloseRequested: ShellState.close("logintheme")
+        }
+
+        PolkitView {
+            id: polkitView
+            anchors.top: parent.top
+            anchors.topMargin: 12
+            anchors.horizontalCenter: parent.horizontalCenter
+            active: pill.view === "polkit"
+            opacity: active ? 1 : 0
+            visible: opacity > 0
+            Behavior on opacity { NumberAnimation { duration: 200 } }
+            onCloseRequested: ShellState.close("polkit")
         }
 
         WallpaperView {

@@ -1,0 +1,71 @@
+#!/bin/bash
+# Makes one theme from the poteto repo the active SDDM theme.
+#
+# Installed root-owned to /usr/local/bin by ../setup and run through pkexec, so it
+# trusts nothing from the caller except a theme name:
+#   - the repo path is fixed at install time, not passed in
+#   - the theme is read with the caller's own permissions, so it can only publish
+#     files the caller could already read, even if the repo contains symlinks
+#   - the copy is checked again once it is root-owned, and must hold only plain
+#     files and directories
+#   - the live theme is replaced in one atomic swap, never left half-copied
+set -euo pipefail
+export PATH=/usr/bin
+umask 022
+
+SRC_ROOT=@SRC_ROOT@
+DEST_ROOT=/usr/share/sddm/themes
+ACTIVE=poteto
+SOURCE_MARK=.poteto-source
+MAX_BYTES=$((1024 * 1024 * 1024))
+
+die() {
+    echo "poteto-login-theme: $*" >&2
+    exit 1
+}
+
+[ "$(id -u)" -eq 0 ] || die "must run as root (through pkexec)"
+[ $# -eq 1 ] || die "usage: poteto-login-theme <theme>"
+name=$1
+[[ $name =~ ^[a-z0-9][a-z0-9-]{0,63}$ ]] || die "invalid theme name"
+
+# The user who asked. Their permissions are the ceiling for what gets published.
+uid=${PKEXEC_UID:-${SUDO_UID:-}}
+[[ $uid =~ ^[0-9]+$ ]] && [ "$uid" -ne 0 ] || die "cannot tell which user asked for this"
+user=$(id -nu "$uid") || die "unknown user $uid"
+as_user() {
+    setpriv --reuid="$uid" --regid="$(id -g "$uid")" --init-groups --reset-env -- "$@"
+}
+
+src="$SRC_ROOT/$name"
+as_user test -d "$src" || die "no theme named $name"
+as_user test -f "$src/metadata.desktop" -a -f "$src/Main.qml" || die "$name is not an SDDM theme"
+
+exec 9>/run/poteto-login-theme.lock
+flock -n 9 || die "another theme switch is already running"
+
+staging=$(mktemp -d "$DEST_ROOT/.$ACTIVE.XXXXXX")
+trap 'rm -rf -- "$staging"' EXIT
+
+# Read as the user, write as root. The size cap truncates the stream, which makes tar fail.
+as_user tar -C "$src" --exclude=./.git -cf - . |
+    head -c "$MAX_BYTES" |
+    tar -C "$staging" -xf - --no-same-owner --no-same-permissions --no-acls --no-xattrs --no-selinux ||
+    die "could not copy $name"
+
+bad=$(find "$staging" -mindepth 1 ! -type f ! -type d -print -quit)
+[ -z "$bad" ] || die "refusing $name: ${bad#"$staging"/} is not a plain file or directory"
+
+chown -R root:root "$staging"
+chmod -R u=rwX,go=rX "$staging"
+printf '%s\n' "$name" > "$staging/$SOURCE_MARK"
+chmod 755 "$staging"
+
+dest="$DEST_ROOT/$ACTIVE"
+if [ -e "$dest" ]; then
+    mv --exchange -T -- "$staging" "$dest"
+else
+    mv -T -- "$staging" "$dest"
+fi
+
+echo "login theme: $name (requested by $user)"

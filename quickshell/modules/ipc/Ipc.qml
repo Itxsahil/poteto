@@ -43,6 +43,19 @@ Scope {
     }
 
     IpcHandler {
+        target: "logintheme"
+        function toggle(): void { ShellState.toggle("logintheme"); }
+        function open(): void { ShellState.open("logintheme"); }
+        function close(): void { ShellState.close("logintheme"); }
+        function apply(id: string): void { LoginTheme.apply(id); }
+        function current(): string { return LoginTheme.active; }
+        function list(): string { return LoginTheme.themes.map(t => t.id).join("\n"); }
+    }
+
+    // Referenced here so the polkit agent registers at startup, not on first use.
+    readonly property bool polkitAgent: Polkit.registered
+
+    IpcHandler {
         target: "session"
         function toggle(): void { ShellState.toggle("power"); }
         function open(): void { ShellState.open("power"); }

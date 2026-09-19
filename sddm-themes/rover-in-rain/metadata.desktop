@@ -1,0 +1,10 @@
+[SddmGreeterTheme]
+Name=Rover_in_Rain
+Description=Rainy night login screen with a live video background
+Author=Itxsahil
+Type=sddm-theme
+Version=1.0
+License=MIT
+MainScript=Main.qml
+ConfigFile=theme.conf
+QtVersion=6

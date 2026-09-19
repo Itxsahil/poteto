@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+# One-time system setup for switching login themes from Quickshell.
+#
+# After this, SDDM always loads /usr/share/sddm/themes/poteto, and switching themes
+# means copying one theme from this folder into it. That copy is done by a small
+# root-owned helper that Quickshell runs through pkexec, asking for your password.
+#
+# Re-run this after moving the repo or editing anything in system/.
+set -euo pipefail
+
+SRC_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
+HELPER=/usr/local/bin/poteto-login-theme
+POLICY=/usr/share/polkit-1/actions/dev.poteto.login-theme.policy
+THEMES=/usr/share/sddm/themes
+CONF_DIR=/etc/sddm.conf.d
+CONF=$CONF_DIR/theme.conf
+ACTIVE=poteto
+OLD_MARKER=.installed-from-poteto
+
+usage() {
+    cat <<EOF
+Usage: setup [theme]      install the helper and make [theme] the login theme
+                          (default: the first theme in this folder)
+       setup --uninstall  remove everything setup installed
+EOF
+}
+
+themes() {
+    local dir
+    for dir in "$SRC_DIR"/*/; do
+        [ -f "$dir/metadata.desktop" ] && [ -f "$dir/Main.qml" ] && basename "$dir"
+    done
+    return 0
+}
+
+uninstall() {
+    rm -f -- "$HELPER" "$POLICY"
+    rm -rf -- "${THEMES:?}/$ACTIVE"
+    if [ -f "$CONF" ] && grep -qx "Current=$ACTIVE" "$CONF"; then
+        rm -f -- "$CONF"
+    fi
+    echo "removed the helper, the polkit action and the $ACTIVE theme"
+    echo "SDDM falls back to its built-in theme until you set [Theme] Current= again"
+}
+
+install_helper() {
+    # The path is baked into a root-run script, so allow only characters that need no quoting.
+    [[ $SRC_DIR =~ ^/[A-Za-z0-9._/-]+$ ]] || {
+        echo "setup: the repo path contains characters I won't bake into a root script: $SRC_DIR" >&2
+        exit 1
+    }
+    local tmp
+    tmp=$(mktemp)
+    sed "s|@SRC_ROOT@|$SRC_DIR|" "$SRC_DIR/system/poteto-login-theme" > "$tmp"
+    install -o root -g root -m 0755 -- "$tmp" "$HELPER"
+    rm -f -- "$tmp"
+    install -o root -g root -m 0644 -- "$SRC_DIR/system/dev.poteto.login-theme.policy" "$POLICY"
+    echo "installed $HELPER"
+    echo "installed $POLICY"
+}
+
+write_config() {
+    mkdir -p "$CONF_DIR"
+    printf '[Theme]\nCurrent=%s\n' "$ACTIVE" > "$CONF"
+    echo "wrote $CONF (Current=$ACTIVE)"
+
+    # 10-theme.conf came from the old install script and must not compete with this one.
+    local old=$CONF_DIR/10-theme.conf
+    if [ -f "$old" ] && [ "$(grep -cv '^\[Theme\]$\|^Current=' "$old")" -eq 0 ]; then
+        rm -f -- "$old"
+        echo "removed $old (left over from the old install script)"
+    fi
+
+    local other
+    for other in "$CONF_DIR"/*.conf /etc/sddm.conf; do
+        [ -f "$other" ] && [ "$other" != "$CONF" ] || continue
+        if grep -qs '^[[:space:]]*Current[[:space:]]*=' "$other"; then
+            echo "warning: $other also sets [Theme] Current= and may override $CONF" >&2
+        fi
+    done
+}
+
+remove_old_copies() {
+    local dir
+    for dir in "$THEMES"/*/; do
+        [ -f "$dir/$OLD_MARKER" ] || continue
+        rm -rf -- "$dir"
+        echo "removed old copy $(basename "$dir")"
+    done
+}
+
+case "${1:-}" in
+    -h|--help) usage; exit 0 ;;
+esac
+
+if [ "$(id -u)" -ne 0 ]; then
+    exec sudo -- "$0" "$@"
+fi
+
+if [ "${1:-}" = "--uninstall" ]; then
+    uninstall
+    exit 0
+fi
+
+# sed and grep without -q read all their input, so pipefail never sees a SIGPIPE here.
+theme=${1:-$(themes | sed -n 1p)}
+[ -n "$theme" ] || { echo "setup: no themes found in $SRC_DIR" >&2; exit 1; }
+themes | grep -x -- "$theme" > /dev/null || { echo "setup: no theme named '$theme' in $SRC_DIR" >&2; exit 1; }
+[ -n "${SUDO_UID:-}" ] || { echo "setup: run this as your user (it re-runs itself with sudo)" >&2; exit 1; }
+
+install_helper
+write_config
+remove_old_copies
+"$HELPER" "$theme"
+echo
+echo "done. switch themes from Quickshell with Alt+Shift+T"

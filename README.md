@@ -36,6 +36,8 @@ poteto/
 | **Color picker** | Frozen-screen picker with a pixel magnifier, arrow-key nudging, HEX / RGB / HSL copy, a notification swatch and a recent-colors bar |
 | **Screen recorder** | Whole screen or a region at native resolution and 60 fps (NVENC, falls back to x264), system audio and/or mic mixed in, recording timer with a stop button, a name prompt while it saves (Enter to save, Esc keeps the date name), notification with Open / Show in folder |
 | **Screenshots** | Frozen-screen region / window / full-screen capture, saved and copied, with a draggable preview |
+| **Login screen** | Switch the SDDM theme from a preview grid; asks for your password each time (see [Login screen](#login-screen-sddm)) |
+| **Password prompts** | Built-in polkit agent: any app asking for admin rights gets its password prompt in the island |
 
 ---
 
@@ -48,6 +50,7 @@ poteto/
 | `mod + Space` | App launcher / calculator |
 | `mod + W` | Wallpaper switcher |
 | `mod + T` | Theme switcher |
+| `mod + Shift + T` | Login screen (SDDM) theme switcher |
 | `Super + V` | Clipboard history |
 | `Super + .` | Emoji picker |
 | `Super + Shift + C` | Color picker |
@@ -96,6 +99,9 @@ sudo pacman -S quickshell hyprland hyprlock awww kitty neovim \
 - **No other notification daemon** may run (dunst, mako, swaync). Quickshell registers
   `org.freedesktop.Notifications` itself. If dunst is installed, mask it so D-Bus cannot start it:
   `systemctl --user mask --now dunst.service`.
+- **No other polkit agent** may run (hyprpolkitagent, polkit-gnome, polkit-kde-agent). Quickshell
+  registers itself as the session's agent; a second one would take the prompts instead.
+- **SDDM** is optional; the login screen switcher needs `sddm` with its Qt 6 greeter and `polkit`.
 
 ---
 
@@ -254,6 +260,59 @@ It appears in the theme switcher the next time it opens.
 
 ---
 
+## Login screen (SDDM)
+
+Login themes are standalone: they don't follow the color themes above.
+
+```
+sddm-themes/
+├── setup                       one-time system setup (run as your user; it asks for sudo)
+├── system/
+│   ├── poteto-login-theme      helper, installed root-owned to /usr/local/bin
+│   └── dev.poteto.login-theme.policy   polkit action: admin password, every time
+├── rover-in-rain/              a theme: metadata.desktop, Main.qml, bg.mp4, ...
+└── cloth-tiearing-anime/
+```
+
+**How it works.** SDDM is configured once to always load `/usr/share/sddm/themes/poteto`
+(`Current=poteto` in `/etc/sddm.conf.d/theme.conf`). Switching themes never touches that config:
+it replaces the contents of the `poteto` folder with the chosen theme. So there's no theme name
+to type, and nothing to misspell.
+
+**One-time setup:**
+
+```sh
+sddm-themes/setup rover-in-rain
+```
+
+This installs the helper and the polkit action, writes the config, removes copies left by the old
+`install` script, and activates the theme you name. Re-run it after moving the repo or editing
+anything in `sddm-themes/system/`. `sddm-themes/setup --uninstall` removes all of it.
+
+**Switching:** `mod + Shift + T`, pick a theme, enter your password in the island. It shows at the
+next login screen. Press `P` in the switcher to preview a theme in a window first.
+
+**Why it asks every time, and what the password allows.** Copying into `/usr/share` needs root.
+Quickshell never gets root itself: it runs `pkexec /usr/local/bin/poteto-login-theme <name>`,
+polkit asks for the admin password (never cached), and only that helper runs as root. The helper:
+
+- accepts only a theme name (`a-z`, `0-9`, `-`); the repo path is fixed when `setup` installs it
+- reads the theme with your own permissions, so it can never publish a file you couldn't read
+- refuses themes containing symlinks, devices or other special files
+- makes the installed copy root-owned and read-only for everyone else
+- builds the new theme next to the live one and swaps them atomically, so the login screen is
+  never left half-copied
+
+**Adding a theme:** create a folder in `sddm-themes/` with `metadata.desktop` and `Main.qml`
+(folder name in lowercase letters, digits and dashes). The switcher previews `bg.mp4`, or the
+first video or image it finds. Test it without installing anything:
+
+```sh
+sddm-greeter-qt6 --test-mode --theme sddm-themes/<name>
+```
+
+---
+
 ## Project structure
 
 ```
@@ -267,10 +326,12 @@ quickshell/
 │   ├── Brightness.qml         brightnessctl + udev backlight events
 │   ├── Cava.qml               cava on the MPD fifo, only while MPD is playing
 │   ├── Emoji.qml              emoji search and recently used (~/.cache/quickshell/emoji-recent.json)
+│   ├── LoginTheme.qml         SDDM themes from ../sddm-themes, switched through pkexec
 │   ├── Clipboard.qml          cliphist
 │   ├── ColorPicker.qml        screen freeze, color formats, recent colors (~/.cache/quickshell/color-picker.json)
 │   ├── Mpd.qml                MPD protocol client (idle events, play/pause/next/previous)
 │   ├── Notifications.qml      notification server, popups, history, Do Not Disturb
+│   ├── Polkit.qml             polkit authentication agent (password prompts)
 │   ├── Recorder.qml           wf-recorder video + ffmpeg audio, merged into ~/Videos/Recordings
 │   ├── Screenshot.qml         grim freeze → ImageMagick crop → wl-copy
 │   ├── Session.qml            power actions and logind capabilities, uptime
@@ -292,6 +353,8 @@ quickshell/
     ├── controlcenter/         grid, tiles/, controls/, wifi/, bluetooth/, notifications/
     ├── notifications/         notification card + popup stack
     ├── launcher/  clipboard/  emoji/  wallpaper/  themes/  power/
+    ├── logintheme/            login screen (SDDM) theme switcher
+    ├── polkit/                password prompt
     ├── screenshot/            overlay + floating preview
     ├── colorpicker/           color picker overlay
     └── recorder/              recording mode bar and region selection
@@ -319,6 +382,8 @@ qs ipc call recorder   toggle|stop|status
 qs ipc call wallpaper  toggle|open|close|random
 qs ipc call theme      toggle|open|close|list|current
 qs ipc call theme      apply gruvbox-material
+qs ipc call logintheme toggle|open|close|list|current
+qs ipc call logintheme apply rover-in-rain
 qs ipc call screenshot region|window|screen|cancel
 qs ipc call notifications toggleDnd|dnd|clear|count
 qs ipc call session    toggle|open|close|lock
@@ -355,6 +420,7 @@ The same actions are registered as Hyprland global shortcuts named `quickshell:l
 | `~/.cache/quickshell/theme/` | symlinks to the active theme's files |
 | `~/.cache/quickshell/theme-thumbs/` | theme card thumbnails |
 | `~/.cache/quickshell/wallpaper-thumbs/` | wallpaper grid thumbnails |
+| `~/.cache/quickshell/login-thumbs/` | login theme stills |
 | `/tmp/qs-cliphist-$USER/` | decoded clipboard images |
 
 All of them can be deleted safely; they are rebuilt on demand.
@@ -371,6 +437,11 @@ All of them can be deleted safely; they are rebuilt on demand.
 - **Theme didn't reach an app**: `ls -l ~/.cache/quickshell/theme/` should show links into the
   active theme folder. kitty only picks up opacity changes in new windows.
 - **Wallpapers or theme cards are blank**: delete the matching thumbnail folder and reopen the view.
+- **Login screen shows the plain default theme**: SDDM logs why on each boot:
+  `journalctl -b -u sddm | grep -i theme`. `grep -r Current= /etc/sddm.conf.d/ /etc/sddm.conf`
+  should print only `Current=poteto`; if not, re-run `sddm-themes/setup`.
+- **No password prompt appears** (a switch fails with "Not authorized"): another polkit agent may
+  own the session. Stop it, then restart Quickshell.
 
 ## Known limitations
 
