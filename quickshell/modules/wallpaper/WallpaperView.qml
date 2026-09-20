@@ -45,6 +45,11 @@ Item {
         grid.positionViewAtIndex(selected, GridView.Center);
     }
 
+    function selectFolder(value) {
+        folder = value;
+        input.forceActiveFocus();
+    }
+
     function cycleFolder(delta) {
         const order = ["", ...folderList.map(f => f.path)];
         const i = order.indexOf(folder);
@@ -116,10 +121,8 @@ Item {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
-            onClicked: {
-                root.folder = chip.value;
-                input.forceActiveFocus();
-            }
+            // Inline components can't see outer ids, hence the function on root
+            onClicked: root.selectFolder(chip.value)
         }
     }
 
