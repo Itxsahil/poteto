@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import "../../utils/Calc.js" as Calc
 import qs.config
+import qs.services
 
 Item {
     id: root
@@ -13,13 +14,19 @@ Item {
     property string terminal: "kitty"
 
     readonly property var calc: Calc.evaluate(input.text)
-    readonly property int firstIndex: calc ? -1 : 0
+    readonly property int firstIndex: wantsKeys ? -2 : calc ? -1 : 0
 
     signal closeRequested()
 
     readonly property var apps: DesktopEntries.applications.values
         .filter(a => !a.noDisplay)
         .sort((a, b) => a.name.localeCompare(b.name))
+
+    readonly property bool wantsKeys: {
+        const q = input.text.trim().toLowerCase();
+        return q !== "" && ["keys", "keybinds", "keybindings", "shortcuts", "bindings", "?"]
+            .some(w => w.startsWith(q));
+    }
 
     readonly property var results: {
         const q = input.text.trim().toLowerCase();
@@ -63,6 +70,10 @@ Item {
         closeRequested();
     }
 
+    function openKeybinds() {
+        ShellState.open("keybinds");
+    }
+
     function copyCalc() {
         if (!calc)
             return;
@@ -74,7 +85,13 @@ Item {
         const count = results.length - firstIndex;
         if (count <= 0)
             return;
-        selected = ((selected - firstIndex + delta) % count + count) % count + firstIndex;
+        let next = selected;
+        for (let i = 0; i < count; i++) {
+            next = ((next - firstIndex + delta) % count + count) % count + firstIndex;
+            if (next !== -1 || calc)        // -1 is the calculator slot; skip it when there is none
+                break;
+        }
+        selected = next;
         if (selected >= 0)
             list.positionViewAtIndex(selected, ListView.Contain);
     }
@@ -93,9 +110,11 @@ Item {
     }
     onResultsChanged: resetSelection()
     onCalcChanged: resetSelection()
+    onWantsKeysChanged: resetSelection()
 
     implicitWidth: 560
-    implicitHeight: search.height + (calc ? calcCard.height + 10 : 0) + (listArea.height > 0 ? listArea.height + 10 : 0)
+    implicitHeight: search.height + (calc ? calcCard.height + 10 : 0)
+        + (wantsKeys ? keysCard.height + 10 : 0) + (listArea.height > 0 ? listArea.height + 10 : 0)
 
     Rectangle {
         id: search
@@ -150,7 +169,9 @@ Item {
                 } else if (event.key === Qt.Key_Up || event.key === Qt.Key_Backtab || (ctrl && event.key === Qt.Key_K) || (ctrl && event.key === Qt.Key_P)) {
                     root.move(-1);
                 } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                    if (root.selected === -1)
+                    if (root.selected === -2)
+                        root.openKeybinds();
+                    else if (root.selected === -1)
                         root.copyCalc();
                     else
                         root.launch(root.results[root.selected]);
@@ -272,9 +293,85 @@ Item {
         }
     }
 
+    Rectangle {
+        id: keysCard
+        readonly property bool isSelected: root.selected === -2
+        anchors.top: root.calc ? calcCard.bottom : search.bottom
+        anchors.topMargin: 10
+        width: parent.width
+        height: 52
+        radius: 18
+        visible: root.wantsKeys
+        color: isSelected ? Theme.tileHover : Theme.tileBg
+        border.width: 1
+        border.color: isSelected ? Theme.accent : "transparent"
+        Behavior on color { ColorAnimation { duration: 90 } }
+
+        Rectangle {
+            id: keysBadge
+            width: 36
+            height: 36
+            radius: 12
+            anchors.left: parent.left
+            anchors.leftMargin: 16
+            anchors.verticalCenter: parent.verticalCenter
+            color: Theme.accent
+
+            Text {
+                anchors.centerIn: parent
+                text: "⌘"
+                color: Theme.onAccent
+                font.pixelSize: 17
+                font.weight: Font.Bold
+                font.family: Theme.fontFamily
+            }
+        }
+
+        Column {
+            anchors.left: keysBadge.right
+            anchors.leftMargin: 14
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 1
+
+            Text {
+                text: "Keybindings"
+                color: Theme.textPrimary
+                font.pixelSize: 14
+                font.weight: Font.DemiBold
+                font.family: Theme.fontFamily
+            }
+
+            Text {
+                text: `${Keybinds.count} shortcuts, read from your config`
+                color: Theme.textSecondary
+                font.pixelSize: 11
+                font.family: Theme.fontFamily
+            }
+        }
+
+        Text {
+            anchors.right: parent.right
+            anchors.rightMargin: 16
+            anchors.verticalCenter: parent.verticalCenter
+            text: "↵ Open"
+            color: keysCard.isSelected ? Theme.textPrimary : Theme.textSecondary
+            font.pixelSize: 12
+            font.weight: Font.DemiBold
+            font.family: Theme.fontFamily
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onEntered: root.selected = -2
+            onClicked: root.openKeybinds()
+        }
+    }
+
     Item {
         id: listArea
-        anchors.top: root.calc ? calcCard.bottom : search.bottom
+        anchors.top: root.wantsKeys ? keysCard.bottom : root.calc ? calcCard.bottom : search.bottom
         anchors.topMargin: 10
         width: parent.width
         height: root.results.length === 0 ? (root.calc ? 0 : 70) : Math.min(root.results.length, root.maxRows) * (root.rowHeight + list.spacing) - list.spacing

@@ -27,7 +27,8 @@ poteto/
 | **Notifications** | Popups under the island with icons, images, actions and markup; history page and Do Not Disturb in the control center; unread dot in the island |
 | **Workspaces** | Separate pill top-left: click to switch, scroll to cycle |
 | **Status pill** | Top-right: MPD track with a live cava visualizer (click play/pause, right click next, middle click previous) and the date |
-| **Launcher** | Fuzzy app search, terminal apps open in kitty, built-in calculator |
+| **Launcher** | Fuzzy app search, terminal apps open in kitty, built-in calculator, and a **Keybindings** card when you type `key` |
+| **Keybindings** | Searchable cheatsheet parsed live from `hypr/bindings.lua` plus the shell's own keys; flags combos bound twice |
 | **Videos** | Every video under `~/Videos` in one grid with poster frames and durations, filtered by folder chips, like the wallpaper switcher |
 | **Video player** | Qt Multimedia (FFmpeg) in its own window: seek bar, volume, speed, loop (off / one / all), subtitle tracks, the folder as playlist, `O` or the mpv button hands the file to mpv |
 | **Emoji picker** | 1,900 emoji (Unicode 17) in 9 categories plus recently used, search by name, Enter to copy |
@@ -54,6 +55,7 @@ poteto/
 | `mod + T` | Theme switcher |
 | `mod + Shift + T` | Login screen (SDDM) theme switcher |
 | `mod + Shift + V` | Videos |
+| `mod + /` | Keybinding cheatsheet |
 | `Super + V` | Clipboard history |
 | `Super + .` | Emoji picker |
 | `Super + Shift + C` | Color picker |
@@ -63,6 +65,15 @@ poteto/
 | `mod + X` | Power menu (L lock · E logout · S suspend · H hibernate · R reboot · P shutdown) |
 | `mod + Shift + ;` | Lock screen |
 | Hover the island | Control center |
+
+The table above is the shell's own keys. `mod + /` lists **every** bind, window management
+included, parsed live from `hypr/bindings.lua`, and flags any combo bound twice.
+
+Window management worth knowing, since these moved: groups are `mod + G` (toggle),
+`mod + Shift + G` (move out), `Super + H/J/K/L` (move into) and `Super + Tab` (cycle inside).
+Fine resize is `mod + Ctrl + Shift + H/J/K/L`. These were written as `mod + ALT + …`, which folds
+back to plain `mod` when `mainMod` is Alt, so they silently collided with the focus, workspace and
+resize binds and never fired.
 
 Inside the island views: arrows (or `Ctrl+H/J/K/L`) move, `Enter` applies, `Esc` or clicking
 outside closes. The footer of each view lists its extra keys.
@@ -341,6 +352,7 @@ quickshell/
 │   ├── Brightness.qml         brightnessctl + udev backlight events
 │   ├── Cava.qml               cava on the MPD fifo, only while MPD is playing
 │   ├── Emoji.qml              emoji search and recently used (~/.cache/quickshell/emoji-recent.json)
+│   ├── Keybinds.qml           cheatsheet parsed from hypr/bindings.lua
 │   ├── LoginTheme.qml         SDDM themes from ../sddm-themes, switched through pkexec
 │   ├── Clipboard.qml          cliphist
 │   ├── ColorPicker.qml        screen freeze, color formats, recent colors (~/.cache/quickshell/color-picker.json)
@@ -371,6 +383,7 @@ quickshell/
     ├── notifications/         notification card + popup stack
     ├── launcher/  clipboard/  emoji/  wallpaper/  themes/  power/
     ├── logintheme/            login screen (SDDM) theme switcher
+    ├── keybinds/              keybinding cheatsheet
     ├── videos/                video grid with folder chips
     ├── player/                video window (QtMultimedia)
     ├── polkit/                password prompt
@@ -407,6 +420,7 @@ qs ipc call screenshot region|window|screen|cancel
 qs ipc call notifications toggleDnd|dnd|clear|count
 qs ipc call session    toggle|open|close|lock
 qs ipc call mpd        toggle|next|previous|status
+qs ipc call keybinds   toggle|open|close
 qs ipc call videos     toggle|open|close
 qs ipc call player     play <path>|stop|next|previous|loop|status
 qs ipc call player     speed 1        # or -1, steps 0.5×…2×

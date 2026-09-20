@@ -56,6 +56,13 @@ Scope {
     readonly property bool polkitAgent: Polkit.registered
 
     IpcHandler {
+        target: "keybinds"
+        function toggle(): void { ShellState.toggle("keybinds"); }
+        function open(): void { ShellState.open("keybinds"); }
+        function close(): void { ShellState.close("keybinds"); }
+    }
+
+    IpcHandler {
         target: "videos"
         function toggle(): void { ShellState.toggle("videos"); }
         function open(): void { ShellState.open("videos"); }
