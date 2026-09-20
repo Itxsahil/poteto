@@ -58,11 +58,14 @@ hl.bind(var_mainMod .. " + CTRL + L", hl.dsp.window.resize({ x = 100, y = 0, rel
 hl.bind(var_mainMod .. " + CTRL + K", hl.dsp.window.resize({ x = 0, y = -100, relative = true }))
 hl.bind(var_mainMod .. " + CTRL + J", hl.dsp.window.resize({ x = 0, y = 100, relative = true }))
 
--- Fine resize (Alt + Ctrl + HJKL)
-hl.bind(var_mainMod .. " + ALT + CTRL + H", hl.dsp.window.resize({ x = -25, y = 0, relative = true }))
-hl.bind(var_mainMod .. " + ALT + CTRL + L", hl.dsp.window.resize({ x = 25, y = 0, relative = true }))
-hl.bind(var_mainMod .. " + ALT + CTRL + K", hl.dsp.window.resize({ x = 0, y = -25, relative = true }))
-hl.bind(var_mainMod .. " + ALT + CTRL + J", hl.dsp.window.resize({ x = 0, y = 25, relative = true }))
+-- NOTE: mainMod is ALT, so "mainMod + ALT + ..." folds back to plain ALT. These used to be
+-- "mainMod + ALT + CTRL + HJKL" and silently collided with the 100px resize binds above.
+-- The group binds further down had the same problem.
+-- Fine resize
+hl.bind(var_mainMod .. " + CTRL + SHIFT + H", hl.dsp.window.resize({ x = -25, y = 0, relative = true }))
+hl.bind(var_mainMod .. " + CTRL + SHIFT + L", hl.dsp.window.resize({ x = 25, y = 0, relative = true }))
+hl.bind(var_mainMod .. " + CTRL + SHIFT + K", hl.dsp.window.resize({ x = 0, y = -25, relative = true }))
+hl.bind(var_mainMod .. " + CTRL + SHIFT + J", hl.dsp.window.resize({ x = 0, y = 25, relative = true }))
 
 -- -----------------------------------------------------------------------------
 -- WORKSPACES (1-9)
@@ -84,17 +87,19 @@ hl.bind(var_mainMod .. " + SHIFT + TAB", hl.dsp.focus({ workspace = "e-1" }))
 -- WINDOW GROUPING
 -- -----------------------------------------------------------------------------
 hl.bind(var_mainMod .. " + G", hl.dsp.group.toggle())
-hl.bind(var_mainMod .. " + ALT + G", hl.dsp.window.move({ out_of_group = true }))
+hl.bind(var_mainMod .. " + SHIFT + G", hl.dsp.window.move({ out_of_group = true }))
 
+-- Super, because Alt + HJKL is window focus
 -- Move into group
-hl.bind(var_mainMod .. " + ALT + H", hl.dsp.window.move({ into_group = "left" }))
-hl.bind(var_mainMod .. " + ALT + L", hl.dsp.window.move({ into_group = "right" }))
-hl.bind(var_mainMod .. " + ALT + K", hl.dsp.window.move({ into_group = "up" }))
-hl.bind(var_mainMod .. " + ALT + J", hl.dsp.window.move({ into_group = "down" }))
+hl.bind("SUPER + H", hl.dsp.window.move({ into_group = "left" }))
+hl.bind("SUPER + L", hl.dsp.window.move({ into_group = "right" }))
+hl.bind("SUPER + K", hl.dsp.window.move({ into_group = "up" }))
+hl.bind("SUPER + J", hl.dsp.window.move({ into_group = "down" }))
 
+-- Super, because Alt + Tab cycles workspaces
 -- Navigate within group
-hl.bind(var_mainMod .. " + ALT + TAB", hl.dsp.group.next())
-hl.bind(var_mainMod .. " + ALT + SHIFT + TAB", hl.dsp.group.prev())
+hl.bind("SUPER + TAB", hl.dsp.group.next())
+hl.bind("SUPER + SHIFT + TAB", hl.dsp.group.prev())
 
 -- -----------------------------------------------------------------------------
 -- MOUSE BINDINGS
@@ -193,6 +198,9 @@ hl.bind(var_mainMod .. " + W", hl.dsp.exec_cmd("qs ipc call wallpaper toggle"))
 -- hl.bind(var_mainMod .. " + T", hl.dsp.exec_cmd("~/rice/main/theme-selector.sh"))
 -- hl.bind(var_mainMod .. " + T", hl.dsp.exec_cmd("~/copyrice/larp/main/theme-selector.sh"))
 hl.bind(var_mainMod .. " + T", hl.dsp.exec_cmd("qs ipc call theme toggle"))
+
+-- Keybinding cheatsheet
+hl.bind(var_mainMod .. " + slash", hl.dsp.exec_cmd("qs ipc call keybinds toggle"))
 
 -- Video browser
 hl.bind(var_mainMod .. " + SHIFT + V", hl.dsp.exec_cmd("qs ipc call videos toggle"))
