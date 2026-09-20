@@ -120,6 +120,9 @@ Item {
         onHeightChanged: if (expanded) Qt.callLater(ensureVisible)
 
         function ensureVisible() {
+            // The row (or the whole page, on reload) can be gone by the time this deferred call runs.
+            if (!flick || !body || !expanded)
+                return;
             const bottom = mapToItem(body, 0, height).y + 28;
             if (bottom > flick.contentY + flick.height)
                 flick.contentY = Math.min(bottom - flick.height, Math.max(0, flick.contentHeight - flick.height));
