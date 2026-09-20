@@ -10,6 +10,7 @@ Singleton {
     readonly property int maxHistory: 50
     readonly property int maxPopups: 4
     readonly property int defaultTimeout: 5000
+    readonly property int criticalTimeout: 20000
 
     property bool dnd: false
     property var popups: []

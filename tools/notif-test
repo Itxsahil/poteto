@@ -1,0 +1,108 @@
+#!/usr/bin/env bash
+# Sends notifications that exercise the cases browsers actually produce.
+#   ./notif-test          every case, a few seconds apart
+#   ./notif-test chrome   just one case
+# Cases: chrome badge entities newlines url long markup critical actions plain
+set -u
+
+send() {  # send <app> <app-icon> <summary> <body> [action-id action-label ...]
+    local app=$1 icon=$2 summary=$3 body=$4
+    shift 4
+    local args=()
+    while [ $# -ge 2 ]; do args+=(--action "$1=$2"); shift 2; done
+    # With --action, notify-send waits until a button is clicked, so let it wait in the background
+    notify-send -a "$app" ${icon:+-i "$icon"} "${args[@]}" -- "$summary" "$body" &
+    disown
+}
+
+# image-data, the way a browser ships a site icon (a pixmap, not a file path)
+send_with_image() {  # send_with_image <summary> <body> [app-icon]
+    python3 - "$@" <<'PY'
+import sys, gi
+gi.require_version("Gio", "2.0")
+from gi.repository import Gio, GLib
+
+summary, body = sys.argv[1], sys.argv[2]
+app_icon = sys.argv[3] if len(sys.argv) > 3 else ""
+w = h = 48
+data = bytearray()
+for y in range(h):
+    for x in range(w):
+        data += bytes((235 - x * 2, 80 + y, 120 + x, 255))
+img = GLib.Variant("(iiibiiay)", (w, h, w * 4, True, 8, 4, bytes(data)))
+args = GLib.Variant("(susssasa{sv}i)", ("Google Chrome", 0, app_icon, summary, body,
+                                        ["default", "Activate", "settings", "Site settings"],
+                                        {"image-data": img}, 8000))
+Gio.bus_get_sync(Gio.BusType.SESSION, None).call_sync(
+    "org.freedesktop.Notifications", "/org/freedesktop/Notifications",
+    "org.freedesktop.Notifications", "Notify", args, None, Gio.DBusCallFlags.NONE, -1, None)
+PY
+}
+
+case_chrome() {   # site picture + the browser badge on its corner
+    send_with_image "Sahil sent you a message" \
+        $'youtube.com\nHey, are we still on for the call at 6? Let me know if you want to push it later tonight.' \
+        google-chrome
+}
+
+case_badge() {    # same, but no app icon: the badge should stay hidden
+    send_with_image "No badge for this one" $'example.com\nThe corner badge only shows when the sender gives an app icon.'
+}
+
+case_entities() { # used to cut the body at "<" and drop the rest
+    send "Google Chrome" google-chrome "Tom & Jerry <b>new episode</b>" \
+        "Watch now on example.com — price < 500 & rising. 5 > 3 & \"quoted\" text survives."
+}
+
+case_newlines() { # used to run together on one line
+    send "Google Chrome" google-chrome "Three lines below" $'github.com\nCI finished in 4m 12s\nAll checks passed'
+}
+
+case_url() {      # a bare link should become clickable
+    send "Google Chrome" google-chrome "Clickable link" "Open https://example.com/some/path?a=1&b=2 to continue."
+}
+
+case_long() {     # long title elides at 2 lines, body cuts at 4 in the popup
+    send "Google Chrome" google-chrome \
+        "A very long notification title that will certainly not fit on a single line in the popup card" \
+        $'First line of the body\nSecond line\nThird line\nFourth line\nFifth line should be cut off'
+}
+
+case_markup() {   # the markup the spec does allow, plus an <img> that should vanish
+    send "Test App" dialog-information "Allowed markup" \
+        'This is <b>bold</b>, <i>italic</i>, <u>underlined</u>, a <a href="https://example.com">real link</a><img src="/tmp/x.png"> and no stray tags.'
+}
+
+case_critical() { # red border, never times out
+    notify-send -a "System" -u critical -i dialog-warning -- "Battery critically low" "3% remaining. Plug in now."
+}
+
+case_actions() {  # several buttons
+    send "Screen Recorder" video-x-generic "Recording saved" "recording-2026-09-20.mp4 · 1m 24s" \
+        default Open open Open folder "Show in folder"
+}
+
+case_plain() {    # the boring baseline
+    notify-send -a "Terminal" -- "Build finished" "No icon, no actions, one line of body."
+}
+
+cases=(chrome badge entities newlines url long markup critical actions plain)
+
+if [ $# -gt 0 ]; then
+    for c in "$@"; do
+        if declare -F "case_$c" > /dev/null; then
+            "case_$c"
+        else
+            echo "unknown case: $c" >&2
+            echo "available: ${cases[*]}" >&2
+            exit 1
+        fi
+    done
+    exit 0
+fi
+
+for c in "${cases[@]}"; do
+    echo "→ $c"
+    "case_$c"
+    sleep 4
+done

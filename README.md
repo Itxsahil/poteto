@@ -406,7 +406,7 @@ The same actions are registered as Hyprland global shortcuts named `quickshell:l
 | Default theme on first run | `defaultTheme` in `quickshell/services/ThemeManager.qml` |
 | VS Code settings path | `vscodeSettings` in `quickshell/services/ThemeManager.qml` |
 | Power menu actions and commands | `actions` / `commands` in `quickshell/services/Session.qml` |
-| Popup timeout, history size, max popups | `defaultTimeout`, `maxHistory`, `maxPopups` in `quickshell/services/Notifications.qml` |
+| Popup timeout, history size, max popups | `defaultTimeout`, `criticalTimeout`, `maxHistory`, `maxPopups` in `quickshell/services/Notifications.qml` |
 | Screenshot folder | `saveDir` in `quickshell/services/Screenshot.qml` (default `~/Pictures/Screenshots`) |
 | Icon theme | first line of `quickshell/shell.qml` (`//@ pragma IconTheme breeze-dark`) |
 | Fonts | `fontFamily` in `quickshell/config/Theme.qml` |
@@ -437,6 +437,13 @@ All of them can be deleted safely; they are rebuilt on demand.
 - **Theme didn't reach an app**: `ls -l ~/.cache/quickshell/theme/` should show links into the
   active theme folder. kitty only picks up opacity changes in new windows.
 - **Wallpapers or theme cards are blank**: delete the matching thumbnail folder and reopen the view.
+- **Testing notifications**: `tools/notif-test` sends one of each shape (browser push with a site
+  image, unescaped `&`/`<`, multi-line bodies, markup, critical, actions). Run it with no arguments
+  for all of them, or name cases (`tools/notif-test chrome entities`). `qs ipc call notifications
+  clear` clears the popups.
+- **Chrome stops sending notifications**: Chrome picks the notification service once at startup, so
+  it falls back to drawing its own if the shell reloaded at the wrong moment (only happens while
+  editing the shell). Restart Chrome. Firefox re-checks per notification and is unaffected.
 - **Login screen shows the plain default theme**: SDDM logs why on each boot:
   `journalctl -b -u sddm | grep -i theme`. `grep -r Current= /etc/sddm.conf.d/ /etc/sddm.conf`
   should print only `Current=poteto`; if not, re-run `sddm-themes/setup`.

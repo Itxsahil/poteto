@@ -11,7 +11,7 @@ Rectangle {
 
     required property var notification
     property bool popup: false
-    property int bodyLines: popup ? 3 : 6
+    property int bodyLines: popup ? 4 : 6
     readonly property bool hovered: cardHover.hovered
     readonly property bool critical: notification.urgency === NotificationUrgency.Critical
     readonly property var buttons: notification.actions.filter(a => a.identifier !== "default" && a.text)
@@ -22,7 +22,9 @@ Rectangle {
     radius: 20
     color: popup ? Theme.islandBg : Theme.tileBg
     border.width: 1
-    border.color: critical ? Theme.danger : popup ? Theme.islandBorder : "transparent"
+    // Critical gets a small red dot by the app name, not a red border around the whole card:
+    // browsers send their web pushes as critical, and a wall of red reads as alarming.
+    border.color: popup ? Theme.islandBorder : "transparent"
 
     function relativeTime(ms) {
         const s = Math.floor((clock.date - ms) / 1000);
@@ -33,6 +35,34 @@ Rectangle {
         if (s < 86400)
             return `${Math.floor(s / 3600)}h`;
         return Qt.formatDateTime(new Date(ms), "d MMM");
+    }
+
+    // Bodies arrive as anything from plain text to the spec's small markup subset, and senders
+    // (browsers especially) rarely escape "&" or "<". Rendering that raw as StyledText silently
+    // drops everything after a stray "<", so escape it all, then put back only the allowed tags.
+    function bodyText(raw) {
+        if (!raw)
+            return "";
+        let s = raw.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        s = s.replace(/&amp;(amp|lt|gt|quot|apos|#\d+|#x[0-9a-f]+);/gi, "&$1;");
+        s = s.replace(/&lt;(\/?)(b|i|u)&gt;/gi, "<$1$2>");
+        s = s.replace(/&lt;a\s+href=(?:"|&quot;)([^"&]*)(?:"|&quot;)\s*&gt;/gi, '<a href="$1">');
+        s = s.replace(/&lt;\/a&gt;/gi, "</a>");
+        s = s.replace(/&lt;img\b.*?&gt;/gi, "");
+        // Web pushes often pad with blank lines; keep at most one
+        s = s.replace(/^\s+|\s+$/g, "").replace(/[ \t]*(\r?\n)+[ \t]*/g, "\n");
+        if (!/<a\s/i.test(s))
+            s = s.replace(/(https?:\/\/[^\s<]+[^\s<.,;:!?)"'])/g, '<a href="$1">$1</a>');
+        return s.replace(/\r?\n/g, "<br/>");
+    }
+
+    // Summaries are meant to be plain text, but senders still put markup in them: show the words,
+    // not the tags.
+    function summaryText(raw) {
+        if (!raw)
+            return "";
+        return raw.replace(/<\/?(b|i|u|a)\b[^>]*>/gi, "")
+            .replace(/&(amp|lt|gt|quot|apos);/gi, m => ({ "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": "\"", "&apos;": "'" })[m.toLowerCase()] ?? m);
     }
 
     function iconSource(icon) {
@@ -52,10 +82,14 @@ Rectangle {
         precision: SystemClock.Minutes
     }
 
+    // Every popup goes away on its own; the history page keeps it either way. Browsers send their
+    // web pushes as critical with "never expire", which otherwise pins them to the screen forever.
     Timer {
         id: expireTimer
-        running: root.popup && !root.critical && root.notification.expireTimeout !== 0 && !root.hovered
-        interval: root.notification.expireTimeout > 0 ? root.notification.expireTimeout : Notifications.defaultTimeout
+        running: root.popup && !root.hovered
+        interval: root.notification.expireTimeout > 0 ? root.notification.expireTimeout
+            : root.critical ? Notifications.criticalTimeout
+            : Notifications.defaultTimeout
         onTriggered: root.timedOut()
     }
 
@@ -76,32 +110,59 @@ Rectangle {
         width: parent.width - 28
         spacing: 12
 
-        Rectangle {
+        Item {
             id: iconBox
             width: 40
             height: 40
-            radius: 12
-            color: Theme.controlBg
-            clip: true
 
-            Image {
-                id: picture
+            Rectangle {
                 anchors.fill: parent
-                source: root.iconSource(root.notification.image) || root.iconSource(root.notification.appIcon)
-                sourceSize.width: 80
-                sourceSize.height: 80
-                fillMode: root.notification.image ? Image.PreserveAspectCrop : Image.PreserveAspectFit
-                anchors.margins: root.notification.image ? 0 : 6
-                asynchronous: true
-                visible: status === Image.Ready
+                radius: 12
+                color: Theme.controlBg
+                clip: true
+
+                Image {
+                    id: picture
+                    anchors.fill: parent
+                    source: root.iconSource(root.notification.image) || root.iconSource(root.notification.appIcon)
+                    sourceSize.width: 80
+                    sourceSize.height: 80
+                    fillMode: root.notification.image ? Image.PreserveAspectCrop : Image.PreserveAspectFit
+                    anchors.margins: root.notification.image ? 0 : 6
+                    asynchronous: true
+                    visible: status === Image.Ready
+                }
+
+                BellIcon {
+                    anchors.centerIn: parent
+                    width: 20
+                    height: 20
+                    color: Theme.textSecondary
+                    visible: !picture.visible
+                }
             }
 
-            BellIcon {
-                anchors.centerIn: parent
-                width: 20
-                height: 20
-                color: Theme.textSecondary
-                visible: !picture.visible
+            // A browser sends the site's picture plus its own icon: show whose notification it is.
+            Rectangle {
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                anchors.margins: -3
+                width: 18
+                height: 18
+                radius: 9
+                color: root.popup ? Theme.islandBg : Theme.tileBg
+                visible: badge.status === Image.Ready && root.notification.image !== ""
+
+                Image {
+                    id: badge
+                    anchors.fill: parent
+                    anchors.margins: 2
+                    source: root.notification.image ? root.iconSource(root.notification.appIcon) : ""
+                    sourceSize.width: 32
+                    sourceSize.height: 32
+                    fillMode: Image.PreserveAspectFit
+                    asynchronous: true
+                }
             }
         }
 
@@ -113,8 +174,20 @@ Rectangle {
                 width: parent.width
                 height: 16
 
-                Text {
+                Rectangle {
+                    id: urgentDot
                     anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: 6
+                    height: 6
+                    radius: 3
+                    color: Theme.danger
+                    visible: root.critical
+                }
+
+                Text {
+                    anchors.left: urgentDot.visible ? urgentDot.right : parent.left
+                    anchors.leftMargin: urgentDot.visible ? 6 : 0
                     anchors.right: meta.left
                     anchors.rightMargin: 8
                     anchors.verticalCenter: parent.verticalCenter
@@ -175,7 +248,7 @@ Rectangle {
                 maximumLineCount: 2
                 wrapMode: Text.Wrap
                 visible: text !== ""
-                text: root.notification.summary
+                text: root.summaryText(root.notification.summary)
                 textFormat: Text.PlainText
                 color: Theme.textPrimary
                 font.pixelSize: 14
@@ -189,7 +262,7 @@ Rectangle {
                 maximumLineCount: root.bodyLines
                 wrapMode: Text.Wrap
                 visible: text !== ""
-                text: root.notification.body
+                text: root.bodyText(root.notification.body)
                 textFormat: Text.StyledText
                 linkColor: Theme.accent
                 color: Theme.textSecondary
