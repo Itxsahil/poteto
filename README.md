@@ -28,6 +28,8 @@ poteto/
 | **Workspaces** | Separate pill top-left: click to switch, scroll to cycle |
 | **Status pill** | Top-right: MPD track with a live cava visualizer (click play/pause, right click next, middle click previous) and the date |
 | **Launcher** | Fuzzy app search, terminal apps open in kitty, built-in calculator |
+| **Videos** | Every video under `~/Videos` in one grid with poster frames and durations, filtered by folder chips, like the wallpaper switcher |
+| **Video player** | Qt Multimedia (FFmpeg) in its own window: seek bar, volume, speed, loop (off / one / all), subtitle tracks, the folder as playlist, `O` or the mpv button hands the file to mpv |
 | **Emoji picker** | 1,900 emoji (Unicode 17) in 9 categories plus recently used, search by name, Enter to copy |
 | **Clipboard** | cliphist history with text and image previews, search, filters, delete |
 | **Wallpapers** | Thumbnail grid of your wallpaper folders, applied with awww |
@@ -51,6 +53,7 @@ poteto/
 | `mod + W` | Wallpaper switcher |
 | `mod + T` | Theme switcher |
 | `mod + Shift + T` | Login screen (SDDM) theme switcher |
+| `mod + Shift + V` | Videos |
 | `Super + V` | Clipboard history |
 | `Super + .` | Emoji picker |
 | `Super + Shift + C` | Color picker |
@@ -63,6 +66,13 @@ poteto/
 
 Inside the island views: arrows (or `Ctrl+H/J/K/L`) move, `Enter` applies, `Esc` or clicking
 outside closes. The footer of each view lists its extra keys.
+
+In the videos grid: `Enter` plays, `Shift+Enter` (or right click) hands it to mpv, `Tab` cycles the
+folder chips, and typing filters by name or folder.
+
+In the video window: `Space` play/pause, `←`/`→` 5s (`Shift` 60s), `↑`/`↓` volume, `M` mute,
+`F` fullscreen, `N`/`P` next and previous, `R` loop (off → this video → the whole list),
+`[`/`]` speed, `C` subtitle track, `O` reopen in mpv, `Esc` close.
 
 ---
 
@@ -136,6 +146,11 @@ end)
 
 Always start the shell as plain `quickshell` (or `qs`), never with `-p <path>`. The keybinds call
 `qs ipc call …`, which only reaches the instance started from `~/.config/quickshell`.
+
+The autostart sets `QT_FFMPEG_DECODING_HW_DEVICE_TYPES=vaapi` for the shell. Without it, the video
+player asks the NVIDIA GPU to decode AV1; GPUs before RTX 30 cannot, and it plays nothing at all
+rather than falling back. VAAPI keeps hardware h264 and lets AV1 decode in software. Start it the
+same way by hand: `env QT_FFMPEG_DECODING_HW_DEVICE_TYPES=vaapi quickshell`.
 
 ### One-time app configuration
 
@@ -331,9 +346,11 @@ quickshell/
 │   ├── ColorPicker.qml        screen freeze, color formats, recent colors (~/.cache/quickshell/color-picker.json)
 │   ├── Mpd.qml                MPD protocol client (idle events, play/pause/next/previous)
 │   ├── Notifications.qml      notification server, popups, history, Do Not Disturb
+│   ├── Player.qml             what the video window plays, and the folder playlist
 │   ├── Polkit.qml             polkit authentication agent (password prompts)
 │   ├── Recorder.qml           wf-recorder video + ffmpeg audio, merged into ~/Videos/Recordings
 │   ├── Screenshot.qml         grim freeze → ImageMagick crop → wl-copy
+│   ├── Videos.qml             ~/Videos scan, ffmpeg poster frames and durations
 │   ├── Session.qml            power actions and logind capabilities, uptime
 │   ├── ShellState.qml         which island view is open
 │   ├── ThemeManager.qml       lists themes, applies them, theme thumbnails
@@ -354,6 +371,8 @@ quickshell/
     ├── notifications/         notification card + popup stack
     ├── launcher/  clipboard/  emoji/  wallpaper/  themes/  power/
     ├── logintheme/            login screen (SDDM) theme switcher
+    ├── videos/                video grid with folder chips
+    ├── player/                video window (QtMultimedia)
     ├── polkit/                password prompt
     ├── screenshot/            overlay + floating preview
     ├── colorpicker/           color picker overlay
@@ -388,6 +407,9 @@ qs ipc call screenshot region|window|screen|cancel
 qs ipc call notifications toggleDnd|dnd|clear|count
 qs ipc call session    toggle|open|close|lock
 qs ipc call mpd        toggle|next|previous|status
+qs ipc call videos     toggle|open|close
+qs ipc call player     play <path>|stop|next|previous|loop|status
+qs ipc call player     speed 1        # or -1, steps 0.5×…2×
 ```
 
 The same actions are registered as Hyprland global shortcuts named `quickshell:launcher`,
@@ -401,6 +423,7 @@ The same actions are registered as Hyprland global shortcuts named `quickshell:l
 | What | Where |
 |---|---|
 | Wallpaper folders | `folders` in `quickshell/services/Wallpaper.qml` |
+| Videos folder | `rootDir` in `quickshell/services/Videos.qml` (default `~/Videos`) |
 | Terminal for terminal apps | `terminal` in `quickshell/modules/launcher/Launcher.qml` |
 | Always-visible workspaces | `persistentCount` in `quickshell/modules/bar/Workspaces.qml` |
 | Default theme on first run | `defaultTheme` in `quickshell/services/ThemeManager.qml` |
@@ -421,6 +444,7 @@ The same actions are registered as Hyprland global shortcuts named `quickshell:l
 | `~/.cache/quickshell/theme-thumbs/` | theme card thumbnails |
 | `~/.cache/quickshell/wallpaper-thumbs/` | wallpaper grid thumbnails |
 | `~/.cache/quickshell/login-thumbs/` | login theme stills |
+| `~/.cache/quickshell/video-thumbs/` | video poster frames and durations |
 | `/tmp/qs-cliphist-$USER/` | decoded clipboard images |
 
 All of them can be deleted safely; they are rebuilt on demand.
@@ -441,6 +465,10 @@ All of them can be deleted safely; they are rebuilt on demand.
   image, unescaped `&`/`<`, multi-line bodies, markup, critical, actions). Run it with no arguments
   for all of them, or name cases (`tools/notif-test chrome entities`). `qs ipc call notifications
   clear` clears the popups.
+- **A video plays no picture** (black window, audio may work): the file's codec is being sent to a
+  GPU that cannot decode it. Check `qs log` for `Failed setup for format cuda`, and make sure the
+  shell was started with `QT_FFMPEG_DECODING_HW_DEVICE_TYPES=vaapi` (see Autostart). Press `O` in
+  the player to hand the file to mpv meanwhile.
 - **Chrome stops sending notifications**: Chrome picks the notification service once at startup, so
   it falls back to drawing its own if the shell reloaded at the wrong moment (only happens while
   editing the shell). Restart Chrome. Firefox re-checks per notification and is unaffected.

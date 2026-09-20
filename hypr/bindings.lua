@@ -194,6 +194,9 @@ hl.bind(var_mainMod .. " + W", hl.dsp.exec_cmd("qs ipc call wallpaper toggle"))
 -- hl.bind(var_mainMod .. " + T", hl.dsp.exec_cmd("~/copyrice/larp/main/theme-selector.sh"))
 hl.bind(var_mainMod .. " + T", hl.dsp.exec_cmd("qs ipc call theme toggle"))
 
+-- Video browser
+hl.bind(var_mainMod .. " + SHIFT + V", hl.dsp.exec_cmd("qs ipc call videos toggle"))
+
 -- Login screen (SDDM) theme selector
 hl.bind(var_mainMod .. " + SHIFT + T", hl.dsp.exec_cmd("qs ipc call logintheme toggle"))
 

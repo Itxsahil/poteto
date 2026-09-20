@@ -13,6 +13,7 @@ import qs.modules.power
 import qs.modules.emoji
 import qs.modules.recorder
 import qs.modules.logintheme
+import qs.modules.videos
 import qs.modules.polkit
 
 PanelWindow {
@@ -66,6 +67,7 @@ PanelWindow {
             : view === "power" ? powerView
             : view === "emoji" ? emojiView
             : view === "recordname" ? recordNameView
+            : view === "videos" ? videosView
             : view === "logintheme" ? loginThemeView
             : view === "polkit" ? polkitView
             : null
@@ -242,6 +244,18 @@ PanelWindow {
             visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: 200 } }
             onCloseRequested: ShellState.close()
+        }
+
+        VideosView {
+            id: videosView
+            anchors.top: parent.top
+            anchors.topMargin: 12
+            anchors.horizontalCenter: parent.horizontalCenter
+            active: pill.view === "videos"
+            opacity: active ? 1 : 0
+            visible: opacity > 0
+            Behavior on opacity { NumberAnimation { duration: 200 } }
+            onCloseRequested: ShellState.close("videos")
         }
 
         LoginThemeView {

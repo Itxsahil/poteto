@@ -56,6 +56,24 @@ Scope {
     readonly property bool polkitAgent: Polkit.registered
 
     IpcHandler {
+        target: "videos"
+        function toggle(): void { ShellState.toggle("videos"); }
+        function open(): void { ShellState.open("videos"); }
+        function close(): void { ShellState.close("videos"); }
+    }
+
+    IpcHandler {
+        target: "player"
+        function play(path: string): void { Player.play(path, [path]); }
+        function stop(): void { Player.close(); }
+        function next(): void { Player.next(); }
+        function previous(): void { Player.previous(); }
+        function loop(): string { Player.cycleLoop(); return Player.loop; }
+        function speed(step: int): string { Player.cycleSpeed(step); return Player.speed + "x"; }
+        function status(): string { return Player.playing ? `${Player.title} · loop ${Player.loop} · ${Player.speed}x` : "idle"; }
+    }
+
+    IpcHandler {
         target: "session"
         function toggle(): void { ShellState.toggle("power"); }
         function open(): void { ShellState.open("power"); }

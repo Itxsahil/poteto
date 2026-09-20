@@ -147,7 +147,10 @@ hl.config({
 hl.on("hyprland.start", function()
     hl.exec_cmd("awww-daemon")
     -- hl.exec_cmd("waybar")
-    hl.exec_cmd("quickshell")
+    -- QT_FFMPEG_DECODING_HW_DEVICE_TYPES=vaapi: the video player would otherwise try CUDA for
+    -- AV1, which this GPU cannot decode, and play nothing. VAAPI keeps hardware h264 and lets
+    -- AV1 fall back to software.
+    hl.exec_cmd("env QT_FFMPEG_DECODING_HW_DEVICE_TYPES=vaapi quickshell")
 end)
 
 -- Clipboard (matches your config)

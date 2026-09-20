@@ -8,9 +8,12 @@ import qs.modules.screenshot
 import qs.modules.notifications
 import qs.modules.colorpicker
 import qs.modules.recorder
+import qs.modules.player
 
 ShellRoot {
     Ipc {}
+
+    PlayerWindow {}
 
     Variants {
         model: Quickshell.screens
