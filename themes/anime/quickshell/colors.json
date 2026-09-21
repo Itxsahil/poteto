@@ -1,0 +1,21 @@
+{
+  "name": "Anime",
+  "variant": "dark",
+  "island": "#1c1f3a",
+  "border": "#2c3160",
+  "tile": "#262a4f",
+  "tileHover": "#313665",
+  "control": "#343a6b",
+  "controlHover": "#414883",
+  "fill": "#f1f3ff",
+  "onFill": "#1c1f3a",
+  "text": "#eef0ff",
+  "textDim": "#8f97c4",
+  "muted": "#5c6394",
+  "accent": "#ff9ec4",
+  "onAccent": "#1c1f3a",
+  "success": "#8fe3b4",
+  "warning": "#ffd67a",
+  "caution": "#ffb38a",
+  "danger": "#ff6f8e"
+}

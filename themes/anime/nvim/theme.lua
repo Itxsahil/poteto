@@ -1,0 +1,1 @@
+return "vscode_dark"

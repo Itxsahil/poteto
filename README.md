@@ -35,7 +35,7 @@ poteto/
 | **Emoji picker** | 1,900 emoji (Unicode 17) in 9 categories plus recently used, search by name, Enter to copy |
 | **Clipboard** | cliphist history with text and image previews, search, filters, delete |
 | **Wallpapers** | Thumbnail grid of your wallpaper folders, applied with awww |
-| **Themes** | Nine color schemes that restyle Quickshell, Hyprland borders, kitty, NvChad, VS Code, rmpc, hyprlock and the wallpaper |
+| **Themes** | Ten color schemes that restyle Quickshell, Hyprland borders, kitty, NvChad, VS Code, rmpc, hyprlock and the wallpaper |
 | **Power menu** | Lock, logout, suspend, hibernate, reboot, shutdown with letter keys; logout/reboot/shutdown ask for a second press |
 | **Color picker** | Frozen-screen picker with a pixel magnifier, arrow-key nudging, HEX / RGB / HSL copy, a notification swatch and a recent-colors bar |
 | **Screen recorder** | Whole screen or a region at native resolution and 60 fps (NVENC, falls back to x264), system audio and/or mic mixed in, recording timer with a stop button, a name prompt while it saves (Enter to save, Esc keeps the date name), notification with Open / Show in folder |
@@ -175,6 +175,15 @@ theme. Each app has to read from those links once:
 include ~/.cache/quickshell/theme/kitty.conf
 ```
 
+The **anime** theme's terminal is see-through (Eldritch colors at 85% opacity); every other theme
+stays opaque. kitty only changes opacity on a live theme switch if this is set in `kitty.conf`, and
+only reads it when a window starts, so reopen open terminals once after adding it:
+
+```conf
+background_opacity          1.0
+dynamic_background_opacity  yes
+```
+
 **NvChad**: in `~/.config/nvim/lua/chadrc.lua`:
 
 ```lua
@@ -236,6 +245,7 @@ Switching a theme (`mod + T`, or `qs ipc call theme apply <id>`):
 
 | Theme | NvChad | VS Code theme (extension) |
 |---|---|---|
+| anime | vscode_dark | Dark Modern (built in) |
 | catppuccin-latte | catppuccin-latte | Catppuccin Latte (`catppuccin.catppuccin-vsc`) |
 | catppuccin-macchiato | catppuccin | Catppuccin Macchiato (`catppuccin.catppuccin-vsc`) |
 | dracula | chadracula | Dracula Theme (`dracula-theme.theme-dracula`) |
