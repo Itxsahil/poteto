@@ -50,6 +50,14 @@ Singleton {
     readonly property color signalStrong: c("success", "#30d158")
     readonly property color signalMedium: c("warning", "#ffd60a")
     readonly property color signalWeak: c("caution", "#ff9f0a")
+    // Volume past 100%: the second lap drawn over a full bar. The theme's caution color, unless
+    // it is too close to the bar fill to see (monochrome themes like Solitude): then danger.
+    readonly property color boost: {
+        const caution = c("caution", "#ff9f0a");
+        const f = controlFill;
+        const distance = Math.abs(caution.r - f.r) + Math.abs(caution.g - f.g) + Math.abs(caution.b - f.b);
+        return distance >= 0.5 ? caution : danger;
+    }
     readonly property color signalOff: c("muted", "#8e8e93")
 
     readonly property color tileBg: c("tile", "#1c1c1e")

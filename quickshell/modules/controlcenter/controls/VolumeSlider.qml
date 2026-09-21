@@ -11,7 +11,8 @@ ControlSlider {
     readonly property PwNode sink: Pipewire.defaultAudioSink
     readonly property bool muted: sink?.audio?.muted ?? false
 
-    value: Math.min(1, sink?.audio?.volume ?? 0)
+    value: sink?.audio?.volume ?? 0
+    maxValue: 2          // up to 200%, matching the volume key's wpctl limit
     dimmed: muted
     label: muted ? "Muted" : Math.round(value * 100) + "%"
 
@@ -30,7 +31,7 @@ ControlSlider {
 
     SpeakerIcon {
         anchors.fill: parent
-        level: root.value
+        level: root.fill
         muted: root.muted
         color: Theme.controlIconOnFill
     }

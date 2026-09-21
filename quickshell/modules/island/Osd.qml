@@ -5,6 +5,8 @@ Item {
     id: root
 
     property real level: 0
+    // Past 100%: the bar stays full and this second lap (0–1) is drawn over it in Theme.boost
+    property real boost: 0
     property bool dimmed: false
     property string label: Math.round(level * 100) + "%"
     default property alias icon: iconSlot.data
@@ -27,7 +29,7 @@ Item {
         width: 38
         horizontalAlignment: Text.AlignRight
         text: root.label
-        color: Theme.textPrimary
+        color: root.boost > 0 && !root.dimmed ? Theme.boost : Theme.textPrimary
         font.pixelSize: 12
         font.weight: Font.DemiBold
         font.family: Theme.fontFamily
@@ -51,6 +53,18 @@ Item {
             width: parent.width * Math.min(1, root.level)
             radius: parent.radius
             color: Theme.controlFill
+            opacity: root.dimmed ? 0.4 : 1
+            Behavior on width { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+        }
+
+        Rectangle {
+            anchors.left: parent.left
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            width: parent.width * Math.max(0, Math.min(1, root.boost))
+            visible: root.boost > 0
+            radius: parent.radius
+            color: Theme.boost
             opacity: root.dimmed ? 0.4 : 1
             Behavior on width { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
         }

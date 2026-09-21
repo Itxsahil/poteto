@@ -60,10 +60,12 @@ Item {
     Osd {
         id: volumeOsd
         readonly property bool muted: root.sinkAudio?.muted ?? false
+        readonly property real volume: root.sinkAudio?.volume ?? 0
         anchors.fill: parent
-        level: Math.min(1, root.sinkAudio?.volume ?? 0)
+        level: Math.min(1, volume)
+        boost: Math.round(volume * 100) / 100 - 1   // rounded: PipeWire floats drift past 1.0
         dimmed: muted
-        label: muted ? "Mute" : Math.round(level * 100) + "%"
+        label: muted ? "Mute" : Math.round(volume * 100) + "%"
         opacity: root.shown && root.kind === "volume" ? 1 : 0
         visible: opacity > 0
         Behavior on opacity { NumberAnimation { duration: 200 } }

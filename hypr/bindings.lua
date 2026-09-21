@@ -112,8 +112,10 @@ hl.bind(var_mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 -- -----------------------------------------------------------------------------
 -- MEDIA CONTROLS (Hardware keys)
 -- -----------------------------------------------------------------------------
+-- -l 2 allows up to 200%: past 100% PipeWire amplifies in software, so loud audio can clip.
+-- The island OSD and control center draw that range as a second, colored lap over a full bar.
 -- Volume (using wpctl - matches your existing config)
-hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"), {
+hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("wpctl set-volume -l 2 @DEFAULT_AUDIO_SINK@ 5%+"), {
     repeating = true,
     locked = true,
 })
