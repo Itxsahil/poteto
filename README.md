@@ -27,6 +27,7 @@ poteto/
 | **Notifications** | Popups under the island with icons, images, actions and markup; history page and Do Not Disturb in the control center; unread dot in the island |
 | **Workspaces** | Separate pill top-left: click to switch, scroll to cycle |
 | **Status pill** | Top-right: MPD track with a live cava visualizer (click play/pause, right click next, middle click previous) and the date |
+| **Media panel** (hover the status pill) | Album art, track, seek bar, play/pause, next/previous, shuffle, repeat (all / one) and MPD volume |
 | **Launcher** | Fuzzy app search, terminal apps open in kitty, built-in calculator, and a **Keybindings** card when you type `key` |
 | **Keybindings** | Searchable cheatsheet parsed live from `hypr/bindings.lua` plus the shell's own keys; flags combos bound twice |
 | **Videos** | Every video under `~/Videos` in one grid with poster frames and durations, filtered by folder chips, like the wallpaper switcher |
@@ -347,6 +348,7 @@ quickshell/
 ├── config/
 │   └── Theme.qml              all colors (read from the active theme) and fonts
 ├── services/                  system backends, no UI (singletons)
+│   ├── AlbumArt.qml           album art for the playing track (embedded, or a cover file)
 │   ├── Battery.qml            UPower
 │   ├── BluetoothManager.qml   Quickshell.Bluetooth (BlueZ)
 │   ├── Brightness.qml         brightnessctl + udev backlight events
@@ -377,7 +379,8 @@ quickshell/
 │   └── icons/                 Battery, Bell, Bluetooth, Check, Speaker, Sun, Wifi
 └── modules/                   one folder per feature
     ├── ipc/Ipc.qml            every `qs ipc` target and global shortcut
-    ├── bar/                   workspace pill (left), status pill with MPD and date (right)
+    ├── bar/                   workspace pill (left), status pill with MPD and date (right),
+    │                          media panel it expands into on hover
     ├── island/                island window, idle row, volume/brightness OSD
     ├── controlcenter/         grid, tiles/, controls/, wifi/, bluetooth/, notifications/
     ├── notifications/         notification card + popup stack
@@ -459,6 +462,7 @@ The same actions are registered as Hyprland global shortcuts named `quickshell:l
 | `~/.cache/quickshell/wallpaper-thumbs/` | wallpaper grid thumbnails |
 | `~/.cache/quickshell/login-thumbs/` | login theme stills |
 | `~/.cache/quickshell/video-thumbs/` | video poster frames and durations |
+| `~/.cache/quickshell/album-art/` | album art extracted from the playing track |
 | `/tmp/qs-cliphist-$USER/` | decoded clipboard images |
 
 All of them can be deleted safely; they are rebuilt on demand.
