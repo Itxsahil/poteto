@@ -18,7 +18,7 @@ Item {
     signal closeRequested()
 
     implicitWidth: 740
-    implicitHeight: 540
+    implicitHeight: 552
 
     function move(delta) {
         if (results.length === 0)
@@ -170,7 +170,7 @@ Item {
         width: parent.width
         clip: true
         cellWidth: width / root.columns
-        cellHeight: Math.round(cellWidth * 0.625) + 58
+        cellHeight: 116
         model: root.results
         boundsBehavior: Flickable.StopAtBounds
         currentIndex: root.selected
@@ -200,93 +200,75 @@ Item {
                 Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
                 Behavior on border.color { ColorAnimation { duration: 140 } }
 
-                Rectangle {
-                    id: preview
+                // The palette: surfaces on the left, then text, accent and the status colors.
+                Row {
+                    id: palette
                     anchors.left: parent.left
                     anchors.right: parent.right
                     anchors.top: parent.top
-                    anchors.margins: 6
-                    height: width * 0.625
-                    radius: 11
-                    color: cell.colors.tile ?? Theme.controlBg
-                    clip: true
+                    anchors.margins: 10
+                    height: 44
+                    spacing: 4
 
-                    Image {
-                        anchors.fill: parent
-                        source: cell.modelData.hasThumb ? "file://" + cell.modelData.thumb + "?v=" + ThemeManager.thumbsVersion : ""
-                        fillMode: Image.PreserveAspectCrop
-                        asynchronous: true
-                        smooth: true
-                        opacity: status === Image.Ready ? 1 : 0
-                        Behavior on opacity { NumberAnimation { duration: 200 } }
-                    }
+                    Repeater {
+                        id: swatches
+                        model: ["tile", "control", "fill", "text", "textDim", "accent", "success", "warning", "caution", "danger"]
 
-                    Row {
-                        anchors.left: parent.left
-                        anchors.bottom: parent.bottom
-                        anchors.margins: 8
-                        spacing: -4
-
-                        Repeater {
-                            model: ["island", "tile", "accent", "success", "warning", "danger", "text"]
-
-                            Rectangle {
-                                required property string modelData
-                                width: 18
-                                height: 18
-                                radius: 9
-                                color: cell.colors[modelData] ?? "transparent"
-                                border.width: 2
-                                border.color: cell.colors.island ?? "#000000"
-                            }
-                        }
-                    }
-
-                    Rectangle {
-                        visible: cell.isCurrent
-                        anchors.top: parent.top
-                        anchors.right: parent.right
-                        anchors.margins: 8
-                        width: 22
-                        height: 22
-                        radius: 11
-                        color: cell.colors.accent ?? Theme.accent
-
-                        CheckIcon {
-                            anchors.centerIn: parent
-                            width: 12
-                            height: 9
-                            color: cell.colors.onAccent ?? Theme.onAccent
+                        Rectangle {
+                            required property string modelData
+                            width: (palette.width - palette.spacing * (swatches.count - 1)) / swatches.count
+                            height: palette.height
+                            radius: 7
+                            color: cell.colors[modelData] ?? "transparent"
                         }
                     }
                 }
 
-                Column {
+                Text {
+                    id: themeName
                     anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.top: preview.bottom
+                    anchors.right: check.visible ? check.left : parent.right
+                    anchors.top: palette.bottom
                     anchors.leftMargin: 12
-                    anchors.rightMargin: 12
+                    anchors.rightMargin: check.visible ? 8 : 12
                     anchors.topMargin: 8
-                    spacing: 1
+                    elide: Text.ElideRight
+                    text: cell.modelData.name
+                    color: cell.colors.text ?? Theme.textPrimary
+                    font.pixelSize: 13
+                    font.weight: Font.DemiBold
+                    font.family: Theme.fontFamily
+                }
 
-                    Text {
-                        width: parent.width
-                        elide: Text.ElideRight
-                        text: cell.modelData.name
-                        color: cell.colors.text ?? Theme.textPrimary
-                        font.pixelSize: 13
-                        font.weight: Font.DemiBold
-                        font.family: Theme.fontFamily
-                    }
+                Text {
+                    anchors.left: themeName.left
+                    anchors.right: themeName.right
+                    anchors.top: themeName.bottom
+                    anchors.topMargin: 1
+                    elide: Text.ElideRight
+                    text: cell.isCurrent ? "Active" : cell.isApplying ? "Applying…" : (cell.modelData.variant === "light" ? "Light" : "Dark")
+                    color: cell.isCurrent || cell.isApplying ? (cell.colors.accent ?? Theme.accent) : (cell.colors.textDim ?? Theme.textSecondary)
+                    font.pixelSize: 11
+                    font.family: Theme.fontFamily
+                }
 
-                    Text {
-                        width: parent.width
-                        elide: Text.ElideRight
-                        text: cell.isCurrent ? "Active" : cell.isApplying ? "Applying…" : (cell.modelData.variant === "light" ? "Light" : "Dark")
-                        color: cell.isCurrent || cell.isApplying ? (cell.colors.accent ?? Theme.accent) : (cell.colors.textDim ?? Theme.textSecondary)
-                        font.pixelSize: 11
-                        font.family: Theme.fontFamily
+                Rectangle {
+                    id: check
+                    visible: cell.isCurrent
+                    anchors.right: parent.right
+                    anchors.rightMargin: 12
+                    anchors.top: palette.bottom
+                    anchors.topMargin: 12
+                    width: 22
+                    height: 22
+                    radius: 11
+                    color: cell.colors.accent ?? Theme.accent
+
+                    CheckIcon {
+                        anchors.centerIn: parent
+                        width: 12
+                        height: 9
+                        color: cell.colors.onAccent ?? Theme.onAccent
                     }
                 }
             }

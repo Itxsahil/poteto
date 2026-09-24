@@ -11,15 +11,12 @@ Singleton {
     readonly property string home: Quickshell.env("HOME")
     readonly property string linkDir: home + "/.cache/quickshell/theme"
     readonly property string vscodeSettings: home + "/.config/Code/User/settings.json"
-    readonly property string thumbDir: home + "/.cache/quickshell/theme-thumbs"
 
     property string themesDir: ""
     property var themes: []
     property string current: ""
     property bool applying: false
     property string pending: ""
-    property int thumbsVersion: 0
-    property var thumbAttempted: ({})
     readonly property string defaultTheme: "gruvbox-material"
 
     signal applied(string id, bool ok)
@@ -64,66 +61,35 @@ Singleton {
     Process {
         id: listProc
         command: ["sh", "-c", `
-            themes="$1"; thumbs="$2"
-            mkdir -p "$thumbs"
-            for f in "$themes"/*/quickshell/colors.json; do
+            for f in "$1"/*/quickshell/colors.json; do
                 [ -f "$f" ] || continue
-                dir=$(dirname "$(dirname "$f")"); id=$(basename "$dir")
-                wall=""
-                for w in "$dir"/wallpaper/wall.*; do [ -f "$w" ] && { wall="$w"; break; }; done
-                thumb="$thumbs/$id.jpg"
-                fresh=0
-                [ -n "$wall" ] && [ -s "$thumb" ] && [ "$thumb" -nt "$wall" ] && fresh=1
-                printf '%s\t%s\t%s\t%s\t' "$id" "$wall" "$thumb" "$fresh"
+                printf '%s\t' "$(basename "$(dirname "$(dirname "$f")")")"
                 tr -d '\n' < "$f"
                 echo
             done
-        `, "sh", root.themesDir, root.thumbDir]
+        `, "sh", root.themesDir]
         stdout: StdioCollector {
             onStreamFinished: {
                 const list = [];
-                const missing = [];
                 for (const line of text.split("\n")) {
-                    const parts = line.split("\t");
-                    if (parts.length < 5)
+                    const tab = line.indexOf("\t");
+                    if (tab < 0)
                         continue;
-                    const [id, wallpaper, thumb, fresh] = parts;
+                    const id = line.slice(0, tab);
                     try {
-                        const colors = JSON.parse(parts.slice(4).join("\t"));
+                        const colors = JSON.parse(line.slice(tab + 1));
                         list.push({
                             id: id,
                             name: colors.name ?? id,
                             variant: colors.variant ?? "dark",
-                            colors: colors,
-                            wallpaper: wallpaper,
-                            thumb: wallpaper ? thumb : "",
-                            hasThumb: fresh === "1"
+                            colors: colors
                         });
-                        if (wallpaper && fresh !== "1" && !root.thumbAttempted[wallpaper]) {
-                            missing.push(wallpaper, thumb);
-                            root.thumbAttempted[wallpaper] = true;
-                        }
                     } catch (e) {
                         console.warn("ThemeManager: invalid colors.json in", id);
                     }
                 }
                 root.themes = list.sort((a, b) => a.name.localeCompare(b.name));
-                if (missing.length && !thumbProc.running) {
-                    thumbProc.command = ["sh", "-c", `
-                        while [ $# -gt 1 ]; do printf '%s\\0%s\\0' "$1" "$2"; shift 2; done |
-                        xargs -0 -n2 -P4 sh -c 'magick "$0[0]" -auto-orient -thumbnail 520x325^ -gravity center -extent 520x325 -quality 85 "$1" 2>/dev/null'
-                    `, "sh", ...missing];
-                    thumbProc.running = true;
-                }
             }
-        }
-    }
-
-    Process {
-        id: thumbProc
-        onExited: {
-            root.thumbsVersion++;
-            root.refresh();
         }
     }
 

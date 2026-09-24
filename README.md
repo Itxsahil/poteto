@@ -35,7 +35,7 @@ poteto/
 | **Emoji picker** | 1,900 emoji (Unicode 17) in 9 categories plus recently used, search by name, Enter to copy |
 | **Clipboard** | cliphist history with text and image previews, search, filters, delete |
 | **Wallpapers** | Thumbnail grid of your wallpaper folders, applied with awww |
-| **Themes** | Ten color schemes that restyle Quickshell, Hyprland borders, kitty, NvChad, VS Code, rmpc, hyprlock and the wallpaper |
+| **Themes** | Ten color schemes, picked from a grid of palettes, that restyle Quickshell, Hyprland borders, kitty, NvChad, VS Code, rmpc, hyprlock and the wallpaper |
 | **Power menu** | Lock, logout, suspend, hibernate, reboot, shutdown with letter keys; logout/reboot/shutdown ask for a second press |
 | **Color picker** | Frozen-screen picker with a pixel magnifier, arrow-key nudging, HEX / RGB / HSL copy, a notification swatch and a recent-colors bar |
 | **Screen recorder** | Whole screen or a region at native resolution and 60 fps (NVENC, falls back to x264), system audio and/or mic mixed in, recording timer with a stop button, a name prompt while it saves (Enter to save, Esc keeps the date name), notification with Open / Show in folder |
@@ -377,7 +377,7 @@ quickshell/
 │   ├── Videos.qml             ~/Videos scan, ffmpeg poster frames and durations
 │   ├── Session.qml            power actions and logind capabilities, uptime
 │   ├── ShellState.qml         which island view is open
-│   ├── ThemeManager.qml       lists themes, applies them, theme thumbnails
+│   ├── ThemeManager.qml       lists themes and applies them
 │   ├── Wallpaper.qml          awww, wallpaper folders, thumbnails, hyprlock path
 │   └── Wifi.qml               nmcli
 ├── assets/
@@ -468,7 +468,6 @@ The same actions are registered as Hyprland global shortcuts named `quickshell:l
 | Path | Contents |
 |---|---|
 | `~/.cache/quickshell/theme/` | symlinks to the active theme's files |
-| `~/.cache/quickshell/theme-thumbs/` | theme card thumbnails |
 | `~/.cache/quickshell/wallpaper-thumbs/` | wallpaper grid thumbnails |
 | `~/.cache/quickshell/login-thumbs/` | login theme stills |
 | `~/.cache/quickshell/video-thumbs/` | video poster frames and durations |
@@ -488,7 +487,7 @@ All of them can be deleted safely; they are rebuilt on demand.
   `TypeError` after a reload, restart the shell once.
 - **Theme didn't reach an app**: `ls -l ~/.cache/quickshell/theme/` should show links into the
   active theme folder. kitty only picks up opacity changes in new windows.
-- **Wallpapers or theme cards are blank**: delete the matching thumbnail folder and reopen the view.
+- **Wallpaper cards are blank**: delete the matching thumbnail folder and reopen the view.
 - **Testing notifications**: `tools/notif-test` sends one of each shape (browser push with a site
   image, unescaped `&`/`<`, multi-line bodies, markup, critical, actions). Run it with no arguments
   for all of them, or name cases (`tools/notif-test chrome entities`). `qs ipc call notifications
