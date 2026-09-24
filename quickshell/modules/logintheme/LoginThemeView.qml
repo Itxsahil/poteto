@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell.Widgets
 import qs.config
 import qs.components
 import qs.components.icons
@@ -10,19 +11,20 @@ Item {
     property bool active: false
     property int selected: 0
 
-    readonly property int columns: 2
     readonly property var themes: LoginTheme.themes
 
     signal closeRequested()
 
-    implicitWidth: 740
-    implicitHeight: 540
+    implicitWidth: 680
+    implicitHeight: listBottom + 30
+
+    // Everything above the footer; the view grows by the setup note's height when it shows.
+    readonly property real listBottom: list.y + list.height
 
     function move(delta) {
         if (themes.length === 0)
             return;
         selected = Math.max(0, Math.min(themes.length - 1, selected + delta));
-        grid.positionViewAtIndex(selected, GridView.Contain);
     }
 
     function applySelected() {
@@ -39,7 +41,7 @@ Item {
 
     function selectActive() {
         selected = Math.max(0, themes.findIndex(t => t.id === LoginTheme.active));
-        grid.positionViewAtIndex(selected, GridView.Contain);
+        list.positionViewAtIndex(selected, ListView.Center);
     }
 
     onActiveChanged: {
@@ -63,14 +65,12 @@ Item {
             const ctrl = event.modifiers & Qt.ControlModifier;
             if (event.key === Qt.Key_Escape) {
                 root.closeRequested();
-            } else if (event.key === Qt.Key_Right || event.key === Qt.Key_L || (ctrl && event.key === Qt.Key_L)) {
+            } else if (event.key === Qt.Key_Right || event.key === Qt.Key_Down || event.key === Qt.Key_Tab
+                    || event.key === Qt.Key_L || event.key === Qt.Key_J) {
                 root.move(1);
-            } else if (event.key === Qt.Key_Left || event.key === Qt.Key_H || (ctrl && event.key === Qt.Key_H)) {
+            } else if (event.key === Qt.Key_Left || event.key === Qt.Key_Up || event.key === Qt.Key_Backtab
+                    || event.key === Qt.Key_H || event.key === Qt.Key_K) {
                 root.move(-1);
-            } else if (event.key === Qt.Key_Down || event.key === Qt.Key_J || (ctrl && event.key === Qt.Key_J)) {
-                root.move(root.columns);
-            } else if (event.key === Qt.Key_Up || event.key === Qt.Key_K || (ctrl && event.key === Qt.Key_K)) {
-                root.move(-root.columns);
             } else if (event.key === Qt.Key_P) {
                 root.previewSelected();
             } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
@@ -117,7 +117,7 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 text: LoginTheme.applying ? "Switching…"
                     : LoginTheme.message ? LoginTheme.message
-                    : `${root.themes.length} themes`
+                    : root.themes.length ? `${root.selected + 1}/${root.themes.length}` : ""
                 color: LoginTheme.messageIsError ? Theme.danger
                     : LoginTheme.applying || LoginTheme.message ? Theme.accent
                     : Theme.textSecondary
@@ -153,7 +153,7 @@ Item {
     }
 
     Text {
-        anchors.centerIn: grid
+        anchors.centerIn: list
         visible: root.themes.length === 0
         text: LoginTheme.themesDir ? "No login themes found" : "Loading…"
         color: Theme.textSecondary
@@ -161,123 +161,144 @@ Item {
         font.family: Theme.fontFamily
     }
 
-    GridView {
-        id: grid
-        anchors.top: setupNote.bottom
-        anchors.topMargin: 10
-        anchors.bottom: footer.top
-        anchors.bottomMargin: 8
-        width: parent.width
-        clip: true
-        cellWidth: width / root.columns
-        cellHeight: Math.round(cellWidth * 0.5625) + 58
-        model: root.themes
-        boundsBehavior: Flickable.StopAtBounds
-        currentIndex: root.selected
+    // One row of cards; the selected card always sits in the middle.
+    ListView {
+        id: list
 
-        delegate: Item {
-            id: cell
+        readonly property int cardWidth: 272
+        readonly property int imageHeight: Math.round((cardWidth - 12) * 0.5625)
+
+        anchors.top: setupNote.bottom
+        anchors.topMargin: 14
+        width: parent.width
+        height: imageHeight + 54
+        clip: true
+        orientation: ListView.Horizontal
+        spacing: 12
+        model: root.themes
+        currentIndex: root.selected
+        highlightRangeMode: ListView.StrictlyEnforceRange
+        preferredHighlightBegin: (width - cardWidth) / 2
+        preferredHighlightEnd: (width + cardWidth) / 2
+        highlightMoveDuration: 220
+        boundsBehavior: Flickable.StopAtBounds
+        onCurrentIndexChanged: {
+            if (currentIndex >= 0)
+                root.selected = currentIndex;
+        }
+
+        WheelHandler {
+            property real accumulated: 0
+            onWheel: event => {
+                accumulated += event.angleDelta.y || -event.angleDelta.x;
+                if (Math.abs(accumulated) < 120)
+                    return;
+                root.move(accumulated > 0 ? -1 : 1);
+                accumulated = 0;
+            }
+        }
+
+        delegate: Rectangle {
+            id: card
 
             required property var modelData
             required property int index
             readonly property bool isSelected: index === root.selected
             readonly property bool isActive: modelData.id === LoginTheme.active
             readonly property bool isApplying: modelData.id === LoginTheme.applying
+            // Cards fade out towards the edges of the row.
+            readonly property real distance: Math.min(1, Math.abs(x + width / 2 - list.contentX - list.width / 2) / (list.width / 2))
 
-            width: grid.cellWidth
-            height: grid.cellHeight
+            width: list.cardWidth
+            height: list.height
+            radius: 16
+            color: Theme.tileBg
+            border.width: 2
+            border.color: isSelected ? Theme.accent : "transparent"
+            opacity: isSelected ? 1 : 0.9 - 0.5 * distance
+            scale: cardMouse.pressed ? 0.97 : 1
+            Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+            Behavior on border.color { ColorAnimation { duration: 140 } }
 
-            Rectangle {
-                anchors.fill: parent
-                anchors.margins: 5
-                radius: 16
-                color: Theme.tileBg
-                border.width: 2
-                border.color: cell.isSelected ? Theme.textPrimary : cell.isActive ? Theme.accent : "transparent"
-                scale: cellMouse.pressed ? 0.97 : 1
-                Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
-                Behavior on border.color { ColorAnimation { duration: 140 } }
+            // ClippingRectangle, unlike clip on a Rectangle, cuts the image to the rounded corners.
+            ClippingRectangle {
+                id: preview
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.margins: 6
+                height: list.imageHeight
+                radius: 10
+                color: Theme.controlBg
 
-                Rectangle {
-                    id: preview
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.top: parent.top
-                    anchors.margins: 6
-                    height: width * 0.5625
-                    radius: 11
-                    color: Theme.controlBg
-                    clip: true
-
-                    Image {
-                        anchors.fill: parent
-                        source: cell.modelData.hasThumb ? "file://" + cell.modelData.thumb + "?v=" + LoginTheme.thumbsVersion : ""
-                        sourceSize.width: 640
-                        fillMode: Image.PreserveAspectCrop
-                        asynchronous: true
-                        smooth: true
-                        opacity: status === Image.Ready ? 1 : 0
-                        Behavior on opacity { NumberAnimation { duration: 200 } }
-                    }
-
-                    Rectangle {
-                        visible: cell.isActive
-                        anchors.top: parent.top
-                        anchors.right: parent.right
-                        anchors.margins: 8
-                        width: 22
-                        height: 22
-                        radius: 11
-                        color: Theme.accent
-
-                        CheckIcon {
-                            anchors.centerIn: parent
-                            width: 12
-                            height: 9
-                            color: Theme.onAccent
-                        }
-                    }
+                Image {
+                    anchors.fill: parent
+                    source: card.modelData.hasThumb ? "file://" + card.modelData.thumb + "?v=" + LoginTheme.thumbsVersion : ""
+                    sourceSize.width: 640
+                    fillMode: Image.PreserveAspectCrop
+                    asynchronous: true
+                    smooth: true
+                    opacity: status === Image.Ready ? 1 : 0
+                    Behavior on opacity { NumberAnimation { duration: 200 } }
                 }
 
-                Column {
-                    anchors.left: parent.left
+                Rectangle {
+                    visible: card.isActive
+                    anchors.top: parent.top
                     anchors.right: parent.right
-                    anchors.top: preview.bottom
-                    anchors.leftMargin: 12
-                    anchors.rightMargin: 12
-                    anchors.topMargin: 8
-                    spacing: 1
+                    anchors.margins: 8
+                    width: 22
+                    height: 22
+                    radius: 11
+                    color: Theme.accent
 
-                    Text {
-                        width: parent.width
-                        elide: Text.ElideRight
-                        text: cell.modelData.name
-                        color: Theme.textPrimary
-                        font.pixelSize: 13
-                        font.weight: Font.DemiBold
-                        font.family: Theme.fontFamily
-                    }
-
-                    Text {
-                        width: parent.width
-                        elide: Text.ElideRight
-                        text: cell.isActive ? "Active" : cell.isApplying ? "Switching…" : cell.modelData.id
-                        color: cell.isActive || cell.isApplying ? Theme.accent : Theme.textSecondary
-                        font.pixelSize: 11
-                        font.family: Theme.fontFamily
+                    CheckIcon {
+                        anchors.centerIn: parent
+                        width: 12
+                        height: 9
+                        color: Theme.onAccent
                     }
                 }
             }
 
+            Column {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: preview.bottom
+                anchors.leftMargin: 12
+                anchors.rightMargin: 12
+                anchors.topMargin: 8
+                spacing: 1
+
+                Text {
+                    width: parent.width
+                    elide: Text.ElideRight
+                    text: card.modelData.name
+                    color: card.isSelected ? Theme.textPrimary : Theme.textSecondary
+                    font.pixelSize: 13
+                    font.weight: Font.DemiBold
+                    font.family: Theme.fontFamily
+                }
+
+                Text {
+                    width: parent.width
+                    elide: Text.ElideRight
+                    text: card.isActive ? "Active" : card.isApplying ? "Switching…" : card.modelData.id
+                    color: card.isActive || card.isApplying ? Theme.accent : Theme.textSecondary
+                    font.pixelSize: 11
+                    font.family: Theme.fontFamily
+                }
+            }
+
             MouseArea {
-                id: cellMouse
+                id: cardMouse
                 anchors.fill: parent
-                hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
-                onEntered: root.selected = cell.index
                 onClicked: {
-                    root.selected = cell.index;
-                    root.applySelected();
+                    if (card.isSelected)
+                        root.applySelected();
+                    else
+                        root.selected = card.index;
                 }
             }
         }
@@ -285,7 +306,8 @@ Item {
 
     Item {
         id: footer
-        anchors.bottom: parent.bottom
+        anchors.top: list.bottom
+        anchors.topMargin: 8
         width: parent.width
         height: 22
 
@@ -293,7 +315,7 @@ Item {
             anchors.left: parent.left
             anchors.leftMargin: 6
             anchors.verticalCenter: parent.verticalCenter
-            text: "↵ set as login screen   P preview   ←↑↓→ navigate   Esc close"
+            text: "↵ set as login screen   P preview   ←→ navigate   Esc close"
             color: Theme.textSecondary
             font.pixelSize: 11
             font.family: Theme.fontFamily
