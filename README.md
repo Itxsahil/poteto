@@ -40,7 +40,7 @@ poteto/
 | **Color picker** | Frozen-screen picker with a pixel magnifier, arrow-key nudging, HEX / RGB / HSL copy, a notification swatch and a recent-colors bar |
 | **Screen recorder** | Whole screen or a region at native resolution and 60 fps (NVENC, falls back to x264), system audio and/or mic mixed in, recording timer with a stop button, a name prompt while it saves (Enter to save, Esc keeps the date name), notification with Open / Show in folder |
 | **Screenshots** | Frozen-screen region / window / full-screen capture, saved and copied, with a draggable preview |
-| **Login screen** | Switch the SDDM theme from a preview grid; asks for your password each time (see [Login screen](#login-screen-sddm)) |
+| **Login screen** | Switch the SDDM theme from a scrolling row of previews; asks for your password each time (see [Login screen](#login-screen-sddm)) |
 | **Password prompts** | Built-in polkit agent: any app asking for admin rights gets its password prompt in the island |
 
 ---
