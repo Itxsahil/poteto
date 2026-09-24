@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell.Widgets
 import qs.config
 import qs.components
 import qs.components.icons
@@ -219,16 +220,16 @@ Item {
             Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
             Behavior on border.color { ColorAnimation { duration: 140 } }
 
-            Rectangle {
+            // ClippingRectangle, unlike clip on a Rectangle, cuts the image to the rounded corners.
+            ClippingRectangle {
                 id: preview
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.top: parent.top
                 anchors.margins: 6
                 height: list.imageHeight
-                radius: 11
+                radius: 10
                 color: Theme.controlBg
-                clip: true
 
                 Image {
                     anchors.fill: parent
