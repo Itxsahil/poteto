@@ -26,7 +26,7 @@ reference (features, keybinds, IPC, requirements) — keep it in sync with chang
 
 - Services never draw anything; modules don't run commands directly unless it is view-local.
 - Colors always come from `Theme`, never hard-coded. Content drawn on `Theme.accent` uses
-  `Theme.onAccent`; on `Theme.fill` uses `Theme.onFill`. Check that a change reads well on light
+  `Theme.onAccent`; on `Theme.fill` uses `Theme.controlIconOnFill`. Check that a change reads well on light
   themes (catppuccin-latte) and monochrome ones (solitude).
 - New island view: add a component to `modules/island/Island.qml` (`viewItem` + an instance),
   open it with `ShellState.open("name")`, add an `IpcHandler` in `modules/ipc/Ipc.qml`, and bind a
