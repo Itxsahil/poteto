@@ -1,0 +1,21 @@
+{
+  "name": "Horizon",
+  "variant": "dark",
+  "island": "#1c1e26",
+  "border": "#2e303e",
+  "tile": "#232530",
+  "tileHover": "#2e303e",
+  "control": "#2e303e",
+  "controlHover": "#6c6f93",
+  "fill": "#d5d8da",
+  "onFill": "#1c1e26",
+  "text": "#d5d8da",
+  "textDim": "#8b8d8f",
+  "muted": "#6c6f93",
+  "accent": "#e95678",
+  "onAccent": "#1c1e26",
+  "success": "#29d398",
+  "warning": "#fac29a",
+  "caution": "#f09383",
+  "danger": "#f43e5c"
+}
