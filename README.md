@@ -219,6 +219,24 @@ rewritten on every switch. Install the VS Code theme extensions you want (see th
 On first start, if no theme has been applied yet, the shell applies **gruvbox-material**
 automatically.
 
+### Firefox (optional)
+
+`firefox/` is a flat dark chrome for Firefox: compact, rounded tabs and address bar, no lines
+between the toolbar and the page, and only the buttons that earn their place. It is fixed dark, not
+part of the theme system. Link both files into your profile — `about:profiles` shows its path,
+`~/.config/mozilla/firefox/…` on current Firefox and `~/.mozilla/firefox/…` before that:
+
+```sh
+profile=~/.config/mozilla/firefox/xxxxxxxx.default-release
+mkdir -p "$profile/chrome"
+ln -s "$PWD/firefox/userChrome.css" "$profile/chrome/userChrome.css"
+ln -s "$PWD/firefox/user.js"        "$profile/user.js"
+```
+
+`user.js` turns on `toolkit.legacyUserProfileCustomizations.stylesheets` for you. Firefox re-applies
+it on every start, so those prefs win over `about:preferences`; delete a line to hand it back.
+Changes land after a full restart (`about:profiles` → **Restart normally…**), not a new window.
+
 ---
 
 ## Themes

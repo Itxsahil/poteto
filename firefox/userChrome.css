@@ -1,0 +1,125 @@
+/* poteto — clean, minimal Firefox
+ *
+ * Neutral dark chrome that sits quietly next to the desktop: compact, rounded, no borders,
+ * and only the buttons that earn their place. Pairs with user.js (dark mode, compact density,
+ * bookmarks bar on the new tab page only).
+ */
+
+:root {
+    --poteto-bg: #181818;
+    --poteto-surface: #222222;
+    --poteto-raised: #2c2c2c;
+    --poteto-hover: #333333;
+    --poteto-text: #e0e0e0;
+    --poteto-dim: #8c8c8c;
+    --poteto-radius: 10px;
+
+    --toolbar-bgcolor: var(--poteto-bg) !important;
+    --toolbar-color: var(--poteto-text) !important;
+    --toolbar-field-background-color: var(--poteto-surface) !important;
+    --toolbar-field-focus-background-color: var(--poteto-raised) !important;
+    --toolbar-field-color: var(--poteto-text) !important;
+    --toolbar-field-focus-color: var(--poteto-text) !important;
+    --toolbar-field-border-color: transparent !important;
+    --toolbar-field-focus-border-color: transparent !important;
+    --tab-selected-bgcolor: var(--poteto-raised) !important;
+    --tab-selected-textcolor: var(--poteto-text) !important;
+    --lwt-accent-color: var(--poteto-bg) !important;
+    --lwt-text-color: var(--poteto-text) !important;
+    --chrome-content-separator-color: transparent !important;
+    --focus-outline-color: #555555 !important;
+}
+
+/* one flat surface: no lines between tabs, toolbar and page */
+#navigator-toolbox {
+    background: var(--poteto-bg) !important;
+    border-bottom: none !important;
+}
+
+#nav-bar,
+#PersonalToolbar,
+#TabsToolbar {
+    background: var(--poteto-bg) !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* ---- tabs ---- */
+
+.tab-background {
+    border-radius: var(--poteto-radius) !important;
+    margin-block: 4px !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+.tabbrowser-tab:not([selected]):hover .tab-background {
+    background: var(--poteto-surface) !important;
+}
+
+.tabbrowser-tab:not([selected]) .tab-label {
+    color: var(--poteto-dim) !important;
+}
+
+/* close buttons only where you are about to use them */
+.tabbrowser-tab:not([selected]):not(:hover) .tab-close-button {
+    display: none !important;
+}
+
+.tabbrowser-tab::after,
+.tabbrowser-tab::before {
+    border: none !important;
+}
+
+/* ---- address bar ---- */
+
+#urlbar-background {
+    border-radius: var(--poteto-radius) !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+#urlbar[focused] #urlbar-background {
+    outline: 1px solid #3a3a3a !important;
+}
+
+#urlbar-input::placeholder {
+    color: var(--poteto-dim) !important;
+    opacity: 1 !important;
+}
+
+/* ---- clutter ---- */
+
+#firefox-view-button,                 /* Firefox View */
+#sidebar-button,                      /* sidebar toggle (Ctrl+B still opens bookmarks) */
+#alltabs-button,                      /* tab list dropdown */
+#fxa-toolbar-menu-button,             /* account */
+#urlbar-searchmode-switcher,          /* search engine picker inside the address bar */
+#import-button,                       /* "Import bookmarks..." */
+.titlebar-buttonbox-container,        /* window close: Hyprland manages windows */
+.titlebar-spacer,
+#tracking-protection-icon-container,  /* the shield next to the lock */
+#back-button[disabled],               /* back / forward only when they do something */
+#forward-button[disabled] {
+    display: none !important;
+}
+
+/* toolbar buttons: flat, rounded, no background until hovered */
+toolbarbutton .toolbarbutton-icon,
+toolbarbutton .toolbarbutton-badge-stack {
+    border-radius: 8px !important;
+}
+
+#nav-bar toolbarbutton:not([disabled]):hover > .toolbarbutton-icon,
+#nav-bar toolbarbutton:not([disabled]):hover > .toolbarbutton-badge-stack {
+    background: var(--poteto-hover) !important;
+}
+
+/* bookmarks bar: dim labels, no chunky folders */
+#PersonalToolbar .toolbarbutton-text {
+    color: var(--poteto-dim) !important;
+}
+
+#PersonalToolbar toolbarbutton:hover .toolbarbutton-text {
+    color: var(--poteto-text) !important;
+}
