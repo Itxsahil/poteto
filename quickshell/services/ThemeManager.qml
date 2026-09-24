@@ -108,6 +108,7 @@ Singleton {
             link "$theme/kitty/$2.conf"          "$links/kitty.conf"
             link "$theme/hyprlock/colors.conf"   "$links/hyprlock.conf"
             link "$theme/nvim/theme.lua"         "$links/nvim.lua"
+            link "$theme/nvim/transparent"       "$links/nvim-transparent"
             link "$theme/hyprland/colors.lua"    "$links/hyprland.lua"
             link "$theme/rmpc/theme.ron"         "$links/rmpc.ron"
 
@@ -121,10 +122,19 @@ Singleton {
 
             if [ -f "$theme/nvim/theme.lua" ]; then
                 nvtheme=$(sed -n 's/^return "\\(.*\\)"$/\\1/p' "$theme/nvim/theme.lua")
+                # a theme opts into a see-through Neovim with an nvim/transparent marker file
+                nvtransparent=false
+                [ -e "$theme/nvim/transparent" ] && nvtransparent=true
                 for sock in "\${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"/nvim.*; do
                     [ -S "$sock" ] || continue
-                    nvim --server "$sock" --remote-expr "execute('lua require(\\"nvconfig\\").base46.theme = \\"$nvtheme\\"; require(\\"base46\\").load_all_highlights()')" >/dev/null 2>&1 || true
+                    nvim --server "$sock" --remote-expr "execute('lua local c = require(\\"nvconfig\\").base46; c.theme = \\"$nvtheme\\"; c.transparency = $nvtransparent; require(\\"base46\\").load_all_highlights()')" >/dev/null 2>&1 || true
                 done
+                # NvChad starts from a compiled highlight cache, which the loop above only rebuilds
+                # inside Neovims that are open. Rebuild it once more here so the next Neovim you
+                # start gets this theme too, rather than whatever was compiled last.
+                if command -v nvim >/dev/null; then
+                    nvim --headless +'lua require("base46").load_all_highlights()' +qa >/dev/null 2>&1 || true
+                fi
             fi
 
             if [ -f "$vscode" ] && [ -f "$theme/vscode/theme" ]; then

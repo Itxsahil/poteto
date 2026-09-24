@@ -1,6 +1,5 @@
 import QtQuick
 import qs.config
-import qs.components.icons
 import qs.services
 
 Item {
@@ -9,7 +8,6 @@ Item {
     property bool active: false
     property int selected: 0
 
-    readonly property int columns: 3
     readonly property var results: {
         const q = input.text.trim().toLowerCase();
         return ThemeManager.themes.filter(t => !q || t.name.toLowerCase().includes(q) || t.variant.includes(q));
@@ -17,14 +15,13 @@ Item {
 
     signal closeRequested()
 
-    implicitWidth: 740
-    implicitHeight: 552
+    implicitWidth: 600
+    implicitHeight: 176
 
     function move(delta) {
         if (results.length === 0)
             return;
         selected = Math.max(0, Math.min(results.length - 1, selected + delta));
-        grid.positionViewAtIndex(selected, GridView.Contain);
     }
 
     function applySelected() {
@@ -35,7 +32,7 @@ Item {
 
     function selectCurrent() {
         selected = Math.max(0, results.findIndex(t => t.id === ThemeManager.current));
-        grid.positionViewAtIndex(selected, GridView.Contain);
+        list.positionViewAtIndex(selected, ListView.Center);
     }
 
     onActiveChanged: {
@@ -103,23 +100,18 @@ Item {
             font.family: Theme.fontFamily
             clip: true
 
-            onTextChanged: {
-                root.selected = 0;
-                grid.positionViewAtBeginning();
-            }
+            onTextChanged: root.selected = 0
 
             Keys.onPressed: event => {
                 const ctrl = event.modifiers & Qt.ControlModifier;
                 if (event.key === Qt.Key_Escape) {
                     root.closeRequested();
-                } else if (event.key === Qt.Key_Right || (ctrl && event.key === Qt.Key_L)) {
+                } else if (event.key === Qt.Key_Right || event.key === Qt.Key_Down || event.key === Qt.Key_Tab
+                        || (ctrl && (event.key === Qt.Key_L || event.key === Qt.Key_J))) {
                     root.move(1);
-                } else if (event.key === Qt.Key_Left || (ctrl && event.key === Qt.Key_H)) {
+                } else if (event.key === Qt.Key_Left || event.key === Qt.Key_Up || event.key === Qt.Key_Backtab
+                        || (ctrl && (event.key === Qt.Key_H || event.key === Qt.Key_K))) {
                     root.move(-1);
-                } else if (event.key === Qt.Key_Down || (ctrl && event.key === Qt.Key_J)) {
-                    root.move(root.columns);
-                } else if (event.key === Qt.Key_Up || (ctrl && event.key === Qt.Key_K)) {
-                    root.move(-root.columns);
                 } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                     root.applySelected();
                     if (event.modifiers & Qt.ShiftModifier)
@@ -144,7 +136,7 @@ Item {
             anchors.right: parent.right
             anchors.rightMargin: 16
             anchors.verticalCenter: parent.verticalCenter
-            text: ThemeManager.applying ? "Applying…" : `${ThemeManager.themes.length} themes`
+            text: ThemeManager.applying ? "Applying…" : root.results.length ? `${root.selected + 1}/${root.results.length}` : ""
             color: ThemeManager.applying ? Theme.accent : Theme.textSecondary
             font.pixelSize: 11
             font.weight: ThemeManager.applying ? Font.DemiBold : Font.Normal
@@ -153,7 +145,7 @@ Item {
     }
 
     Text {
-        anchors.centerIn: grid
+        anchors.centerIn: list
         visible: root.results.length === 0
         text: ThemeManager.themes.length === 0 ? "No themes found" : "No themes match"
         color: Theme.textSecondary
@@ -161,158 +153,149 @@ Item {
         font.family: Theme.fontFamily
     }
 
-    GridView {
-        id: grid
-        anchors.top: search.bottom
-        anchors.topMargin: 10
-        anchors.bottom: footer.top
-        anchors.bottomMargin: 8
-        width: parent.width
-        clip: true
-        cellWidth: width / root.columns
-        cellHeight: 116
-        model: root.results
-        boundsBehavior: Flickable.StopAtBounds
-        currentIndex: root.selected
+    // One row of cards; the selected card always sits in the middle.
+    ListView {
+        id: list
 
-        delegate: Item {
-            id: cell
+        readonly property int cardWidth: 136
+        readonly property int cardHeight: 84
+
+        anchors.top: search.bottom
+        anchors.topMargin: 16
+        width: parent.width
+        height: cardHeight
+        clip: true
+        orientation: ListView.Horizontal
+        spacing: 10
+        model: root.results
+        currentIndex: root.selected
+        highlightRangeMode: ListView.StrictlyEnforceRange
+        preferredHighlightBegin: (width - cardWidth) / 2
+        preferredHighlightEnd: (width + cardWidth) / 2
+        highlightMoveDuration: 220
+        boundsBehavior: Flickable.StopAtBounds
+        onCurrentIndexChanged: {
+            if (currentIndex >= 0)
+                root.selected = currentIndex;
+        }
+
+        WheelHandler {
+            property real accumulated: 0
+            onWheel: event => {
+                accumulated += event.angleDelta.y || -event.angleDelta.x;
+                if (Math.abs(accumulated) < 120)
+                    return;
+                root.move(accumulated > 0 ? -1 : 1);
+                accumulated = 0;
+            }
+        }
+
+        delegate: Rectangle {
+            id: card
 
             required property var modelData
             required property int index
             readonly property var colors: modelData.colors
             readonly property bool isSelected: index === root.selected
             readonly property bool isCurrent: modelData.id === ThemeManager.current
-            readonly property bool isApplying: ThemeManager.applying && ThemeManager.pending === "" && isSelected && !isCurrent
+            // Up to seven distinct colors: the status colors, the accent, then the foreground.
+            readonly property var dots: {
+                const seen = [];
+                for (const key of ["danger", "caution", "warning", "success", "accent", "fill", "textDim", "muted"]) {
+                    const c = colors[key];
+                    if (c && !seen.includes(c.toLowerCase()))
+                        seen.push(c.toLowerCase());
+                }
+                return seen.slice(0, 7);
+            }
+            // Cards fade out towards the edges of the row.
+            readonly property real distance: Math.min(1, Math.abs(x + width / 2 - list.contentX - list.width / 2) / (list.width / 2))
 
-            width: grid.cellWidth
-            height: grid.cellHeight
+            width: list.cardWidth
+            height: list.cardHeight
+            radius: 14
+            color: colors.island ?? Theme.tileBg
+            border.width: isSelected ? 2 : 1
+            border.color: isSelected ? (colors.accent ?? Theme.accent) : (colors.border ?? "transparent")
+            opacity: isSelected ? 1 : 0.9 - 0.45 * distance
+            scale: cardMouse.pressed ? 0.96 : 1
+            Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+            Behavior on border.color { ColorAnimation { duration: 140 } }
 
+            // The active theme
             Rectangle {
-                id: card
-                anchors.fill: parent
-                anchors.margins: 5
-                radius: 16
-                color: cell.colors.island ?? Theme.tileBg
-                border.width: 2
-                border.color: cell.isSelected ? Theme.textPrimary : cell.isCurrent ? Theme.accent : (cell.colors.border ?? "transparent")
-                scale: cellMouse.pressed ? 0.97 : 1
-                Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
-                Behavior on border.color { ColorAnimation { duration: 140 } }
+                visible: card.isCurrent
+                anchors.top: parent.top
+                anchors.right: parent.right
+                anchors.margins: 9
+                width: 6
+                height: 6
+                radius: 3
+                color: card.colors.accent ?? Theme.accent
+            }
 
-                // The palette: surfaces on the left, then text, accent and the status colors.
-                Row {
-                    id: palette
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.top: parent.top
-                    anchors.margins: 10
-                    height: 44
-                    spacing: 4
+            Row {
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.top: parent.top
+                anchors.topMargin: 26
+                spacing: 5
 
-                    Repeater {
-                        id: swatches
-                        model: ["tile", "control", "fill", "text", "textDim", "accent", "success", "warning", "caution", "danger"]
+                Repeater {
+                    model: card.dots
 
-                        Rectangle {
-                            required property string modelData
-                            width: (palette.width - palette.spacing * (swatches.count - 1)) / swatches.count
-                            height: palette.height
-                            radius: 7
-                            color: cell.colors[modelData] ?? "transparent"
-                        }
-                    }
-                }
-
-                Text {
-                    id: themeName
-                    anchors.left: parent.left
-                    anchors.right: check.visible ? check.left : parent.right
-                    anchors.top: palette.bottom
-                    anchors.leftMargin: 12
-                    anchors.rightMargin: check.visible ? 8 : 12
-                    anchors.topMargin: 8
-                    elide: Text.ElideRight
-                    text: cell.modelData.name
-                    color: cell.colors.text ?? Theme.textPrimary
-                    font.pixelSize: 13
-                    font.weight: Font.DemiBold
-                    font.family: Theme.fontFamily
-                }
-
-                Text {
-                    anchors.left: themeName.left
-                    anchors.right: themeName.right
-                    anchors.top: themeName.bottom
-                    anchors.topMargin: 1
-                    elide: Text.ElideRight
-                    text: cell.isCurrent ? "Active" : cell.isApplying ? "Applying…" : (cell.modelData.variant === "light" ? "Light" : "Dark")
-                    color: cell.isCurrent || cell.isApplying ? (cell.colors.accent ?? Theme.accent) : (cell.colors.textDim ?? Theme.textSecondary)
-                    font.pixelSize: 11
-                    font.family: Theme.fontFamily
-                }
-
-                Rectangle {
-                    id: check
-                    visible: cell.isCurrent
-                    anchors.right: parent.right
-                    anchors.rightMargin: 12
-                    anchors.top: palette.bottom
-                    anchors.topMargin: 12
-                    width: 22
-                    height: 22
-                    radius: 11
-                    color: cell.colors.accent ?? Theme.accent
-
-                    CheckIcon {
-                        anchors.centerIn: parent
-                        width: 12
-                        height: 9
-                        color: cell.colors.onAccent ?? Theme.onAccent
+                    Rectangle {
+                        required property string modelData
+                        width: 11
+                        height: 11
+                        radius: 5.5
+                        color: modelData
                     }
                 }
             }
 
+            Text {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                anchors.leftMargin: 10
+                anchors.rightMargin: 10
+                anchors.bottomMargin: 12
+                horizontalAlignment: Text.AlignHCenter
+                elide: Text.ElideRight
+                text: card.modelData.name
+                color: card.isSelected ? (card.colors.text ?? Theme.textPrimary) : (card.colors.textDim ?? Theme.textSecondary)
+                font.pixelSize: 11
+                font.weight: card.isSelected ? Font.DemiBold : Font.Normal
+                font.family: Theme.fontFamily
+            }
+
             MouseArea {
-                id: cellMouse
+                id: cardMouse
                 anchors.fill: parent
-                hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
-                onEntered: root.selected = cell.index
                 onClicked: {
-                    root.selected = cell.index;
-                    root.applySelected();
+                    if (card.isSelected)
+                        root.applySelected();
+                    else
+                        root.selected = card.index;
                     input.forceActiveFocus();
                 }
-                onDoubleClicked: root.closeRequested()
+                onDoubleClicked: {
+                    if (!ThemeManager.applying)
+                        root.applySelected();
+                    root.closeRequested();
+                }
             }
         }
     }
 
-    Item {
-        id: footer
+    Text {
+        anchors.right: parent.right
+        anchors.rightMargin: 6
         anchors.bottom: parent.bottom
-        width: parent.width
-        height: 22
-
-        Text {
-            anchors.left: parent.left
-            anchors.leftMargin: 6
-            anchors.verticalCenter: parent.verticalCenter
-            text: "↵ apply   ⇧↵ apply & close   ←↑↓→ navigate   Esc close"
-            color: Theme.textSecondary
-            font.pixelSize: 11
-            font.family: Theme.fontFamily
-        }
-
-        Text {
-            anchors.right: parent.right
-            anchors.rightMargin: 6
-            anchors.verticalCenter: parent.verticalCenter
-            text: Theme.name
-            color: Theme.textSecondary
-            font.pixelSize: 11
-            font.family: Theme.fontFamily
-        }
+        text: "Enter to apply"
+        color: Theme.textSecondary
+        font.pixelSize: 11
+        font.family: Theme.fontFamily
     }
 }

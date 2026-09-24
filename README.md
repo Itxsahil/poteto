@@ -35,7 +35,7 @@ poteto/
 | **Emoji picker** | 1,900 emoji (Unicode 17) in 9 categories plus recently used, search by name, Enter to copy |
 | **Clipboard** | cliphist history with text and image previews, search, filters, delete |
 | **Wallpapers** | Thumbnail grid of your wallpaper folders, applied with awww |
-| **Themes** | Ten color schemes, picked from a grid of palettes, that restyle Quickshell, Hyprland borders, kitty, NvChad, VS Code, rmpc, hyprlock and the wallpaper |
+| **Themes** | Ten color schemes, picked from a scrolling row of palette cards, that restyle Quickshell, Hyprland borders, kitty, NvChad, VS Code, rmpc, hyprlock and the wallpaper |
 | **Power menu** | Lock, logout, suspend, hibernate, reboot, shutdown with letter keys; logout/reboot/shutdown ask for a second press |
 | **Color picker** | Frozen-screen picker with a pixel magnifier, arrow-key nudging, HEX / RGB / HSL copy, a notification swatch and a recent-colors bar |
 | **Screen recorder** | Whole screen or a region at native resolution and 60 fps (NVENC, falls back to x264), system audio and/or mic mixed in, recording timer with a stop button, a name prompt while it saves (Enter to save, Esc keeps the date name), notification with Open / Show in folder |
@@ -188,9 +188,11 @@ dynamic_background_opacity  yes
 
 ```lua
 local ok, theme = pcall(dofile, vim.fn.expand("~/.cache/quickshell/theme/nvim.lua"))
+local transparent = vim.uv.fs_stat(vim.fn.expand("~/.cache/quickshell/theme/nvim-transparent")) ~= nil
 
 M.base46 = {
     theme = ok and theme or "gruvbox-material",
+    transparency = transparent,   -- only themes with an nvim/transparent marker (anime)
 }
 ```
 
@@ -217,6 +219,24 @@ rewritten on every switch. Install the VS Code theme extensions you want (see th
 On first start, if no theme has been applied yet, the shell applies **gruvbox-material**
 automatically.
 
+### Firefox (optional)
+
+`firefox/` is a flat dark chrome for Firefox: compact, rounded tabs and address bar, no lines
+between the toolbar and the page, and only the buttons that earn their place. It is fixed dark, not
+part of the theme system. Link both files into your profile — `about:profiles` shows its path,
+`~/.config/mozilla/firefox/…` on current Firefox and `~/.mozilla/firefox/…` before that:
+
+```sh
+profile=~/.config/mozilla/firefox/xxxxxxxx.default-release
+mkdir -p "$profile/chrome"
+ln -s "$PWD/firefox/userChrome.css" "$profile/chrome/userChrome.css"
+ln -s "$PWD/firefox/user.js"        "$profile/user.js"
+```
+
+`user.js` turns on `toolkit.legacyUserProfileCustomizations.stylesheets` for you. Firefox re-applies
+it on every start, so those prefs win over `about:preferences`; delete a line to hand it back.
+Changes land after a full restart (`about:profiles` → **Restart normally…**), not a new window.
+
 ---
 
 ## Themes
@@ -230,6 +250,7 @@ themes/everforest-dark/
 ├── hyprlock/colors.conf         $accent, $surface, $text, $time, $date, $warning, $danger
 ├── quickshell/colors.json       shell colors (see below)
 ├── nvim/theme.lua               return "everforest"     (NvChad base46 theme name)
+├── nvim/transparent             optional marker: see-through Neovim while this theme is active
 ├── rmpc/theme.ron               rmpc theme
 ├── vscode/theme                 Everforest Night Medium  (exact VS Code theme label)
 └── wallpaper/wall.jpg           default wallpaper (.jpg / .png / .webp)
@@ -237,9 +258,10 @@ themes/everforest-dark/
 
 Switching a theme (`mod + T`, or `qs ipc call theme apply <id>`):
 
-1. links `colors.json`, `kitty.conf`, `hyprland.lua`, `hyprlock.conf`, `nvim.lua`, `rmpc.ron` and `current` into `~/.cache/quickshell/theme/`
+1. links `colors.json`, `kitty.conf`, `hyprland.lua`, `hyprlock.conf`, `nvim.lua`, `nvim-transparent`, `rmpc.ron` and `current` into `~/.cache/quickshell/theme/`
 2. reloads every open kitty window (`SIGUSR1`), runs `hyprctl reload` for the new border colors, and sends the new theme to every running rmpc (`rmpc remote --pid … set theme`)
-3. recolors every running Neovim through its socket
+3. recolors every running Neovim through its socket (theme and transparency), then rebuilds NvChad's
+   highlight cache once more headlessly, so Neovims started later get the new theme too
 4. replaces `workbench.colorTheme` in VS Code's `settings.json`
 5. sets the theme wallpaper with awww and updates hyprlock's background path
 
