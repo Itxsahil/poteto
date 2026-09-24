@@ -188,9 +188,11 @@ dynamic_background_opacity  yes
 
 ```lua
 local ok, theme = pcall(dofile, vim.fn.expand("~/.cache/quickshell/theme/nvim.lua"))
+local transparent = vim.uv.fs_stat(vim.fn.expand("~/.cache/quickshell/theme/nvim-transparent")) ~= nil
 
 M.base46 = {
     theme = ok and theme or "gruvbox-material",
+    transparency = transparent,   -- only themes with an nvim/transparent marker (anime)
 }
 ```
 
@@ -230,6 +232,7 @@ themes/everforest-dark/
 ├── hyprlock/colors.conf         $accent, $surface, $text, $time, $date, $warning, $danger
 ├── quickshell/colors.json       shell colors (see below)
 ├── nvim/theme.lua               return "everforest"     (NvChad base46 theme name)
+├── nvim/transparent             optional marker: see-through Neovim while this theme is active
 ├── rmpc/theme.ron               rmpc theme
 ├── vscode/theme                 Everforest Night Medium  (exact VS Code theme label)
 └── wallpaper/wall.jpg           default wallpaper (.jpg / .png / .webp)
@@ -237,9 +240,10 @@ themes/everforest-dark/
 
 Switching a theme (`mod + T`, or `qs ipc call theme apply <id>`):
 
-1. links `colors.json`, `kitty.conf`, `hyprland.lua`, `hyprlock.conf`, `nvim.lua`, `rmpc.ron` and `current` into `~/.cache/quickshell/theme/`
+1. links `colors.json`, `kitty.conf`, `hyprland.lua`, `hyprlock.conf`, `nvim.lua`, `nvim-transparent`, `rmpc.ron` and `current` into `~/.cache/quickshell/theme/`
 2. reloads every open kitty window (`SIGUSR1`), runs `hyprctl reload` for the new border colors, and sends the new theme to every running rmpc (`rmpc remote --pid … set theme`)
-3. recolors every running Neovim through its socket
+3. recolors every running Neovim through its socket (theme and transparency), then rebuilds NvChad's
+   highlight cache once more headlessly, so Neovims started later get the new theme too
 4. replaces `workbench.colorTheme` in VS Code's `settings.json`
 5. sets the theme wallpaper with awww and updates hyprlock's background path
 

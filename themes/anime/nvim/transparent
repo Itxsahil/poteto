@@ -1,0 +1,2 @@
+Marker: NvChad runs with base46 transparency while this theme is active, so the
+see-through kitty terminal shows behind Neovim. Delete this file to turn it off.
