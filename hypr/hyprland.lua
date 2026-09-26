@@ -4,6 +4,30 @@
 -- Adapted to match your existing ALT mod + HJKL style
 -- =============================================================================
 
+-- Border around the focused window, on or off (mod + B). The choice is kept in a file rather than
+-- only in the running config, because `hyprctl reload` resets the config to what these files say,
+-- and the theme switcher reloads on every theme change.
+border_state_file = os.getenv("HOME") .. "/.cache/quickshell/border"
+
+function border_enabled()
+    local file = io.open(border_state_file, "r")
+    if not file then
+        return true
+    end
+    local state = file:read("*l")
+    file:close()
+    return state ~= "off"
+end
+
+function set_border_enabled(enabled)
+    hl.config({ general = { border_size = enabled and 1 or 0 } })
+    local file = io.open(border_state_file, "w")
+    if file then
+        file:write(enabled and "on" or "off")
+        file:close()
+    end
+end
+
 -- Import keybinds
 require("bindings")
 
@@ -51,7 +75,7 @@ hl.config({
     general = {
         gaps_in = 6,
         gaps_out = 12,
-        border_size = 1,
+        border_size = border_enabled() and 1 or 0,
         col = {
             active_border = theme.active_border or "rgba(cba6f7ff)",
             inactive_border = theme.inactive_border or "rgba(585b70aa)",
@@ -68,10 +92,32 @@ hl.config({
         -- active_opacity = 1.0,
         -- inactive_opacity = 1.0,
         fullscreen_opacity = 1.0,
+        -- Rounded corners, matching the shell's own pills and cards.
+        rounding = 10,
+        rounding_power = 2.0,
+        -- Frosted glass behind anything see-through. Only translucent surfaces are blurred, so in
+        -- practice this is the terminal (and everything running in it: Neovim, rmpc, btop, ...);
+        -- opaque windows are untouched and cost nothing.
         blur = {
-            enabled = false,
-            size = 10,
+            enabled = true,
+            size = 8,
             passes = 3,
+            new_optimizations = true,
+            noise = 0.015,
+            contrast = 1.0,
+            brightness = 1.0,
+            vibrancy = 0.17,
+            popups = true,
+        },
+        -- A soft drop shadow so windows sit above the wallpaper instead of lying flat on it.
+        -- The focused window is lifted a little further than the rest.
+        shadow = {
+            enabled = true,
+            range = 18,
+            render_power = 3,
+            offset = "0 4",
+            color = "rgba(0000005a)",
+            color_inactive = "rgba(00000030)",
         },
     },
 })

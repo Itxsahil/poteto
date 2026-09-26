@@ -28,6 +28,8 @@ reference (features, keybinds, IPC, requirements) — keep it in sync with chang
 - Colors always come from `Theme`, never hard-coded. Content drawn on `Theme.accent` uses
   `Theme.onAccent`; on `Theme.fill` uses `Theme.controlIconOnFill`. Check that a change reads well on light
   themes (catppuccin-latte) and monochrome ones (solitude).
+- Floating shell surfaces get a shadow with `components/Shadow.qml`, declared as a sibling before
+  the surface. Its window needs room around the surface, or the shadow is clipped at the window edge.
 - New island view: add a component to `modules/island/Island.qml` (`viewItem` + an instance),
   open it with `ShellState.open("name")`, add an `IpcHandler` in `modules/ipc/Ipc.qml`, and bind a
   key in `hypr/bindings.lua` that calls `qs ipc call <target> <action>`.

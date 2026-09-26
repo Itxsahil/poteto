@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
+import qs.components
 import qs.config
 import qs.services
 
@@ -232,6 +233,10 @@ PanelWindow {
                 }
             }
         }
+    }
+
+    Shadow {
+        target: toolbar
     }
 
     Rectangle {

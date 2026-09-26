@@ -65,6 +65,7 @@ poteto/
 | `Super + Shift + 4` | Screenshot (region) |
 | `mod + X` | Power menu (L lock · E logout · S suspend · H hibernate · R reboot · P shutdown) |
 | `mod + Shift + ;` | Lock screen |
+| `mod + B` | Border around the focused window on / off (remembered across reloads) |
 | Hover the island | Control center |
 
 The table above is the shell's own keys. `mod + /` lists **every** bind, window management
@@ -175,12 +176,14 @@ theme. Each app has to read from those links once:
 include ~/.cache/quickshell/theme/kitty.conf
 ```
 
-The **anime** theme's terminal is see-through (Eldritch colors at 85% opacity); every other theme
-stays opaque. kitty only changes opacity on a live theme switch if this is set in `kitty.conf`, and
-only reads it when a window starts, so reopen open terminals once after adding it:
+The terminal is frosted glass: see-through, with Hyprland blurring whatever is behind it
+(`decoration:blur` in `hypr/hyprland.lua`). That covers everything running in it too — Neovim,
+rmpc, btop. Set the opacity here rather than per theme, so every theme gets it; a theme can still
+override it in its own `kitty/<id>.conf`. kitty only reads `dynamic_background_opacity` when a
+window starts, so reopen any open terminals once after adding it:
 
 ```conf
-background_opacity          1.0
+background_opacity          0.80
 dynamic_background_opacity  yes
 ```
 
@@ -408,7 +411,7 @@ quickshell/
 ├── utils/
 │   └── Calc.js                safe expression parser for the launcher
 ├── components/                reusable UI
-│   ├── CircleButton  ControlSlider  PillButton  Spinner  Tile  Toggle
+│   ├── CircleButton  ControlSlider  PillButton  Shadow  Spinner  Tile  Toggle
 │   └── icons/                 Battery, Bell, Bluetooth, Check, Speaker, Sun, Wifi
 └── modules/                   one folder per feature
     ├── ipc/Ipc.qml            every `qs ipc` target and global shortcut
@@ -483,6 +486,8 @@ The same actions are registered as Hyprland global shortcuts named `quickshell:l
 | Screenshot folder | `saveDir` in `quickshell/services/Screenshot.qml` (default `~/Pictures/Screenshots`) |
 | Icon theme | first line of `quickshell/shell.qml` (`//@ pragma IconTheme breeze-dark`) |
 | Fonts | `fontFamily` in `quickshell/config/Theme.qml` |
+| Window corners, shadows, blur, gaps, borders | `general` and `decoration` in `hypr/hyprland.lua` |
+| Shadow under the shell's own surfaces | `shadow` in `quickshell/config/Theme.qml`, shape in `quickshell/components/Shadow.qml` |
 
 ---
 
@@ -495,9 +500,10 @@ The same actions are registered as Hyprland global shortcuts named `quickshell:l
 | `~/.cache/quickshell/login-thumbs/` | login theme stills |
 | `~/.cache/quickshell/video-thumbs/` | video poster frames and durations |
 | `~/.cache/quickshell/album-art/` | album art extracted from the playing track |
+| `~/.cache/quickshell/border` | `on` / `off` for the focused window's border (`mod + B`) |
 | `/tmp/qs-cliphist-$USER/` | decoded clipboard images |
 
-All of them can be deleted safely; they are rebuilt on demand.
+All of them can be deleted safely; they are rebuilt on demand, and `border` falls back to `on`.
 
 ---
 

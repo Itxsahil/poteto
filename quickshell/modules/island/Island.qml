@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
+import qs.components
 import qs.config
 import qs.services
 import qs.modules.controlcenter
@@ -22,13 +23,17 @@ PanelWindow {
 
     required property ShellScreen targetScreen
 
+    // The pill holds its own 8px gap from the top of the screen instead of the window doing it,
+    // so its shadow has somewhere to fall above it. The exclusive zone covers both, leaving the
+    // same 52px reserved for windows as before.
+    readonly property int gapTop: 8
+
     screen: targetScreen
     anchors.top: true
-    margins.top: 8
     implicitWidth: 800
-    implicitHeight: 680
+    implicitHeight: 680 + gapTop
     color: "transparent"
-    exclusiveZone: 44
+    exclusiveZone: 44 + gapTop
 
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.namespace: "dynamic-island"
@@ -53,6 +58,10 @@ PanelWindow {
         id: grabArm
         interval: 150
         onTriggered: focusGrab.active = pill.viewOpen
+    }
+
+    Shadow {
+        target: pill
     }
 
     Rectangle {
@@ -96,6 +105,7 @@ PanelWindow {
 
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
+        anchors.topMargin: root.gapTop
         width: viewItem ? viewItem.implicitWidth + 24
             : showPanel ? controlCenter.implicitWidth + 40
             : showOsd ? osd.implicitWidth + 40

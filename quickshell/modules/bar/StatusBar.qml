@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
+import qs.components
 import qs.config
 import qs.services
 
@@ -9,15 +10,18 @@ PanelWindow {
 
     required property ShellScreen targetScreen
 
+    // The pills keep their gap from the screen edge through their own anchor margins rather than
+    // the window's, so the window reaches the corner and their shadows have somewhere to fall.
+    readonly property int gapTop: 8
+    readonly property int gapRight: 12
+
     screen: targetScreen
     anchors.top: true
     anchors.right: true
-    margins.top: 8
-    margins.right: 12
-    // Room for the media panel to grow into, plus the recorder pill beside it.
+    // Room for the media panel to grow into, plus the recorder pill beside it, plus the shadows.
     // Only the pills themselves take input.
-    implicitWidth: 620
-    implicitHeight: 240
+    implicitWidth: 640
+    implicitHeight: 260
     color: "transparent"
     exclusionMode: ExclusionMode.Ignore
 
@@ -45,6 +49,10 @@ PanelWindow {
         color: Theme.controlBg
     }
 
+    Shadow {
+        target: recPill
+    }
+
     // Recording indicator and stop button, kept out of the status pill: that one turns into
     // the media panel on hover, which would hide the stop button mid-recording.
     Rectangle {
@@ -52,6 +60,7 @@ PanelWindow {
         anchors.right: pill.left
         anchors.rightMargin: recordingWidget.shown ? 8 : 0
         anchors.top: parent.top
+        anchors.topMargin: root.gapTop
         // zero width when idle, so the input mask has no invisible strip beside the pill
         width: recordingWidget.shown ? recordingWidget.implicitWidth + 24 : 0
         height: 36
@@ -69,6 +78,10 @@ PanelWindow {
         }
     }
 
+    Shadow {
+        target: pill
+    }
+
     Rectangle {
         id: pill
 
@@ -77,7 +90,9 @@ PanelWindow {
         readonly property bool showMedia: expanded && Mpd.active
 
         anchors.right: parent.right
+        anchors.rightMargin: root.gapRight
         anchors.top: parent.top
+        anchors.topMargin: root.gapTop
         width: showMedia ? media.implicitWidth + 32 : content.implicitWidth + 24
         height: showMedia ? media.implicitHeight + 28 : 36
         radius: showMedia ? 26 : height / 2
