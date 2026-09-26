@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell.Widgets
 import qs.config
 import qs.services
 
@@ -359,18 +360,17 @@ Item {
                     id: card
                     anchors.fill: parent
                     anchors.margins: 5
-                    radius: 14
+                    radius: 18
                     color: Theme.tileBg
                     scale: cellMouse.pressed ? 0.96 : cell.isSelected ? 1.0 : 0.985
                     Behavior on scale { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
 
-                    Rectangle {
+                    ClippingRectangle {
                         id: imageClip
                         anchors.fill: parent
                         anchors.margins: 3
-                        radius: 11
+                        radius: 15
                         color: Theme.controlBg
-                        clip: true
 
                         Image {
                             id: img
@@ -405,6 +405,7 @@ Item {
                                 font.family: Theme.fontFamily
                             }
                         }
+
                     }
 
                     Rectangle {
