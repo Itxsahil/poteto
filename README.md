@@ -35,7 +35,7 @@ poteto/
 | **Emoji picker** | 1,900 emoji (Unicode 17) in 9 categories plus recently used, search by name, Enter to copy |
 | **Clipboard** | cliphist history with text and image previews, search, filters, delete |
 | **Wallpapers** | Thumbnail grid of your wallpaper folders, applied with awww |
-| **Themes** | Eleven color schemes, picked from a scrolling row of palette cards, that restyle Quickshell, Hyprland borders, kitty, NvChad, VS Code, rmpc, hyprlock and the wallpaper |
+| **Themes** | Twelve color schemes, picked from a scrolling row of palette cards, that restyle Quickshell, Hyprland borders, kitty, NvChad, VS Code, rmpc, hyprlock and (when supplied) the wallpaper |
 | **Power menu** | Lock, logout, suspend, hibernate, reboot, shutdown with letter keys; logout/reboot/shutdown ask for a second press |
 | **Color picker** | Frozen-screen picker with a pixel magnifier, arrow-key nudging, HEX / RGB / HSL copy, a notification swatch and a recent-colors bar |
 | **Screen recorder** | Whole screen or a region at native resolution and 60 fps (NVENC, falls back to x264), system audio and/or mic mixed in, recording timer with a stop button, a name prompt while it saves (Enter to save, Esc keeps the date name), notification with Open / Show in folder |
@@ -256,7 +256,7 @@ themes/everforest-dark/
 ├── nvim/transparent             optional marker: see-through Neovim while this theme is active
 ├── rmpc/theme.ron               rmpc theme
 ├── vscode/theme                 Everforest Night Medium  (exact VS Code theme label)
-└── wallpaper/wall.jpg           default wallpaper (.jpg / .png / .webp)
+└── wallpaper/wall.jpg           optional default wallpaper (.jpg / .png / .webp)
 ```
 
 Switching a theme (`mod + T`, or `qs ipc call theme apply <id>`):
@@ -279,6 +279,7 @@ Switching a theme (`mod + T`, or `qs ipc call theme apply <id>`):
 | horizon | horizon | Horizon (`jolaleye.horizon-theme-vscode`) |
 | osaka-jade | scaryforest | Ocean Green: Dark (`jovejonovski.ocean-green`) |
 | rose-pine | rosepine | Rosé Pine Moon (`mvllow.rose-pine`) |
+| rxyhn | rxyhn | Dark Modern (built in; no matching VS Code theme bundled) |
 | solitude | monochrome | Noctokai (`farigab.noctokai-theme`) |
 | tokyo-night-storm | tokyonight | Tokyo Night Storm (`enkia.tokyo-night`) |
 
