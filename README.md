@@ -35,7 +35,7 @@ poteto/
 | **Emoji picker** | 1,900 emoji (Unicode 17) in 9 categories plus recently used, search by name, Enter to copy |
 | **Clipboard** | cliphist history with text and image previews, search, filters, delete |
 | **Wallpapers** | Thumbnail grid of your wallpaper folders, applied with awww |
-| **Themes** | Ten color schemes, picked from a scrolling row of palette cards, that restyle Quickshell, Hyprland borders, kitty, NvChad, VS Code, rmpc, hyprlock and the wallpaper |
+| **Themes** | Twelve color schemes, picked from a scrolling row of palette cards, that restyle Quickshell, Hyprland borders, kitty, NvChad, VS Code, rmpc, hyprlock and (when supplied) the wallpaper |
 | **Power menu** | Lock, logout, suspend, hibernate, reboot, shutdown with letter keys; logout/reboot/shutdown ask for a second press |
 | **Color picker** | Frozen-screen picker with a pixel magnifier, arrow-key nudging, HEX / RGB / HSL copy, a notification swatch and a recent-colors bar |
 | **Screen recorder** | Whole screen or a region at native resolution and 60 fps (NVENC, falls back to x264), system audio and/or mic mixed in, recording timer with a stop button, a name prompt while it saves (Enter to save, Esc keeps the date name), notification with Open / Show in folder |
@@ -65,6 +65,7 @@ poteto/
 | `Super + Shift + 4` | Screenshot (region) |
 | `mod + X` | Power menu (L lock · E logout · S suspend · H hibernate · R reboot · P shutdown) |
 | `mod + Shift + ;` | Lock screen |
+| `mod + B` | Border around the focused window on / off (remembered across reloads) |
 | Hover the island | Control center |
 
 The table above is the shell's own keys. `mod + /` lists **every** bind, window management
@@ -175,12 +176,14 @@ theme. Each app has to read from those links once:
 include ~/.cache/quickshell/theme/kitty.conf
 ```
 
-The **anime** theme's terminal is see-through (Eldritch colors at 85% opacity); every other theme
-stays opaque. kitty only changes opacity on a live theme switch if this is set in `kitty.conf`, and
-only reads it when a window starts, so reopen open terminals once after adding it:
+The terminal is frosted glass: see-through, with Hyprland blurring whatever is behind it
+(`decoration:blur` in `hypr/hyprland.lua`). That covers everything running in it too — Neovim,
+rmpc, btop. Set the opacity here rather than per theme, so every theme gets it; a theme can still
+override it in its own `kitty/<id>.conf`. kitty only reads `dynamic_background_opacity` when a
+window starts, so reopen any open terminals once after adding it:
 
 ```conf
-background_opacity          1.0
+background_opacity          0.80
 dynamic_background_opacity  yes
 ```
 
@@ -253,7 +256,7 @@ themes/everforest-dark/
 ├── nvim/transparent             optional marker: see-through Neovim while this theme is active
 ├── rmpc/theme.ron               rmpc theme
 ├── vscode/theme                 Everforest Night Medium  (exact VS Code theme label)
-└── wallpaper/wall.jpg           default wallpaper (.jpg / .png / .webp)
+└── wallpaper/wall.jpg           optional default wallpaper (.jpg / .png / .webp)
 ```
 
 Switching a theme (`mod + T`, or `qs ipc call theme apply <id>`):
@@ -273,8 +276,10 @@ Switching a theme (`mod + T`, or `qs ipc call theme apply <id>`):
 | dracula | chadracula | Dracula Theme (`dracula-theme.theme-dracula`) |
 | everforest-dark | everforest | Everforest Night Hard (`jarith.everforest-night-vscode`) |
 | gruvbox-material | gruvbox-material | Gruvbox Dark Hard (`jdinhlife.gruvbox`) |
+| horizon | horizon | Horizon (`jolaleye.horizon-theme-vscode`) |
 | osaka-jade | scaryforest | Ocean Green: Dark (`jovejonovski.ocean-green`) |
 | rose-pine | rosepine | Rosé Pine Moon (`mvllow.rose-pine`) |
+| rxyhn | rxyhn | Dark Modern (built in; no matching VS Code theme bundled) |
 | solitude | monochrome | Noctokai (`farigab.noctokai-theme`) |
 | tokyo-night-storm | tokyonight | Tokyo Night Storm (`enkia.tokyo-night`) |
 
@@ -407,7 +412,7 @@ quickshell/
 ├── utils/
 │   └── Calc.js                safe expression parser for the launcher
 ├── components/                reusable UI
-│   ├── CircleButton  ControlSlider  PillButton  Spinner  Tile  Toggle
+│   ├── CircleButton  ControlSlider  PillButton  Shadow  Spinner  Tile  Toggle
 │   └── icons/                 Battery, Bell, Bluetooth, Check, Speaker, Sun, Wifi
 └── modules/                   one folder per feature
     ├── ipc/Ipc.qml            every `qs ipc` target and global shortcut
@@ -482,6 +487,8 @@ The same actions are registered as Hyprland global shortcuts named `quickshell:l
 | Screenshot folder | `saveDir` in `quickshell/services/Screenshot.qml` (default `~/Pictures/Screenshots`) |
 | Icon theme | first line of `quickshell/shell.qml` (`//@ pragma IconTheme breeze-dark`) |
 | Fonts | `fontFamily` in `quickshell/config/Theme.qml` |
+| Window corners, shadows, blur, gaps, borders | `general` and `decoration` in `hypr/hyprland.lua` |
+| Shadow under the shell's own surfaces | `shadow` in `quickshell/config/Theme.qml`, shape in `quickshell/components/Shadow.qml` |
 
 ---
 
@@ -494,9 +501,10 @@ The same actions are registered as Hyprland global shortcuts named `quickshell:l
 | `~/.cache/quickshell/login-thumbs/` | login theme stills |
 | `~/.cache/quickshell/video-thumbs/` | video poster frames and durations |
 | `~/.cache/quickshell/album-art/` | album art extracted from the playing track |
+| `~/.cache/quickshell/border` | `on` / `off` for the focused window's border (`mod + B`) |
 | `/tmp/qs-cliphist-$USER/` | decoded clipboard images |
 
-All of them can be deleted safely; they are rebuilt on demand.
+All of them can be deleted safely; they are rebuilt on demand, and `border` falls back to `on`.
 
 ---
 

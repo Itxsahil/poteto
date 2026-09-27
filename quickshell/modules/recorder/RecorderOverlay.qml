@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
+import qs.components
 import qs.config
 import qs.services
 
@@ -212,6 +213,10 @@ PanelWindow {
         height: 20
         anchors.verticalCenter: parent.verticalCenter
         color: Theme.controlBg
+    }
+
+    Shadow {
+        target: toolbar
     }
 
     Rectangle {

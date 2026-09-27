@@ -222,6 +222,11 @@ hl.bind(var_mainMod .. " + backspace", function()
     hl.config({ decoration = { active_opacity = opacity == 1 and 0.9 or 1 } })
 end)
 
+-- Toggle the border around the focused window
+hl.bind(var_mainMod .. " + B", function()
+    set_border_enabled(not border_enabled())
+end)
+
 -- Toggle gaps
 hl.bind(var_mainMod .. " + SHIFT + backspace", function()
     local gaps = hl.get_config("general:gaps_in") or 6

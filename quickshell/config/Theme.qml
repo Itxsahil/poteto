@@ -75,6 +75,10 @@ Singleton {
     readonly property color wsHoverBg: controlBg
     readonly property color wsUrgentBg: Qt.alpha(danger, 0.2)
 
+    // Drop shadow under the shell's surfaces (components/Shadow.qml). Always dark, on every theme:
+    // it is a shadow cast on the wallpaper, not a surface that follows the palette.
+    readonly property color shadow: Qt.rgba(0, 0, 0, 0.45)
+
     readonly property color screenshotShade: Qt.alpha(islandBg, 0.55)
     readonly property color screenshotBorder: textPrimary
 

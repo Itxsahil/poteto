@@ -1,0 +1,21 @@
+{
+  "name": "Rxyhn",
+  "variant": "dark",
+  "island": "#061115",
+  "border": "#313c40",
+  "tile": "#131e22",
+  "tileHover": "#1c272b",
+  "control": "#242f33",
+  "controlHover": "#313c40",
+  "fill": "#78B892",
+  "onFill": "#061115",
+  "text": "#D9D7D6",
+  "textDim": "#8a9799",
+  "muted": "#4f5a5e",
+  "accent": "#78B892",
+  "onAccent": "#061115",
+  "success": "#78B892",
+  "warning": "#ecd28b",
+  "caution": "#E89982",
+  "danger": "#DF5B61"
+}

@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
+import qs.components
 import qs.services
 
 PanelWindow {
@@ -11,13 +12,17 @@ PanelWindow {
     readonly property bool focusedScreen: Hyprland.focusedMonitor?.name === targetScreen.name
     readonly property bool hasPopups: Notifications.popups.length > 0
 
+    // Padding around the card column so each card's shadow is not cut off at the window edge.
+    // The window moves up and grows by the same amount, so the cards stay where they were.
+    readonly property int shadowRoom: 24
+
     screen: targetScreen
     visible: focusedScreen && (hasPopups || stack.count > 0)
     color: "transparent"
     anchors.top: true
-    margins.top: 56
-    implicitWidth: 400
-    implicitHeight: Math.max(1, stack.contentHeight + 20)
+    margins.top: 56 - shadowRoom
+    implicitWidth: 380 + shadowRoom * 2
+    implicitHeight: Math.max(1, stack.contentHeight + shadowRoom * 2)
     exclusionMode: ExclusionMode.Ignore
 
     WlrLayershell.layer: WlrLayer.Overlay
@@ -30,8 +35,9 @@ PanelWindow {
     ListView {
         id: stack
         anchors.fill: parent
-        anchors.leftMargin: 10
-        anchors.rightMargin: 10
+        anchors.topMargin: root.shadowRoom
+        anchors.leftMargin: root.shadowRoom
+        anchors.rightMargin: root.shadowRoom
         spacing: 8
         interactive: false
         model: Notifications.popups
@@ -49,12 +55,27 @@ PanelWindow {
             NumberAnimation { property: "y"; duration: 260; easing.type: Easing.OutCubic }
         }
 
-        delegate: NotificationCard {
+        // The card is wrapped so the shadow can sit behind it: inside the card it would be drawn
+        // over its own background instead.
+        delegate: Item {
+            id: row
+
             required property var modelData
+
             width: ListView.view.width
-            notification: modelData
-            popup: true
-            onTimedOut: Notifications.hidePopup(modelData)
+            height: card.implicitHeight
+
+            Shadow {
+                target: card
+            }
+
+            NotificationCard {
+                id: card
+                width: row.width
+                notification: row.modelData
+                popup: true
+                onTimedOut: Notifications.hidePopup(row.modelData)
+            }
         }
     }
 }
