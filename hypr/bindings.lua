@@ -207,6 +207,12 @@ hl.bind(var_mainMod .. " + slash", hl.dsp.exec_cmd("qs ipc call keybinds toggle"
 -- Video browser
 hl.bind(var_mainMod .. " + SHIFT + V", hl.dsp.exec_cmd("qs ipc call videos toggle"))
 
+-- Camera
+hl.bind(var_mainMod .. " + SHIFT + C", hl.dsp.exec_cmd("qs ipc call camera toggle"))
+
+-- Simple bar instead of the floating island, and back
+hl.bind(var_mainMod .. " + SHIFT + B", hl.dsp.exec_cmd("qs ipc call bar toggle"))
+
 -- Login screen (SDDM) theme selector
 hl.bind(var_mainMod .. " + SHIFT + T", hl.dsp.exec_cmd("qs ipc call logintheme toggle"))
 

@@ -15,6 +15,7 @@ import qs.modules.emoji
 import qs.modules.recorder
 import qs.modules.logintheme
 import qs.modules.videos
+import qs.modules.camera
 import qs.modules.keybinds
 import qs.modules.polkit
 
@@ -28,19 +29,34 @@ PanelWindow {
     // same 52px reserved for windows as before.
     readonly property int gapTop: 8
 
+    // In bar mode the strip across the top reserves the space and shows the idle status, so this
+    // window reserves nothing and only appears when something is opened in it.
+    readonly property int topGap: Layout.bar ? Layout.barHeight + 6 : gapTop
+
     screen: targetScreen
     anchors.top: true
     implicitWidth: 800
-    implicitHeight: 680 + gapTop
+    // Tall enough for whatever the pill has to show. The control center is not a fixed height —
+    // the audio pickers appear when there is a device to choose, and their chips wrap — and in bar
+    // mode the pill starts further down, so a fixed window clipped the bottom of the panel.
+    implicitHeight: topGap + Math.max(680, controlCenter.implicitHeight + 56)
     color: "transparent"
-    exclusiveZone: 44 + gapTop
+    // In bar mode this reserves the bar's height on the bar's behalf — see SimpleBar.qml
+    exclusiveZone: Layout.bar ? Layout.barHeight : 44 + gapTop
 
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.namespace: "dynamic-island"
     WlrLayershell.keyboardFocus: pill.viewOpen || pill.showPanel ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
     mask: Region {
-        item: pill
+        // Nothing to click when the bar is showing the status and nothing is open
+        item: pill.hidden ? nothing : pill
+    }
+
+    Item {
+        id: nothing
+        width: 0
+        height: 0
     }
 
     SystemClock {
@@ -57,7 +73,20 @@ PanelWindow {
     Timer {
         id: grabArm
         interval: 150
-        onTriggered: focusGrab.active = pill.viewOpen
+        // showPanel, not ShellState.panel: the flag is shared by every screen, and a grab armed on
+        // a screen that is not showing the panel would clear the shared state and close it
+        onTriggered: focusGrab.active = pill.viewOpen || pill.showPanel
+    }
+
+    // The panel opened from the bar closes the same way a view does: click away, or Esc
+    Connections {
+        target: ShellState
+        function onPanelChanged() {
+            if (pill.showPanel)
+                grabArm.restart();
+            else
+                focusGrab.active = pill.viewOpen;
+        }
     }
 
     Shadow {
@@ -68,7 +97,8 @@ PanelWindow {
         id: pill
 
         property bool expanded: false
-        readonly property string view: Hyprland.focusedMonitor?.name === root.targetScreen.name ? ShellState.view : ""
+        readonly property bool focused: Hyprland.focusedMonitor?.name === root.targetScreen.name
+        readonly property string view: focused ? ShellState.view : ""
         readonly property bool viewOpen: view !== ""
         readonly property Item viewItem: view === "launcher" ? launcher
             : view === "clipboard" ? clipboardView
@@ -78,16 +108,22 @@ PanelWindow {
             : view === "emoji" ? emojiView
             : view === "recordname" ? recordNameView
             : view === "videos" ? videosView
+            : view === "camera" ? cameraView
             : view === "keybinds" ? keybindsView
             : view === "logintheme" ? loginThemeView
             : view === "polkit" ? polkitView
             : null
-        readonly property bool showPanel: expanded && !viewOpen
+        // ShellState.panel is one flag for the whole shell, so without the same focused-monitor
+        // check the views use, clicking one bar would open a control center on every screen
+        readonly property bool showPanel: (expanded || (ShellState.panel && focused)) && !viewOpen
+        // Bar mode has its own idle status, so the pill stays out of the way until it is needed
+        readonly property bool hidden: Layout.bar && !viewOpen && !showPanel && !showOsd
         readonly property bool showOsd: osd.osdVisible && !showPanel && !viewOpen
 
         function collapse() {
             closeTimer.stop();
             expanded = false;
+            ShellState.panel = false;
             controlCenter.reset();
         }
 
@@ -100,12 +136,15 @@ PanelWindow {
             if (viewOpen)
                 grabArm.restart();
             else
-                focusGrab.active = false;
+                focusGrab.active = showPanel;
         }
 
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
-        anchors.topMargin: root.gapTop
+        anchors.topMargin: root.topGap
+        opacity: hidden ? 0 : 1
+        visible: opacity > 0
+        Behavior on opacity { NumberAnimation { duration: 150 } }
         width: viewItem ? viewItem.implicitWidth + 24
             : showPanel ? controlCenter.implicitWidth + 40
             : showOsd ? osd.implicitWidth + 40
@@ -124,6 +163,8 @@ PanelWindow {
         Behavior on radius { NumberAnimation { duration: 300 } }
 
         HoverHandler {
+            // Bar mode opens the panel with a click instead, so a stray pointer cannot trip it
+            enabled: !Layout.bar
             onHoveredChanged: {
                 if (hovered) {
                     closeTimer.stop();
@@ -280,6 +321,18 @@ PanelWindow {
             visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: 200 } }
             onCloseRequested: ShellState.close("videos")
+        }
+
+        CameraView {
+            id: cameraView
+            anchors.top: parent.top
+            anchors.topMargin: 12
+            anchors.horizontalCenter: parent.horizontalCenter
+            active: pill.view === "camera"
+            opacity: active ? 1 : 0
+            visible: opacity > 0
+            Behavior on opacity { NumberAnimation { duration: 200 } }
+            onCloseRequested: ShellState.close("camera")
         }
 
         LoginThemeView {

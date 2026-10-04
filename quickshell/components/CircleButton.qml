@@ -7,12 +7,15 @@ Rectangle {
     property string glyph
     property int glyphSize: 20
     property bool spinning: false
+    // Filled with the accent color while the thing it controls is on
+    property bool active: false
     signal clicked()
 
     width: 34
     height: 34
     radius: 17
-    color: mouse.containsMouse ? Theme.controlBg : Theme.tileBg
+    color: active ? (mouse.containsMouse ? Qt.lighter(Theme.accent, 1.12) : Theme.accent)
+        : (mouse.containsMouse ? Theme.controlBg : Theme.tileBg)
     Behavior on color { ColorAnimation { duration: 120 } }
 
     Text {
@@ -20,7 +23,7 @@ Rectangle {
         anchors.centerIn: parent
         anchors.verticalCenterOffset: -1
         text: root.glyph
-        color: Theme.textPrimary
+        color: root.active ? Theme.onAccent : Theme.textPrimary
         font.pixelSize: root.glyphSize
         font.family: Theme.fontFamily
 

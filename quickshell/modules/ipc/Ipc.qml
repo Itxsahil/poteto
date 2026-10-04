@@ -70,6 +70,23 @@ Scope {
     }
 
     IpcHandler {
+        target: "bar"
+        function toggle(): string { Layout.toggle(); return Layout.mode; }
+        function simple(): string { Layout.setMode("bar"); return Layout.mode; }
+        function island(): string { Layout.setMode("island"); return Layout.mode; }
+        function status(): string { return Layout.mode; }
+        // The control center, which bar mode otherwise only opens by clicking the bar
+        function panel(): string { ShellState.panel = !ShellState.panel; return ShellState.panel ? "open" : "closed"; }
+    }
+
+    IpcHandler {
+        target: "camera"
+        function toggle(): void { ShellState.toggle("camera"); }
+        function open(): void { ShellState.open("camera"); }
+        function close(): void { ShellState.close("camera"); }
+    }
+
+    IpcHandler {
         target: "player"
         function play(path: string): void { Player.play(path, [path]); }
         function stop(): void { Player.close(); }
@@ -123,6 +140,7 @@ Scope {
         function dnd(): bool { return Notifications.dnd; }
         function clear(): void { Notifications.clearAll(); }
         function count(): int { return Notifications.count; }
+        function unread(): int { return Notifications.unread; }
     }
 
     IpcHandler {

@@ -16,6 +16,8 @@ PanelWindow {
     readonly property int gapRight: 12
 
     screen: targetScreen
+    // the simple bar carries all of this when it is on
+    visible: !Layout.bar
     anchors.top: true
     anchors.right: true
     // Room for the media panel to grow into, plus the recorder pill beside it, plus the shadows.

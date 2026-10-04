@@ -21,9 +21,13 @@ Rectangle {
         return [...ids].sort((a, b) => a - b);
     }
 
-    implicitWidth: row.implicitWidth + 8
+    // Bar mode draws blocks that fill the bar's height instead of capsules floating inside a pill:
+    // the active workspace is a solid panel of color, not an outline around a number.
+    property bool flat: false
+
+    implicitWidth: row.implicitWidth + (flat ? 0 : 8)
     implicitHeight: 36
-    radius: height / 2
+    radius: flat ? 0 : height / 2
     color: Theme.islandBg
     border.color: Theme.islandBorder
     border.width: 1
@@ -44,7 +48,7 @@ Rectangle {
     Row {
         id: row
         anchors.centerIn: parent
-        spacing: 2
+        spacing: root.flat ? 0 : 2
 
         Repeater {
             model: root.slots
@@ -58,10 +62,13 @@ Rectangle {
                 readonly property bool occupied: (workspace?.toplevels?.values?.length ?? 0) > 0
                 readonly property bool urgent: workspace?.urgent ?? false
 
-                width: isActive ? 44 : 28
-                height: 28
-                radius: 14
-                color: isActive ? Theme.wsActiveBg
+                width: root.flat ? 34 : isActive ? 44 : 28
+                height: root.flat ? root.height : 28
+                radius: root.flat ? 0 : 14
+                // Bar mode marks the active workspace by brightness alone — no block behind the
+                // number, which is the one thing the pill is for
+                color: root.flat ? "transparent"
+                    : isActive ? Theme.wsActiveBg
                     : urgent ? Theme.wsUrgentBg
                     : slotMouse.containsMouse ? Theme.wsHoverBg
                     : "transparent"
@@ -72,8 +79,12 @@ Rectangle {
                 Text {
                     anchors.centerIn: parent
                     text: slot.modelData
-                    color: slot.isActive ? Theme.wsActiveText
-                        : slot.urgent ? Theme.danger
+                    color: slot.urgent ? Theme.danger
+                        : root.flat ? (slot.isActive ? Theme.textPrimary
+                            : slotMouse.containsMouse ? Qt.alpha(Theme.textPrimary, 0.8)
+                            : slot.occupied ? Qt.alpha(Theme.textPrimary, 0.55)
+                            : Theme.wsEmptyText)
+                        : slot.isActive ? Theme.wsActiveText
                         : slot.occupied ? Theme.wsOccupiedText
                         : Theme.wsEmptyText
                     font.pixelSize: 13

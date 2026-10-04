@@ -30,6 +30,10 @@ ShellRoot {
                 targetScreen: screenScope.modelData
             }
 
+            SimpleBar {
+                targetScreen: screenScope.modelData
+            }
+
             Island {
                 targetScreen: screenScope.modelData
             }

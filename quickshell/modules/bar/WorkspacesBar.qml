@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import qs.components
+import qs.services
 
 PanelWindow {
     id: root
@@ -15,6 +16,8 @@ PanelWindow {
     readonly property int shadowRoom: 24
 
     screen: targetScreen
+    // the simple bar carries all of this when it is on
+    visible: !Layout.bar
     anchors.top: true
     anchors.left: true
     implicitWidth: workspaces.implicitWidth + gapLeft + shadowRoom

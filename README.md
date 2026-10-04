@@ -19,8 +19,10 @@ poteto/
 
 | | |
 |---|---|
+| **Simple bar mode** | `mod + Shift + B` swaps the floating pills for one flat bar across the top — workspaces, the playing track and status in a single strip that reserves its own space. Everything the island opens still opens; click the right of the bar for the control center. The choice is remembered |
 | **Island (idle)** | Wi-Fi strength · 12-hour clock · battery, colored by level · red mic icon while the mic is muted |
 | **Control center** (hover the island) | Clock, battery with health, calendar, Wi-Fi, Bluetooth and Notifications tiles, brightness, volume and microphone sliders (click the mic icon or right click to mute) |
+| **Audio devices** | A row of chips under the volume and mic sliders picks where sound goes and comes from — separate devices (Bluetooth, HDMI, USB) and the ports on one sound card (Speakers / Headphones, Internal / Headset Microphone) in the same list, shown only when there is more than one to choose from |
 | **Wi-Fi page** | Scan, connect (with password), disconnect, forget |
 | **Bluetooth page** | Scan, pair + connect, disconnect, forget, device battery |
 | **OSD** | Volume, brightness and mic changes (including the Fn mic-mute key) briefly turn the island into a level bar |
@@ -32,6 +34,7 @@ poteto/
 | **Keybindings** | Searchable cheatsheet parsed live from `hypr/bindings.lua` plus the shell's own keys; flags combos bound twice |
 | **Videos** | Every video under `~/Videos` in one grid with poster frames and durations, filtered by folder chips, like the wallpaper switcher |
 | **Video player** | Qt Multimedia (FFmpeg) in its own window: seek bar, volume, speed, loop (off / one / all), subtitle tracks, the folder as playlist, `O` or the mpv button hands the file to mpv |
+| **Camera** | Webcam in the island: live mirrored preview, shutter, 3s / 10s self-timer, photos to `~/Pictures/Camera`, thumbnail of the last shot; the camera is only powered while the view is open |
 | **Emoji picker** | 1,900 emoji (Unicode 17) in 9 categories plus recently used, search by name, Enter to copy |
 | **Clipboard** | cliphist history with text and image previews, search, filters, delete |
 | **Wallpapers** | Thumbnail grid of your wallpaper folders, applied with awww |
@@ -56,6 +59,7 @@ poteto/
 | `mod + T` | Theme switcher |
 | `mod + Shift + T` | Login screen (SDDM) theme switcher |
 | `mod + Shift + V` | Videos |
+| `mod + Shift + C` | Camera |
 | `mod + /` | Keybinding cheatsheet |
 | `Super + V` | Clipboard history |
 | `Super + .` | Emoji picker |
@@ -66,6 +70,7 @@ poteto/
 | `mod + X` | Power menu (L lock · E logout · S suspend · H hibernate · R reboot · P shutdown) |
 | `mod + Shift + ;` | Lock screen |
 | `mod + B` | Border around the focused window on / off (remembered across reloads) |
+| `mod + Shift + B` | Simple bar instead of the floating island, and back |
 | Hover the island | Control center |
 
 The table above is the shell's own keys. `mod + /` lists **every** bind, window management
@@ -97,7 +102,7 @@ Arch packages:
 sudo pacman -S quickshell hyprland hyprlock awww kitty neovim \
   networkmanager bluez bluez-utils wireplumber upower brightnessctl \
   cliphist wl-clipboard grim imagemagick glib2 xdg-utils libnotify playerctl mpd cava \
-  wf-recorder ffmpeg \
+  wf-recorder ffmpeg qt6-multimedia-ffmpeg \
   breeze-icons ttf-jetbrains-mono-nerd noto-fonts-emoji inter-font
 ```
 
@@ -124,6 +129,8 @@ sudo pacman -S quickshell hyprland hyprlock awww kitty neovim \
   `systemctl --user mask --now dunst.service`.
 - **No other polkit agent** may run (hyprpolkitagent, polkit-gnome, polkit-kde-agent). Quickshell
   registers itself as the session's agent; a second one would take the prompts instead.
+- **The camera** needs `qt6-multimedia-ffmpeg` (the same backend the video player uses) and a
+  V4L2 webcam. Without one the view opens and says so.
 - **SDDM** is optional; the login screen switcher needs `sddm` with its Qt 6 greeter and `polkit`.
 
 ---
@@ -276,7 +283,7 @@ Switching a theme (`mod + T`, or `qs ipc call theme apply <id>`):
 | dracula | chadracula | Dracula Theme (`dracula-theme.theme-dracula`) |
 | everforest-dark | everforest | Everforest Night Hard (`jarith.everforest-night-vscode`) |
 | gruvbox-material | gruvbox-material | Gruvbox Dark Hard (`jdinhlife.gruvbox`) |
-| horizon | horizon | Horizon (`jolaleye.horizon-theme-vscode`) |
+| horizon | horizon | Dark Modern (built in) |
 | osaka-jade | scaryforest | Ocean Green: Dark (`jovejonovski.ocean-green`) |
 | rose-pine | rosepine | Rosé Pine Moon (`mvllow.rose-pine`) |
 | rxyhn | rxyhn | Dark Modern (built in; no matching VS Code theme bundled) |
@@ -386,12 +393,14 @@ quickshell/
 │   └── Theme.qml              all colors (read from the active theme) and fonts
 ├── services/                  system backends, no UI (singletons)
 │   ├── AlbumArt.qml           album art for the playing track (embedded, or a cover file)
+│   ├── Audio.qml              audio devices and sound-card ports, and which is in use
 │   ├── Battery.qml            UPower
 │   ├── BluetoothManager.qml   Quickshell.Bluetooth (BlueZ)
 │   ├── Brightness.qml         brightnessctl + udev backlight events
 │   ├── Cava.qml               cava on the MPD fifo, only while MPD is playing
 │   ├── Emoji.qml              emoji search and recently used (~/.cache/quickshell/emoji-recent.json)
 │   ├── Keybinds.qml           cheatsheet parsed from hypr/bindings.lua
+│   ├── Layout.qml             island or simple bar, remembered between restarts
 │   ├── LoginTheme.qml         SDDM themes from ../sddm-themes, switched through pkexec
 │   ├── Clipboard.qml          cliphist
 │   ├── ColorPicker.qml        screen freeze, color formats, recent colors (~/.cache/quickshell/color-picker.json)
@@ -402,6 +411,7 @@ quickshell/
 │   ├── Recorder.qml           wf-recorder video + ffmpeg audio, merged into ~/Videos/Recordings
 │   ├── Screenshot.qml         grim freeze → ImageMagick crop → wl-copy
 │   ├── Videos.qml             ~/Videos scan, ffmpeg poster frames and durations
+│   ├── Webcam.qml             webcam list, mirror, self-timer, photo folder
 │   ├── Session.qml            power actions and logind capabilities, uptime
 │   ├── ShellState.qml         which island view is open
 │   ├── ThemeManager.qml       lists themes and applies them
@@ -417,7 +427,8 @@ quickshell/
 └── modules/                   one folder per feature
     ├── ipc/Ipc.qml            every `qs ipc` target and global shortcut
     ├── bar/                   workspace pill (left), status pill with MPD and date (right),
-    │                          media panel it expands into on hover
+    │                          media panel it expands into on hover, and the flat SimpleBar
+    │                          that replaces all three in bar mode
     ├── island/                island window, idle row, volume/brightness OSD
     ├── controlcenter/         grid, tiles/, controls/, wifi/, bluetooth/, notifications/
     ├── notifications/         notification card + popup stack
@@ -425,6 +436,7 @@ quickshell/
     ├── logintheme/            login screen (SDDM) theme switcher
     ├── keybinds/              keybinding cheatsheet
     ├── videos/                video grid with folder chips
+    ├── camera/                webcam preview, shutter and self-timer
     ├── player/                video window (QtMultimedia)
     ├── polkit/                password prompt
     ├── screenshot/            overlay + floating preview
@@ -457,11 +469,13 @@ qs ipc call theme      apply gruvbox-material
 qs ipc call logintheme toggle|open|close|list|current
 qs ipc call logintheme apply rover-in-rain
 qs ipc call screenshot region|window|screen|cancel
-qs ipc call notifications toggleDnd|dnd|clear|count
+qs ipc call notifications toggleDnd|dnd|clear|count|unread
 qs ipc call session    toggle|open|close|lock
 qs ipc call mpd        toggle|next|previous|status
 qs ipc call keybinds   toggle|open|close
 qs ipc call videos     toggle|open|close
+qs ipc call camera     toggle|open|close
+qs ipc call bar        toggle|simple|island|status|panel
 qs ipc call player     play <path>|stop|next|previous|loop|status
 qs ipc call player     speed 1        # or -1, steps 0.5×…2×
 ```
@@ -485,6 +499,7 @@ The same actions are registered as Hyprland global shortcuts named `quickshell:l
 | Power menu actions and commands | `actions` / `commands` in `quickshell/services/Session.qml` |
 | Popup timeout, history size, max popups | `defaultTimeout`, `criticalTimeout`, `maxHistory`, `maxPopups` in `quickshell/services/Notifications.qml` |
 | Screenshot folder | `saveDir` in `quickshell/services/Screenshot.qml` (default `~/Pictures/Screenshots`) |
+| Camera photo folder | `saveDir` in `quickshell/services/Webcam.qml` (default `~/Pictures/Camera`) |
 | Icon theme | first line of `quickshell/shell.qml` (`//@ pragma IconTheme breeze-dark`) |
 | Fonts | `fontFamily` in `quickshell/config/Theme.qml` |
 | Window corners, shadows, blur, gaps, borders | `general` and `decoration` in `hypr/hyprland.lua` |
@@ -502,6 +517,7 @@ The same actions are registered as Hyprland global shortcuts named `quickshell:l
 | `~/.cache/quickshell/video-thumbs/` | video poster frames and durations |
 | `~/.cache/quickshell/album-art/` | album art extracted from the playing track |
 | `~/.cache/quickshell/border` | `on` / `off` for the focused window's border (`mod + B`) |
+| `~/.cache/quickshell/layout` | `island` / `bar`, the shell's shape (`mod + Shift + B`) |
 | `/tmp/qs-cliphist-$USER/` | decoded clipboard images |
 
 All of them can be deleted safely; they are rebuilt on demand, and `border` falls back to `on`.

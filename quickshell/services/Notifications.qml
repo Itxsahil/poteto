@@ -15,10 +15,17 @@ Singleton {
     property bool dnd: false
     property var popups: []
     property var arrivedAt: ({})
-    property int unread: 0
+    // Everything that arrived at or before this has been seen
+    property double readAt: 0
 
     readonly property var history: [...server.trackedNotifications.values].reverse()
     readonly property int count: history.length
+
+    // Counted from what is actually still in the history rather than tallied as they arrive: a
+    // notification you dismiss, or one the app withdraws, leaves the history and stops counting.
+    // A tally cannot do that, and would drift above the number of notifications you can still see.
+    // Anything with no arrival time was restored across a shell reload, so it is not new.
+    readonly property int unread: history.filter(n => !n.transient && (arrivedAt[n.id] ?? 0) > readAt).length
 
     function timeFor(notification) {
         return arrivedAt[notification.id] ?? Date.now();
@@ -47,11 +54,10 @@ Singleton {
         popups = [];
         for (const n of [...server.trackedNotifications.values])
             n.dismiss();
-        unread = 0;
     }
 
     function markRead() {
-        unread = 0;
+        readAt = Date.now();
     }
 
     NotificationServer {
@@ -83,9 +89,6 @@ Singleton {
             const tracked = server.trackedNotifications.values;
             for (let i = 0; i < tracked.length - root.maxHistory; i++)
                 tracked[i].expire();
-
-            if (!notification.transient)
-                root.unread++;
 
             if (root.dnd && notification.urgency !== NotificationUrgency.Critical)
                 return;

@@ -8,6 +8,8 @@ Row {
     id: root
 
     property date date: new Date()
+    // The bar puts the time in the center of the screen, so its status cluster leaves it out
+    property bool showClock: true
 
     readonly property int wifiSignal: Wifi.active?.signal ?? 0
     readonly property color wifiColor: !Wifi.enabled || !Wifi.active ? Theme.signalOff
@@ -38,6 +40,7 @@ Row {
 
     Text {
         anchors.verticalCenter: parent.verticalCenter
+        visible: root.showClock
         text: Qt.formatDateTime(root.date, "h:mm AP").replace(/\s*[AP]M$/i, "")
         color: Theme.textPrimary
         font.pixelSize: 15

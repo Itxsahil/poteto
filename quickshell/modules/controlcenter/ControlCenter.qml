@@ -118,9 +118,21 @@ Item {
             width: parent.width
         }
 
+        DeviceChips {
+            width: parent.width
+            entries: Audio.outputs
+            onPicked: entry => Audio.select(entry)
+        }
+
         MicSlider {
             id: mic
             width: parent.width
+        }
+
+        DeviceChips {
+            width: parent.width
+            entries: Audio.inputs
+            onPicked: entry => Audio.select(entry)
         }
     }
 
