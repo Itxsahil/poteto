@@ -86,5 +86,8 @@ Singleton {
     readonly property color batteryLow: c("warning", "#ffd60a")
     readonly property color batteryCritical: c("danger", "#ff453a")
 
-    readonly property string fontFamily: "Inter, sans-serif"
+    // One family name, not a CSS list: QML reads "Inter, sans-serif" as a family called exactly
+    // that, finds nothing, and falls back without a word. Qt falls back on its own if Inter is
+    // missing, so the comma bought nothing and cost the font.
+    readonly property string fontFamily: "Inter"
 }
