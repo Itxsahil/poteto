@@ -28,6 +28,31 @@ function set_border_enabled(enabled)
     end
 end
 
+-- Window layout: "dwindle", the one everything here is tuned for, or "scrolling" — Hyprland's
+-- built-in niri-style columns on an endless horizontal strip. Kept in a file for the same reason
+-- the border is: `hyprctl reload` resets the config to what these files say, and the theme
+-- switcher reloads on every theme change.
+layout_state_file = os.getenv("HOME") .. "/.cache/quickshell/hypr-layout"
+
+function window_layout()
+    local file = io.open(layout_state_file, "r")
+    if not file then
+        return "dwindle"
+    end
+    local saved = file:read("*l")
+    file:close()
+    return saved == "scrolling" and "scrolling" or "dwindle"
+end
+
+function set_window_layout(name)
+    hl.config({ general = { layout = name } })
+    local file = io.open(layout_state_file, "w")
+    if file then
+        file:write(name)
+        file:close()
+    end
+end
+
 -- Import keybinds
 require("bindings")
 
@@ -82,7 +107,7 @@ hl.config({
         },
         resize_on_border = true,
         allow_tearing = false,
-        layout = "dwindle",
+        layout = window_layout(),
     },
 })
 
