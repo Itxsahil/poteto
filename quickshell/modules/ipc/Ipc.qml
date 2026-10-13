@@ -80,6 +80,14 @@ Scope {
     }
 
     IpcHandler {
+        target: "loginvideo"
+        function toggle(): void { ShellState.toggle("loginvideo"); }
+        function open(): void { ShellState.open("loginvideo"); }
+        function close(): void { ShellState.close("loginvideo"); }
+        function current(): string { return LoginVideo.current; }
+    }
+
+    IpcHandler {
         target: "camera"
         function toggle(): void { ShellState.toggle("camera"); }
         function open(): void { ShellState.open("camera"); }

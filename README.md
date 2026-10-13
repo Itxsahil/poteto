@@ -44,6 +44,7 @@ poteto/
 | **Screen recorder** | Whole screen or a region at native resolution and 60 fps (NVENC, falls back to x264), system audio and/or mic mixed in, recording timer with a stop button, a name prompt while it saves (Enter to save, Esc keeps the date name), notification with Open / Show in folder |
 | **Screenshots** | Frozen-screen region / window / full-screen capture, saved and copied, with a draggable preview |
 | **Login screen** | Switch the SDDM theme from a scrolling row of previews; asks for your password each time (see [Login screen](#login-screen-sddm)) |
+| **Login video** | Pick the video that plays behind the login screen from `~/Videos/Hidamari`, as a grid of poster frames like the wallpaper switcher. The greeter cannot read a 700 home directory, so the file is published into the live theme by the same root helper, and asks for your password |
 | **Password prompts** | Built-in polkit agent: any app asking for admin rights gets its password prompt in the island |
 
 ---
@@ -58,6 +59,7 @@ poteto/
 | `mod + W` | Wallpaper switcher |
 | `mod + T` | Theme switcher |
 | `mod + Shift + T` | Login screen (SDDM) theme switcher |
+| `mod + Shift + W` | Login screen background video |
 | `mod + Shift + V` | Videos |
 | `mod + Shift + C` | Camera |
 | `mod + /` | Keybinding cheatsheet |
@@ -360,6 +362,13 @@ This installs the helper and the polkit action, writes the config, removes copie
 `install` script, and activates the theme you name. Re-run it after moving the repo or editing
 anything in `sddm-themes/system/`. `sddm-themes/setup --uninstall` removes all of it.
 
+**Changing just the video:** `mod + Shift + W` opens a grid of the videos in `~/Videos/Hidamari`
+(including subfolders; MP4, WebM and MKV, up to 1 GiB). Poster frames come from the same scan the
+video browser uses. Picking one copies it over the live theme's `bg.mp4` and asks for your password,
+leaving the rest of the theme alone. Switching themes
+afterwards brings that theme's own video back. The folder is `folder` in `services/LoginVideo.qml`.
+Re-run `sddm-themes/setup <theme>` after updating the helper to enable video switching.
+
 **Switching:** `mod + Shift + T`, pick a theme, enter your password in the island. It shows at the
 next login screen. Press `P` in the switcher to preview a theme in a window first.
 
@@ -402,6 +411,7 @@ quickshell/
 │   ├── Keybinds.qml           cheatsheet parsed from hypr/bindings.lua
 │   ├── Layout.qml             island or simple bar, remembered between restarts
 │   ├── LoginTheme.qml         SDDM themes from ../sddm-themes, switched through pkexec
+│   ├── LoginVideo.qml         the login screen's background video, swapped through the same helper
 │   ├── Clipboard.qml          cliphist
 │   ├── ColorPicker.qml        screen freeze, color formats, recent colors (~/.cache/quickshell/color-picker.json)
 │   ├── Mpd.qml                MPD protocol client (idle events, play/pause/next/previous)
@@ -434,6 +444,7 @@ quickshell/
     ├── notifications/         notification card + popup stack
     ├── launcher/  clipboard/  emoji/  wallpaper/  themes/  power/
     ├── logintheme/            login screen (SDDM) theme switcher
+    ├── loginvideo/            login screen background video picker
     ├── keybinds/              keybinding cheatsheet
     ├── videos/                video grid with folder chips
     ├── camera/                webcam preview, shutter and self-timer
@@ -468,6 +479,7 @@ qs ipc call theme      toggle|open|close|list|current
 qs ipc call theme      apply gruvbox-material
 qs ipc call logintheme toggle|open|close|list|current
 qs ipc call logintheme apply rover-in-rain
+qs ipc call loginvideo toggle|open|close|current
 qs ipc call screenshot region|window|screen|cancel
 qs ipc call notifications toggleDnd|dnd|clear|count|unread
 qs ipc call session    toggle|open|close|lock
@@ -500,6 +512,7 @@ The same actions are registered as Hyprland global shortcuts named `quickshell:l
 | Popup timeout, history size, max popups | `defaultTimeout`, `criticalTimeout`, `maxHistory`, `maxPopups` in `quickshell/services/Notifications.qml` |
 | Screenshot folder | `saveDir` in `quickshell/services/Screenshot.qml` (default `~/Pictures/Screenshots`) |
 | Camera photo folder | `saveDir` in `quickshell/services/Webcam.qml` (default `~/Pictures/Camera`) |
+| Login video folder | `folder` in `quickshell/services/LoginVideo.qml` (default `Hidamari`, under `~/Videos`) |
 | Icon theme | first line of `quickshell/shell.qml` (`//@ pragma IconTheme breeze-dark`) |
 | Fonts | `fontFamily` in `quickshell/config/Theme.qml` |
 | Window corners, shadows, blur, gaps, borders | `general` and `decoration` in `hypr/hyprland.lua` |

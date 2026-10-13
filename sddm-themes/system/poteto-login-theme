@@ -1,8 +1,8 @@
 #!/bin/bash
-# Makes one theme from the poteto repo the active SDDM theme.
+# Makes one theme from the poteto repo the active SDDM theme, or swaps just its background video.
 #
 # Installed root-owned to /usr/local/bin by ../setup and run through pkexec, so it
-# trusts nothing from the caller except a theme name:
+# accepts a theme name or a video path from the caller:
 #   - the repo path is fixed at install time, not passed in
 #   - the theme is read with the caller's own permissions, so it can only publish
 #     files the caller could already read, even if the repo contains symlinks
@@ -17,6 +17,7 @@ SRC_ROOT=@SRC_ROOT@
 DEST_ROOT=/usr/share/sddm/themes
 ACTIVE=poteto
 SOURCE_MARK=.poteto-source
+VIDEO_MARK=.poteto-video
 MAX_BYTES=$((1024 * 1024 * 1024))
 
 die() {
@@ -25,9 +26,7 @@ die() {
 }
 
 [ "$(id -u)" -eq 0 ] || die "must run as root (through pkexec)"
-[ $# -eq 1 ] || die "usage: poteto-login-theme <theme>"
-name=$1
-[[ $name =~ ^[a-z0-9][a-z0-9-]{0,63}$ ]] || die "invalid theme name"
+[ $# -ge 1 ] || die "usage: poteto-login-theme <theme> | poteto-login-theme video <file>"
 
 # The user who asked. Their permissions are the ceiling for what gets published.
 uid=${PKEXEC_UID:-${SUDO_UID:-}}
@@ -36,6 +35,55 @@ user=$(id -nu "$uid") || die "unknown user $uid"
 as_user() {
     setpriv --reuid="$uid" --regid="$(id -g "$uid")" --init-groups --reset-env -- "$@"
 }
+
+# Swap only the background video of the live theme, leaving the rest of it alone. The greeter
+# runs as the sddm user and cannot read a 700 home directory, so the file has to be published
+# here; it is read with the caller's own permissions, so this can only publish what they could
+# already read. The destination is fixed, never taken from the caller.
+if [ "$1" = video ]; then
+    [ $# -eq 2 ] || die "usage: poteto-login-theme video <file>"
+    video=$2
+    case $video in
+        /*) ;;
+        *) die "video path must be absolute" ;;
+    esac
+    extension=${video##*.}
+    case ${extension,,} in
+        mp4|webm|mkv) ;;
+        *) die "video must be .mp4, .webm or .mkv" ;;
+    esac
+    as_user test -f "$video" || die "no video at $video"
+    size=$(as_user stat -Lc %s -- "$video") || die "cannot read $video"
+    [ "$size" -gt 0 ] || die "that video is empty"
+    [ "$size" -le "$MAX_BYTES" ] || die "that video is larger than the $((MAX_BYTES / 1024 / 1024))MB limit"
+
+    exec 9>/run/poteto-login-theme.lock
+    flock -n 9 || die "another login screen change is already running"
+
+    dest="$DEST_ROOT/$ACTIVE"
+    [ -d "$dest" ] || die "no active theme yet: pick a login theme first"
+
+    tmp=$(mktemp "$dest/.bg.XXXXXX")
+    trap 'rm -f -- "$tmp"' EXIT
+    # Check the bytes actually copied as well: the source can grow or be replaced after stat.
+    # One extra byte distinguishes a file at the limit from one that exceeds it.
+    as_user head -c "$((MAX_BYTES + 1))" -- "$video" > "$tmp" || die "could not copy that video"
+    size=$(stat -c %s -- "$tmp")
+    [ "$size" -gt 0 ] || die "that video is empty"
+    [ "$size" -le "$MAX_BYTES" ] || die "that video is larger than the $((MAX_BYTES / 1024 / 1024))MB limit"
+    chown root:root "$tmp"
+    chmod 644 "$tmp"
+    mv -f -T -- "$tmp" "$dest/bg.mp4"
+    trap - EXIT
+    printf '%s\n' "$video" > "$dest/$VIDEO_MARK"
+    chmod 644 "$dest/$VIDEO_MARK"
+    echo "login video: $video (requested by $user)"
+    exit 0
+fi
+
+[ $# -eq 1 ] || die "usage: poteto-login-theme <theme>"
+name=$1
+[[ $name =~ ^[a-z0-9][a-z0-9-]{0,63}$ ]] || die "invalid theme name"
 
 src="$SRC_ROOT/$name"
 as_user test -d "$src" || die "no theme named $name"

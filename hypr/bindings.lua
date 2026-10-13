@@ -216,6 +216,9 @@ hl.bind(var_mainMod .. " + SHIFT + B", hl.dsp.exec_cmd("qs ipc call bar toggle")
 -- Login screen (SDDM) theme selector
 hl.bind(var_mainMod .. " + SHIFT + T", hl.dsp.exec_cmd("qs ipc call logintheme toggle"))
 
+-- Login screen background video
+hl.bind(var_mainMod .. " + SHIFT + W", hl.dsp.exec_cmd("qs ipc call loginvideo toggle"))
+
 -- -----------------------------------------------------------------------------
 -- MISCELLANEOUS
 -- -----------------------------------------------------------------------------

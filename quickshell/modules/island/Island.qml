@@ -14,6 +14,7 @@ import qs.modules.power
 import qs.modules.emoji
 import qs.modules.recorder
 import qs.modules.logintheme
+import qs.modules.loginvideo
 import qs.modules.videos
 import qs.modules.camera
 import qs.modules.keybinds
@@ -111,6 +112,7 @@ PanelWindow {
             : view === "camera" ? cameraView
             : view === "keybinds" ? keybindsView
             : view === "logintheme" ? loginThemeView
+            : view === "loginvideo" ? loginVideoView
             : view === "polkit" ? polkitView
             : null
         // ShellState.panel is one flag for the whole shell, so without the same focused-monitor
@@ -345,6 +347,18 @@ PanelWindow {
             visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: 200 } }
             onCloseRequested: ShellState.close("logintheme")
+        }
+
+        LoginVideoView {
+            id: loginVideoView
+            anchors.top: parent.top
+            anchors.topMargin: 12
+            anchors.horizontalCenter: parent.horizontalCenter
+            active: pill.view === "loginvideo"
+            opacity: active ? 1 : 0
+            visible: opacity > 0
+            Behavior on opacity { NumberAnimation { duration: 200 } }
+            onCloseRequested: ShellState.close("loginvideo")
         }
 
         PolkitView {
