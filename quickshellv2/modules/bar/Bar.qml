@@ -2,8 +2,10 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import qs.config
+import qs.services
 
 // The flat layout: one strip across the full width of the top of the screen, time in the middle.
+// Hovering the time drops the control center down under it (BarPanel.qml).
 PanelWindow {
     id: window
 
@@ -33,8 +35,25 @@ PanelWindow {
         color: Theme.border
     }
 
-    Clock {
+    Rectangle {
         anchors.centerIn: parent
-        date: clock.date
+        width: time.implicitWidth + 24
+        height: window.implicitHeight - 6
+        radius: 6
+        color: ShellState.controlCenterOpen ? Theme.tile
+            : hover.hovered ? Qt.alpha(Theme.tile, 0.6)
+            : "transparent"
+        Behavior on color { ColorAnimation { duration: 120 } }
+
+        HoverHandler {
+            id: hover
+            onHoveredChanged: hovered ? ShellState.hoverEnter() : ShellState.hoverExit()
+        }
+
+        Clock {
+            id: time
+            anchors.centerIn: parent
+            date: clock.date
+        }
     }
 }

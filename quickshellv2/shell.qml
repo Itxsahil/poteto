@@ -5,7 +5,6 @@ import Quickshell.Io
 import qs.config
 import qs.services
 import qs.modules.bar
-import qs.modules.launcher
 
 ShellRoot {
     // qs ipc call layout toggle|pill|bar|status
@@ -20,9 +19,17 @@ ShellRoot {
     // qs ipc call launcher toggle|open|close (Alt + Space in hypr/bindings.lua)
     IpcHandler {
         target: "launcher"
-        function toggle(): void { ShellState.launcherOpen = !ShellState.launcherOpen; }
-        function open(): void { ShellState.launcherOpen = true; }
-        function close(): void { ShellState.launcherOpen = false; }
+        function toggle(): void { ShellState.toggle("launcher"); }
+        function open(): void { ShellState.open("launcher"); }
+        function close(): void { ShellState.close("launcher"); }
+    }
+
+    // qs ipc call controlcenter toggle|open|close (Super + C in hypr/bindings.lua)
+    IpcHandler {
+        target: "controlcenter"
+        function toggle(): void { ShellState.toggle("controlcenter"); }
+        function open(): void { ShellState.open("controlcenter"); }
+        function close(): void { ShellState.close("controlcenter"); }
     }
 
     Variants {
@@ -33,7 +40,9 @@ ShellRoot {
 
             required property ShellScreen modelData
 
-            // Only the chosen layout exists at all, so the other one reserves no space
+            // Only the chosen layout exists at all, so the other one reserves no space. In pill
+            // mode the pill itself grows into the launcher and control center; the bar drops a
+            // panel down for them instead.
             LazyLoader {
                 active: Config.style === "pill"
 
@@ -50,11 +59,10 @@ ShellRoot {
                 }
             }
 
-            // In pill mode the pill itself becomes the launcher; the bar needs a panel for it
             LazyLoader {
                 active: Config.style === "bar"
 
-                BarLauncher {
+                BarPanel {
                     targetScreen: screenScope.modelData
                 }
             }

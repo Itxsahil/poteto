@@ -25,8 +25,11 @@ Singleton {
     readonly property color control: c("control", "#2c2c2e")
     readonly property color accent: c("accent", "#0a84ff")
     readonly property color onAccent: c("onAccent", "#ffffff")
+    readonly property color danger: c("danger", "#ff453a")
 
     readonly property string fontFamily: "Inter"
+    // Numbers that should not jump around as they change
+    readonly property string monoFamily: "JetBrainsMono Nerd Font"
 
     FileView {
         path: root.colorsFile
