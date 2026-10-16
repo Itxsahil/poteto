@@ -19,6 +19,12 @@ Singleton {
     readonly property color background: c("island", "#000000")
     readonly property color border: c("border", "#22ffffff")
     readonly property color text: c("text", "#ffffff")
+    readonly property color textDim: c("textDim", "#aaaaaa")
+    readonly property color tile: c("tile", "#1c1c1e")
+    readonly property color tileHover: c("tileHover", "#242426")
+    readonly property color control: c("control", "#2c2c2e")
+    readonly property color accent: c("accent", "#0a84ff")
+    readonly property color onAccent: c("onAccent", "#ffffff")
 
     readonly property string fontFamily: "Inter"
 
