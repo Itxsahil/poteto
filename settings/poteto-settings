@@ -1,0 +1,116 @@
+#!/usr/bin/env python3
+"""Poteto: settings for the v2 shell (quickshellv2/).
+
+Reads and writes ~/.config/poteto/shell.json, the file quickshellv2/config/Config.qml watches,
+so every change shows up in the shell straight away, with no restart. The app watches the file
+too, so a change made elsewhere (qs ipc call layout toggle, a hand edit) shows up here.
+"""
+
+import json
+import sys
+from pathlib import Path
+
+import gi
+
+gi.require_version("Gtk", "4.0")
+gi.require_version("Adw", "1")
+from gi.repository import Adw, Gio, GLib, Gtk  # noqa: E402
+
+APP_ID = "dev.poteto.Settings"
+CONFIG = Path(GLib.get_user_config_dir()) / "poteto" / "shell.json"
+STYLES = ("pill", "bar")
+
+
+def load():
+    """The settings, or {} when the file is missing or unreadable; the shell has defaults."""
+    try:
+        data = json.loads(CONFIG.read_text())
+    except (OSError, ValueError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def save(data):
+    # Written in place rather than swapped in with a rename, so the shell's file watch keeps
+    # following the same file. The shell keeps its last good settings if it reads mid-write.
+    CONFIG.parent.mkdir(parents=True, exist_ok=True)
+    CONFIG.write_text(json.dumps(data, indent=2) + "\n")
+
+
+def current_style(data):
+    return data.get("style") if data.get("style") in STYLES else "pill"
+
+
+class SettingsWindow(Adw.ApplicationWindow):
+    def __init__(self, app):
+        super().__init__(application=app, title="Poteto")
+        self.set_default_size(520, 360)
+        # True while the window itself is updating a control, so that does not write back
+        self._syncing = False
+
+        page = Adw.PreferencesPage()
+
+        appearance = Adw.PreferencesGroup(title="Appearance")
+        page.add(appearance)
+
+        self.style_toggle = Adw.ToggleGroup(valign=Gtk.Align.CENTER)
+        self.style_toggle.add(Adw.Toggle(name="pill", label="Pill"))
+        self.style_toggle.add(Adw.Toggle(name="bar", label="Bar"))
+        self.style_toggle.connect("notify::active-name", self._on_style_changed)
+
+        row = Adw.ActionRow(
+            title="Layout",
+            subtitle="A floating pill at the top center, or a bar across the whole top",
+        )
+        row.add_suffix(self.style_toggle)
+        appearance.add(row)
+
+        toolbar = Adw.ToolbarView()
+        toolbar.add_top_bar(Adw.HeaderBar())
+        toolbar.set_content(page)
+        self.set_content(toolbar)
+
+        self._monitor = Gio.File.new_for_path(str(CONFIG)).monitor_file(Gio.FileMonitorFlags.NONE, None)
+        self._monitor.connect("changed", self._on_file_changed)
+
+        self._sync_from_file()
+
+    def _sync_from_file(self):
+        style = current_style(load())
+        if self.style_toggle.get_active_name() != style:
+            self._syncing = True
+            self.style_toggle.set_active_name(style)
+            self._syncing = False
+
+    def _on_style_changed(self, toggle, _pspec):
+        if self._syncing:
+            return
+        style = toggle.get_active_name()
+        data = load()
+        if data.get("style") == style:
+            return
+        data["style"] = style
+        save(data)
+
+    def _on_file_changed(self, _monitor, _file, _other, event):
+        if event in (Gio.FileMonitorEvent.CHANGES_DONE_HINT, Gio.FileMonitorEvent.CREATED,
+                     Gio.FileMonitorEvent.DELETED):
+            self._sync_from_file()
+
+
+class SettingsApp(Adw.Application):
+    def __init__(self):
+        super().__init__(application_id=APP_ID, flags=Gio.ApplicationFlags.DEFAULT_FLAGS)
+
+    def do_startup(self):
+        Adw.Application.do_startup(self)
+        # The icon from settings/dev.poteto.Settings.svg, installed into the user icon theme
+        Gtk.Window.set_default_icon_name(APP_ID)
+
+    def do_activate(self):
+        window = self.get_active_window() or SettingsWindow(self)
+        window.present()
+
+
+if __name__ == "__main__":
+    sys.exit(SettingsApp().run(sys.argv))

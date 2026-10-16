@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Poteto
+GenericName=Shell Settings
+Comment=Settings for the poteto shell: layout and more
+Exec=poteto-settings
+Icon=dev.poteto.Settings
+Terminal=false
+Categories=Settings;
+Keywords=poteto;quickshell;shell;settings;bar;pill;layout;config;
+StartupWMClass=dev.poteto.Settings

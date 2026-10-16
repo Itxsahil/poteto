@@ -206,6 +206,16 @@ hl.window_rule({
     move = "monitor_w-window_w-6 monitor_h-window_h-6",
 })
 
+-- Shell settings app (settings/poteto-settings): a small floating window, not a tile
+hl.window_rule({
+    name = "poteto-settings",
+    match = {
+        class = "dev.poteto.Settings",
+    },
+    float = true,
+    size = "560 420",
+})
+
 -- Gesture settings
 hl.config({
     gestures = {
