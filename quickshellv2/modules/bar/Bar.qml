@@ -4,8 +4,9 @@ import Quickshell.Wayland
 import qs.config
 import qs.services
 
-// The flat layout: one strip across the full width of the top of the screen, time in the middle.
-// Hovering the time drops the control center down under it (BarPanel.qml).
+// The flat layout: one strip across the full width of the top of the screen, workspaces on the
+// left and the time in the middle. Hovering the time drops the control center down under it
+// (BarPanel.qml).
 PanelWindow {
     id: window
 
@@ -33,6 +34,15 @@ PanelWindow {
         width: parent.width
         height: 1
         color: Theme.border
+    }
+
+    Workspaces {
+        anchors.left: parent.left
+        anchors.top: parent.top
+        // Clear of the hairline, so it stays centred on what is visible
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 1
+        screen: window.targetScreen
     }
 
     Rectangle {
