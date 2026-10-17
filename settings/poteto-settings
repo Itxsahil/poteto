@@ -117,6 +117,27 @@ class SettingsWindow(Adw.ApplicationWindow):
         row.add_suffix(self.style_toggle)
         appearance.add(row)
 
+        self.workspaces_switch = Adw.SwitchRow(
+            title="Workspaces",
+            subtitle="Show the workspaces next to the pill (the bar always shows them)",
+        )
+        self.workspaces_switch.connect("notify::active", self._on_workspaces_changed)
+        appearance.add(self.workspaces_switch)
+
+        self.battery_switch = Adw.SwitchRow(
+            title="Battery",
+            subtitle="Show the battery next to the pill (the bar always shows it)",
+        )
+        self.battery_switch.connect("notify::active", self._on_battery_changed)
+        appearance.add(self.battery_switch)
+
+        self.wifi_switch = Adw.SwitchRow(
+            title="Wi-Fi",
+            subtitle="Show Wi-Fi next to the battery (the bar always shows it)",
+        )
+        self.wifi_switch.connect("notify::active", self._on_wifi_changed)
+        appearance.add(self.wifi_switch)
+
         self.mode_toggle = Adw.ToggleGroup(valign=Gtk.Align.CENTER)
         self.mode_toggle.add(Adw.Toggle(name="light", icon_name="weather-clear-symbolic", tooltip="Light"))
         self.mode_toggle.add(Adw.Toggle(name="dark", icon_name="weather-clear-night-symbolic", tooltip="Dark"))
@@ -244,6 +265,15 @@ class SettingsWindow(Adw.ApplicationWindow):
             rgba = Gdk.RGBA()
             rgba.parse(accent)
             self.accent_picker.set_rgba(rgba)
+        workspaces = data.get("showWorkspaces") is not False
+        if self.workspaces_switch.get_active() != workspaces:
+            self.workspaces_switch.set_active(workspaces)
+        wifi = data.get("showWifi") is not False
+        if self.wifi_switch.get_active() != wifi:
+            self.wifi_switch.set_active(wifi)
+        battery = data.get("showBattery") is not False
+        if self.battery_switch.get_active() != battery:
+            self.battery_switch.set_active(battery)
         quiet = data.get("quiet") is True
         if self.quiet_switch.get_active() != quiet:
             self.quiet_switch.set_active(quiet)
@@ -276,6 +306,18 @@ class SettingsWindow(Adw.ApplicationWindow):
     def _on_accent_picked(self, picker, _pspec):
         if not self._syncing:
             self._set("accent", hex_of(picker.get_rgba()))
+
+    def _on_workspaces_changed(self, row, _pspec):
+        if not self._syncing:
+            self._set("showWorkspaces", row.get_active())
+
+    def _on_wifi_changed(self, row, _pspec):
+        if not self._syncing:
+            self._set("showWifi", row.get_active())
+
+    def _on_battery_changed(self, row, _pspec):
+        if not self._syncing:
+            self._set("showBattery", row.get_active())
 
     def _on_quiet_changed(self, row, _pspec):
         if not self._syncing:

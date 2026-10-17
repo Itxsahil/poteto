@@ -27,6 +27,17 @@ Singleton {
     readonly property string accent: typeof data.accent === "string" && /^#[0-9a-fA-F]{6}$/.test(data.accent)
         ? data.accent.toLowerCase() : ""
 
+    // The battery beside the pill, when there is one; on unless turned off. (The bar always shows
+    // it.)
+    readonly property bool showBattery: data.showBattery !== false
+
+    // The workspaces beside the pill (on its left); on unless turned off. (The bar always shows
+    // them.)
+    readonly property bool showWorkspaces: data.showWorkspaces !== false
+
+    // Wi-Fi beside the pill, right of the battery; on unless turned off. (The bar always shows it.)
+    readonly property bool showWifi: data.showWifi !== false
+
     // Quiet mode: notifications go straight to history instead of the pill (critical ones still
     // show); services/Notifications.qml
     readonly property bool quiet: data.quiet === true

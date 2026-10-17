@@ -12,6 +12,8 @@ Item {
     required property ShellScreen screen
     // Shown even while empty, so the first few always sit in the same place
     property int persistentCount: 5
+    // Each slot's width: the bar's are roomy, the pill's neighbour packs them closer
+    property int slotWidth: 34
 
     readonly property var monitor: Hyprland.monitorFor(screen)
     readonly property int activeId: monitor?.activeWorkspace?.id ?? -1
@@ -55,7 +57,7 @@ Item {
                 readonly property bool occupied: (workspace?.toplevels?.values?.length ?? 0) > 0
                 readonly property bool urgent: workspace?.urgent ?? false
 
-                width: 34
+                width: root.slotWidth
                 height: row.height
 
                 Text {

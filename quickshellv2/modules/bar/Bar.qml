@@ -39,11 +39,35 @@ PanelWindow {
         color: Theme.border
     }
 
-    // A recording in progress, at the right end
-    RecordingIndicator {
+    // At the right end: a recording in progress, Wi-Fi and the battery
+    Row {
         anchors.right: parent.right
         anchors.rightMargin: 12
         anchors.verticalCenter: parent.verticalCenter
+        spacing: 14
+
+        RecordingIndicator {
+            anchors.verticalCenter: parent.verticalCenter
+        }
+
+        // Always on the bar, like the battery; click for the Wi-Fi menu
+        WifiIndicator {
+            anchors.verticalCenter: parent.verticalCenter
+
+            HoverHandler {
+                cursorShape: Qt.PointingHandCursor
+            }
+
+            TapHandler {
+                onTapped: ShellState.openPage("wifi")
+            }
+        }
+
+        BatteryIndicator {
+            anchors.verticalCenter: parent.verticalCenter
+            // Always on the bar; Config.showBattery is only for the pill's neighbour
+            visible: Battery.present
+        }
     }
 
     Workspaces {

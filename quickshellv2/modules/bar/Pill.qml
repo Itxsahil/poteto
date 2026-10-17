@@ -47,8 +47,21 @@ PanelWindow {
     WlrLayershell.namespace: "pill"
     WlrLayershell.keyboardFocus: pinned ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
+    // The pill, and the battery beside it when it shows
     mask: Region {
         item: pill
+
+        Region {
+            item: batteryCapsule.visible ? batteryCapsule : null
+        }
+
+        Region {
+            item: workspacesCapsule.visible ? workspacesCapsule : null
+        }
+
+        Region {
+            item: wifiCapsule.visible ? wifiCapsule : null
+        }
     }
 
     // Clicking anywhere else closes it. Armed a moment late, so the key press that opened it is
@@ -115,6 +128,104 @@ PanelWindow {
         NumberAnimation { target: pill; property: "scale"; to: 0.9; duration: 90; easing.type: Easing.OutQuad }
         NumberAnimation { target: pill; property: "scale"; to: 1.06; duration: 160; easing.type: Easing.OutQuad }
         NumberAnimation { target: pill; property: "scale"; to: 1; duration: 260; easing.type: Easing.OutBack; easing.overshoot: 2 }
+    }
+
+    // The workspaces, in their own capsule to the left of the pill, the way the battery sits on
+    // its right. Out of the way while the pill has grown into something.
+    Rectangle {
+        id: workspacesCapsule
+
+        readonly property bool shown: Config.showWorkspaces && !window.expanded
+
+        anchors.right: pill.left
+        anchors.rightMargin: 8
+        y: window.gapTop
+        width: workspaces.implicitWidth + 12
+        height: window.pillHeight
+        radius: height / 2
+        color: Theme.background
+        border.color: Theme.border
+        border.width: 1
+        opacity: shown ? 1 : 0
+        scale: shown ? 1 : 0.85
+        visible: opacity > 0
+        Behavior on opacity { NumberAnimation { duration: 200 } }
+        Behavior on scale { NumberAnimation { duration: 260; easing.type: Easing.OutBack } }
+        Behavior on width { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
+
+        Workspaces {
+            id: workspaces
+            anchors.centerIn: parent
+            height: parent.height
+            screen: window.targetScreen
+            slotWidth: 24
+        }
+    }
+
+    // The battery, in its own small capsule to the right of the pill. It steps aside while the
+    // pill has grown into something.
+    Rectangle {
+        id: batteryCapsule
+
+        readonly property bool shown: Config.showBattery && Battery.present && !window.expanded
+
+        anchors.left: pill.right
+        anchors.leftMargin: 8
+        y: window.gapTop
+        width: battery.implicitWidth + 24
+        height: window.pillHeight
+        radius: height / 2
+        color: Theme.background
+        border.color: Theme.border
+        border.width: 1
+        opacity: shown ? 1 : 0
+        scale: shown ? 1 : 0.85
+        visible: opacity > 0
+        Behavior on opacity { NumberAnimation { duration: 200 } }
+        Behavior on scale { NumberAnimation { duration: 260; easing.type: Easing.OutBack } }
+        Behavior on width { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
+
+        BatteryIndicator {
+            id: battery
+            anchors.centerIn: parent
+        }
+    }
+
+    // Wi-Fi, in its own capsule right of the battery (or of the pill, when the battery is hidden).
+    // Click for the Wi-Fi menu.
+    Rectangle {
+        id: wifiCapsule
+
+        readonly property bool shown: Config.showWifi && !window.expanded
+
+        anchors.left: batteryCapsule.shown ? batteryCapsule.right : pill.right
+        anchors.leftMargin: 8
+        y: window.gapTop
+        width: wifiIndicator.implicitWidth + 24
+        height: window.pillHeight
+        radius: height / 2
+        color: Theme.background
+        border.color: Theme.border
+        border.width: 1
+        opacity: shown ? 1 : 0
+        scale: shown ? 1 : 0.85
+        visible: opacity > 0
+        Behavior on opacity { NumberAnimation { duration: 200 } }
+        Behavior on scale { NumberAnimation { duration: 260; easing.type: Easing.OutBack } }
+        Behavior on width { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
+
+        HoverHandler {
+            cursorShape: Qt.PointingHandCursor
+        }
+
+        TapHandler {
+            onTapped: ShellState.openPage("wifi")
+        }
+
+        WifiIndicator {
+            id: wifiIndicator
+            anchors.centerIn: parent
+        }
     }
 
     Rectangle {
