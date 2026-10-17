@@ -9,7 +9,7 @@ Singleton {
     id: root
 
     // "" (nothing), or what is open, from the keyboard or an app: "launcher", "controlcenter",
-    // "clipboard", "emoji", "videos", "wallpaper", "logintheme", "loginvideo" or "polkit"
+    // "clipboard", "emoji", "videos", "wallpaper", "logintheme", "loginvideo", "power" or "polkit"
     // (modules/bar/Views.qml). Stays until closed. (A notification is not a view: the pill shows
     // one whenever none of these is open; see services/Notifications.qml.)
     property string view: ""

@@ -109,6 +109,20 @@ ShellRoot {
     // The video window: one, opened by the video browser or qs ipc call player play
     PlayerWindow {}
 
+    // qs ipc call session toggle|open|close|lock|logout|suspend|reboot|poweroff (Alt + X opens
+    // the power menu)
+    IpcHandler {
+        target: "session"
+        function toggle(): void { ShellState.toggle("power"); }
+        function open(): void { Session.openMenu(""); }
+        function close(): void { ShellState.close("power"); }
+        function lock(): void { Session.run("lock"); }
+        function logout(): void { Session.openMenu("logout"); }
+        function suspend(): void { Session.run("suspend"); }
+        function reboot(): void { Session.openMenu("reboot"); }
+        function poweroff(): void { Session.openMenu("poweroff"); }
+    }
+
     // qs ipc call quiet toggle|on|off|status: notifications to history only (critical ones still show)
     IpcHandler {
         target: "quiet"

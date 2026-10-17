@@ -14,9 +14,11 @@ import qs.services
 // - the Sound slider (services/Audio.qml; click "Sound" to mute) and the Screen slider
 //   (services/Brightness.qml)
 // - now playing with its transport (MPD, services/Mpd.qml)
-// - the bell (notification history, NotificationsPage.qml) and the settings button (Poteto)
-// Awake, Airplane, the record button and the session buttons are still only drawn: they change
-// nothing outside this view yet.
+// - the bell (notification history, NotificationsPage.qml), the settings button (Poteto), and
+//   lock, restart and power (services/Session.qml; restart and power open the power menu on
+//   that action)
+// Awake, Airplane and the record button are still only drawn: they change nothing outside this
+// view yet.
 Item {
     id: root
 
@@ -394,6 +396,10 @@ Item {
                     implicitHeight: 32
                     glyph: "󰌾"
                     glyphSize: 14
+                    onClicked: {
+                        root.closeRequested();
+                        Session.run("lock");
+                    }
                 }
 
                 RoundButton {
@@ -401,6 +407,8 @@ Item {
                     implicitHeight: 32
                     glyph: "󰜉"
                     glyphSize: 14
+                    // The power menu, on Reboot and waiting for one more press
+                    onClicked: Session.openMenu("reboot")
                 }
 
                 RoundButton {
@@ -411,6 +419,7 @@ Item {
                     onGlyph: Theme.background
                     glyph: "⏻"
                     glyphSize: 14
+                    onClicked: Session.openMenu("poweroff")
                 }
             }
         }
