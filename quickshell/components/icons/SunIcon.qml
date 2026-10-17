@@ -27,7 +27,8 @@ Canvas {
             const a = i * Math.PI / 4;
             ctx.beginPath();
             ctx.moveTo(c + Math.cos(a) * 7.5, c + Math.sin(a) * 7.5);
-            ctx.lineTo(c + Math.cos(a) * 10, c + Math.sin(a) * 10);
+            // (9.5, not 10: the round cap adds 1, and 11 + 10 + 1 ran off the 22-wide canvas)
+            ctx.lineTo(c + Math.cos(a) * 9.5, c + Math.sin(a) * 9.5);
             ctx.stroke();
         }
     }

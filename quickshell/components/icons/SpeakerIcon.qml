@@ -18,7 +18,10 @@ Canvas {
     onPaint: {
         const ctx = getContext("2d");
         ctx.reset();
-        ctx.scale(width / 22, height / 22);
+        // Drawn on a 22 × 22 grid inside a 24 × 24 one: the outer wave's stroke reaches x = 23,
+        // and a canvas cuts off whatever falls outside it. The shift keeps the drawing centered.
+        ctx.scale(width / 24, height / 24);
+        ctx.translate(-0.5, 1);
         ctx.fillStyle = color;
         ctx.strokeStyle = color;
 

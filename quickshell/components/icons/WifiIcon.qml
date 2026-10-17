@@ -21,7 +21,10 @@ Canvas {
     onPaint: {
         const ctx = getContext("2d");
         ctx.reset();
-        ctx.scale(width / 18, height / 14);
+        // Drawn on an 18 × 14 grid with a 1-unit margin all round: the outer arc's stroke reaches
+        // past the 18 × 14 box, and a canvas cuts off whatever falls outside it
+        ctx.scale(width / 20, height / 16);
+        ctx.translate(1, 1);
         const cx = 9;
         const cy = 12.5;
 
