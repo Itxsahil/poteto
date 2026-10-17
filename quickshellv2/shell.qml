@@ -6,6 +6,7 @@ import qs.config
 import qs.services
 import qs.modules.bar
 import qs.modules.screenshot
+import qs.modules.player
 
 ShellRoot {
     // Singletons start when first used. These have no UI, so start them here: each one applies
@@ -80,6 +81,29 @@ ShellRoot {
         function open(): void { ShellState.open("emoji"); }
         function close(): void { ShellState.close("emoji"); }
     }
+
+    // qs ipc call videos toggle|open|close (Alt + Shift + V in hypr/bindings.lua)
+    IpcHandler {
+        target: "videos"
+        function toggle(): void { ShellState.toggle("videos"); }
+        function open(): void { ShellState.open("videos"); }
+        function close(): void { ShellState.close("videos"); }
+    }
+
+    // qs ipc call player play <path>|stop|next|previous|loop|speed <step>|status
+    IpcHandler {
+        target: "player"
+        function play(path: string): void { Player.play(path, [path]); }
+        function stop(): void { Player.close(); }
+        function next(): void { Player.next(); }
+        function previous(): void { Player.previous(); }
+        function loop(): string { Player.cycleLoop(); return Player.loop; }
+        function speed(step: int): string { Player.cycleSpeed(step); return Player.speed + "x"; }
+        function status(): string { return Player.playing ? `${Player.title} · loop ${Player.loop} · ${Player.speed}x` : "idle"; }
+    }
+
+    // The video window: one, opened by the video browser or qs ipc call player play
+    PlayerWindow {}
 
     // qs ipc call wallpaper toggle|open|close|random (Alt + W in hypr/bindings.lua)
     IpcHandler {

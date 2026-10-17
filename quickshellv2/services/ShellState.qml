@@ -9,7 +9,7 @@ Singleton {
     id: root
 
     // "" (nothing), or what is open, from the keyboard or an app: "launcher", "controlcenter",
-    // "clipboard", "emoji", "wallpaper", "logintheme", "loginvideo" or "polkit"
+    // "clipboard", "emoji", "videos", "wallpaper", "logintheme", "loginvideo" or "polkit"
     // (modules/bar/Views.qml). Stays until closed.
     property string view: ""
 

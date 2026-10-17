@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell.Widgets
 import qs.config
 import qs.components
 import qs.services
@@ -170,7 +171,9 @@ Item {
                 Behavior on color { ColorAnimation { duration: 120 } }
                 Behavior on border.color { ColorAnimation { duration: 140 } }
 
-                Rectangle {
+                // ClippingRectangle, unlike clip on a Rectangle, cuts the poster to the rounded corners
+
+                ClippingRectangle {
                     id: preview
                     anchors.left: parent.left
                     anchors.right: parent.right
@@ -179,7 +182,6 @@ Item {
                     height: width * 0.5625
                     radius: 10
                     color: Theme.control
-                    clip: true
 
                     Image {
                         id: poster
