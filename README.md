@@ -152,6 +152,19 @@ ln -s "$PWD/hypr"       ~/.config/hypr
 
 `themes/` does **not** need a link. The shell finds it next to its own folder (`quickshell/../themes`).
 
+To switch between this shell and quickshell v2 from the launcher ("Switch Shell"), link the
+script and its launcher entry:
+
+```sh
+ln -s "$PWD/switch-shell" ~/.local/bin/poteto-switch-shell
+ln -s "$PWD/dev.poteto.SwitchShell.desktop" ~/.local/share/applications/
+```
+
+It moves `~/.config/quickshell` to the other folder and restarts Quickshell. When switching to
+this shell it also points the theme links back at this shell's last theme. Run
+`poteto-switch-shell v1`, `v2` or `status` from a terminal to pick a shell or see which is
+active.
+
 ### Autostart
 
 `hypr/hyprland.lua` already starts everything once Hyprland is up:
@@ -554,6 +567,8 @@ qs ipc call keybinds   toggle|open|close
 qs ipc call videos     toggle|open|close
 qs ipc call camera     toggle|open|close
 qs ipc call bar        toggle|simple|island|status|panel
+qs ipc call layout     toggle|pill|bar|status       # same names as quickshell v2 (Alt + Shift + B)
+qs ipc call controlcenter toggle|open|close        # same names as quickshell v2 (Super + C)
 qs ipc call player     play <path>|stop|next|previous|loop|status
 qs ipc call player     speed 1        # or -1, steps 0.5×…2×
 ```

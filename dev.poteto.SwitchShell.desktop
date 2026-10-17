@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Switch Shell
+GenericName=Switch Quickshell
+Comment=Switch between the old shell (quickshell) and quickshell v2
+Exec=poteto-switch-shell
+Icon=view-refresh-symbolic
+Terminal=false
+Categories=Settings;
+Keywords=poteto;quickshell;shell;switch;v1;v2;old;new;restart;

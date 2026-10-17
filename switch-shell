@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# Switch between the old shell (quickshell/) and the new one (quickshellv2/): moves the
+# ~/.config/quickshell link to the other folder and restarts Quickshell.
+#
+#   switch-shell            to the other one
+#   switch-shell v1 | v2    to that one
+#   switch-shell status     which one is linked
+#
+# Linked as ~/.local/bin/poteto-switch-shell, with "Switch Shell" in the launcher
+# (dev.poteto.SwitchShell.desktop).
+set -euo pipefail
+
+repo=$(dirname "$(realpath "$0")")
+link="$HOME/.config/quickshell"
+cache="$HOME/.cache/quickshell/theme"
+
+# Started from the shell's own launcher, this would die with the shell it restarts
+if [ -z "${SWITCH_SHELL_DETACHED:-}" ] && [ "${1:-}" != status ]; then
+    SWITCH_SHELL_DETACHED=1 exec setsid -f "$0" "$@" >/dev/null 2>&1 </dev/null
+fi
+
+say() {
+    notify-send -a Poteto -i preferences-desktop-theme "Shell" "$1" 2>/dev/null || true
+    echo "$1"
+}
+
+if [ -e "$link" ] && [ ! -L "$link" ]; then
+    say "$link is a folder, not a link; leaving it alone"
+    exit 1
+fi
+
+current=v2
+[ "$(readlink -f "$link" 2>/dev/null)" = "$(realpath "$repo/quickshell")" ] && current=v1
+
+case "${1:-toggle}" in
+    status) echo "$current"; exit 0 ;;
+    v1|v2) target=$1 ;;
+    toggle) [ "$current" = v1 ] && target=v2 || target=v1 ;;
+    *) echo "usage: switch-shell [v1|v2|status]" >&2; exit 2 ;;
+esac
+
+if [ "$target" = v1 ]; then dir="$repo/quickshell"; else dir="$repo/quickshellv2"; fi
+ln -sfn "$dir" "$link"
+
+# The old shell reads its theme through links to one theme folder's files; the new one points
+# them at its dark/light palette files (and puts them back at its start). Give the old one its
+# links back, to the theme it last had.
+if [ "$target" = v1 ]; then
+    theme=$(readlink -f "$cache/current" 2>/dev/null || true)
+    [ -d "$theme" ] || theme="$repo/themes/solitude"
+    id=$(basename "$theme")
+    relink() { if [ -e "$1" ]; then ln -sfn "$1" "$2"; else rm -f "$2"; fi; }
+    relink "$theme/quickshell/colors.json" "$cache/colors.json"
+    relink "$theme/kitty/$id.conf"         "$cache/kitty.conf"
+    relink "$theme/hyprlock/colors.conf"   "$cache/hyprlock.conf"
+    relink "$theme/nvim/theme.lua"         "$cache/nvim.lua"
+    relink "$theme/nvim/transparent"       "$cache/nvim-transparent"
+    relink "$theme/hyprland/colors.lua"    "$cache/hyprland.lua"
+    relink "$theme/rmpc/theme.ron"         "$cache/rmpc.ron"
+    pkill -USR1 -x kitty || true
+    hyprctl reload >/dev/null 2>&1 || true
+fi
+
+# Restart it the way hypr/hyprland.lua starts it, as a child of Hyprland (its environment)
+pkill -x quickshell || true
+for _ in $(seq 50); do pgrep -x quickshell >/dev/null || break; sleep 0.1; done
+hyprctl dispatch 'hl.dsp.exec_cmd("env QT_FFMPEG_DECODING_HW_DEVICE_TYPES=vaapi quickshell")' >/dev/null
+
+# Quickshell is the notification server: wait for it before saying so
+for _ in $(seq 100); do qs ipc show >/dev/null 2>&1 && break; sleep 0.1; done
+if [ "$target" = v1 ]; then say "Switched to the old shell (quickshell)"; else say "Switched to quickshell v2"; fi
