@@ -6,10 +6,11 @@ import qs.modules.wallpaper
 import qs.modules.logintheme
 import qs.modules.loginvideo
 import qs.modules.polkit
+import qs.modules.clipboard
 
 // Everything the pill grows into (or the bar's panel holds), in one place for both: the
-// launcher, the control center, the wallpaper picker, the login theme and video pickers, and the
-// password prompt. The host fills its surface with this, sizes the surface to wantedWidth ×
+// launcher, the control center, clipboard history, the wallpaper picker, the login theme and
+// video pickers, and the password prompt. The host fills its surface with this, sizes the surface to wantedWidth ×
 // wantedHeight, and makes room for maxWidth × maxHeight.
 //
 // Each view is laid out at its own padding (padX, padTop, padBottom) inside the surface, comes
@@ -25,7 +26,7 @@ Item {
     readonly property Item item: views.find(v => v.name === current) ?? null
     readonly property real wantedWidth: item ? item.implicitWidth + item.padX * 2 : 0
     readonly property real wantedHeight: item ? item.implicitHeight + item.padTop + item.padBottom : 0
-    readonly property var views: [launcher, controlCenter, wallpaper, loginTheme, loginVideo, polkit]
+    readonly property var views: [launcher, controlCenter, clipboard, wallpaper, loginTheme, loginVideo, polkit]
     readonly property real maxWidth: Math.max(...views.map(v => v.implicitWidth + v.padX * 2))
     // The launcher grows with its results, so its room is its tallest, not what it is now
     readonly property real maxHeight: Math.max(launcher.maxRows * launcher.rowHeight + 120,
@@ -69,6 +70,23 @@ Item {
         // A hover peek shows it but leaves the keyboard alone
         active: root.current === name && root.pinned
         opacity: root.current === name ? 1 : 0
+        visible: opacity > 0
+        Fade on opacity {}
+        onCloseRequested: ShellState.close(name)
+    }
+
+    ClipboardContent {
+        id: clipboard
+        readonly property string name: "clipboard"
+        readonly property int padX: 12
+        readonly property int padTop: 12
+        readonly property int padBottom: 10
+        x: padX
+        y: padTop
+        width: implicitWidth
+        height: implicitHeight
+        active: root.current === name
+        opacity: active ? 1 : 0
         visible: opacity > 0
         Fade on opacity {}
         onCloseRequested: ShellState.close(name)

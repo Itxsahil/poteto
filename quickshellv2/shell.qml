@@ -63,6 +63,14 @@ ShellRoot {
         function wifi(): void { ShellState.openPage("wifi"); }
     }
 
+    // qs ipc call clipboard toggle|open|close (Super + V in hypr/bindings.lua)
+    IpcHandler {
+        target: "clipboard"
+        function toggle(): void { ShellState.toggle("clipboard"); }
+        function open(): void { ShellState.open("clipboard"); }
+        function close(): void { ShellState.close("clipboard"); }
+    }
+
     // qs ipc call wallpaper toggle|open|close|random (Alt + W in hypr/bindings.lua)
     IpcHandler {
         target: "wallpaper"
