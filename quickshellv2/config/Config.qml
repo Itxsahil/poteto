@@ -27,6 +27,10 @@ Singleton {
     readonly property string accent: typeof data.accent === "string" && /^#[0-9a-fA-F]{6}$/.test(data.accent)
         ? data.accent.toLowerCase() : ""
 
+    // Quiet mode: notifications go straight to history instead of the pill (critical ones still
+    // show); services/Notifications.qml
+    readonly property bool quiet: data.quiet === true
+
     // Night light (services/NightLight.qml): on or off, and how warm, in kelvin
     readonly property bool nightLight: data.nightLight === true
     readonly property int nightTemperature: typeof data.nightTemperature === "number"
@@ -55,6 +59,10 @@ Singleton {
 
     function toggleMode() {
         setMode(mode === "dark" ? "light" : "dark");
+    }
+
+    function setQuiet(on) {
+        set("quiet", !!on);
     }
 
     function setNightLight(on) {

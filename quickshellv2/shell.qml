@@ -109,6 +109,15 @@ ShellRoot {
     // The video window: one, opened by the video browser or qs ipc call player play
     PlayerWindow {}
 
+    // qs ipc call quiet toggle|on|off|status: notifications to history only (critical ones still show)
+    IpcHandler {
+        target: "quiet"
+        function toggle(): bool { Config.setQuiet(!Config.quiet); return !Config.quiet; }
+        function on(): bool { Config.setQuiet(true); return true; }
+        function off(): bool { Config.setQuiet(false); return false; }
+        function status(): bool { return Config.quiet; }
+    }
+
     // qs ipc call notifications status|next|clear
     IpcHandler {
         target: "notifications"

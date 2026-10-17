@@ -3,27 +3,30 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Services.Notifications
+import qs.config
 
-// The session's notification server (org.freedesktop.Notifications). Nothing pops up on its own:
-// new notifications wait in a queue, and the pill grows into them one at a time
-// (modules/notifications/NotificationContent.qml through modules/bar/Views.qml). Every
+// The session's notification server (org.freedesktop.Notifications). In quiet mode (Config.quiet)
+// only critical ones are shown; the rest go straight to history. Nothing pops up on its own: the
+// pill grows into them (modules/notifications/NotificationContent.qml through
+// modules/bar/Views.qml), the newest at once, with older unseen ones waiting behind it. Every
 // notification also stays in history until it is dismissed or withdrawn.
 Singleton {
     id: root
 
     readonly property int maxHistory: 50
-    // Waiting to be shown; more than this and the oldest waiting ones are dropped from the queue
-    // (they stay in history)
+    // Waiting to be shown; past this many the oldest ones leave the queue (they stay in history)
     readonly property int maxQueue: 5
     readonly property int defaultTimeout: 5000
     readonly property int criticalTimeout: 12000
 
-    // Shown in turn; the first is the one the pill is showing
+    // Newest first; the first is the one the pill is showing
     property var queue: []
     readonly property var current: queue.length > 0 ? queue[0] : null
     property var arrivedAt: ({})
 
-    readonly property var history: [...server.trackedNotifications.values].reverse()
+    // Newest first. By id, which only goes up: the server's own list is not in arrival order
+    // (a replacement keeps its old place, and so do ones kept across a shell reload)
+    readonly property var history: [...server.trackedNotifications.values].sort((a, b) => b.id - a.id)
     readonly property int count: history.length
     // Everything that arrived at or before this has been seen (the history page was opened)
     property double readAt: 0
@@ -100,11 +103,14 @@ Singleton {
             for (let i = 0; i < tracked.length - root.maxHistory; i++)
                 tracked[i].expire();
 
-            // A replacement (same id) updates in place where it already is in the queue
-            if (!root.queue.includes(notification)) {
-                const waiting = root.queue.slice(1).slice(-(root.maxQueue - 2));
-                root.queue = root.current ? [root.current, ...waiting, notification] : [notification];
-            }
+            // Quiet mode: into history only, unless it is critical
+            if (Config.quiet && notification.urgency !== NotificationUrgency.Critical)
+                return;
+
+            // The newest takes the pill straight away; the one it pushes aside waits right behind
+            // it. A replacement (same id) updates in place where it already is in the queue.
+            if (!root.queue.includes(notification))
+                root.queue = [notification, ...root.queue].slice(0, root.maxQueue);
             root.arrived(notification);
         }
     }

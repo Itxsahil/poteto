@@ -8,6 +8,7 @@ too, so a change made elsewhere (qs ipc call layout toggle, a hand edit) shows u
 
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -25,6 +26,23 @@ MODES = ("dark", "light")
 NIGHT_MIN, NIGHT_MAX = 1000, 6500
 SLIDER_MIN = 2000
 NIGHT_DEFAULT = 4000
+# Sends sample notifications (tools/notif-test in this repo), found through the real path of this
+# script, which ~/.local/bin links to
+NOTIF_TEST = Path(__file__).resolve().parent.parent / "tools" / "notif-test"
+# Its cases, in the order they are listed: (case, title, what it shows)
+NOTIF_CASES = (
+    ("plain", "Plain", "No icon, no buttons, one line"),
+    ("chrome", "Browser message", "A site's picture with the browser's badge on it"),
+    ("badge", "Picture, no badge", "An image but no app icon"),
+    ("actions", "With buttons", "Action buttons under the text"),
+    ("critical", "Critical", "Urgent: red, and shown even in quiet mode"),
+    ("long", "Long text", "A title and body that need trimming"),
+    ("newlines", "Several lines", "Line breaks in the body"),
+    ("url", "Link", "A bare web address that becomes clickable"),
+    ("markup", "Formatting", "Bold, italic, underline and a link"),
+    ("entities", "Special characters", "&, < and > that have to survive"),
+)
+
 # Accent swatches: GNOME's named accent colors, the ones apps that follow the system can match
 # exactly. Any other color comes from the Custom picker.
 SWATCHES = (
@@ -170,6 +188,38 @@ class SettingsWindow(Adw.ApplicationWindow):
         # Dragging writes the file once it pauses, not on every step
         self._warmth_write = 0
 
+        notifications = Adw.PreferencesGroup(title="Notifications")
+        page.add(notifications)
+
+        self.quiet_switch = Adw.SwitchRow(
+            title="Quiet Mode",
+            subtitle="Notifications go straight to history; critical ones still show",
+        )
+        self.quiet_switch.connect("notify::active", self._on_quiet_changed)
+        notifications.add(self.quiet_switch)
+
+        tests = Adw.ExpanderRow(
+            title="Send a Test Notification",
+            subtitle="See how each kind looks in the pill",
+        )
+        send_all = Gtk.Button(label="Send all", valign=Gtk.Align.CENTER)
+        send_all.add_css_class("flat")
+        send_all.set_tooltip_text("Every kind, a few seconds apart")
+        send_all.connect("clicked", self._on_send_test, None)
+        tests.add_suffix(send_all)
+        for case, title, what in NOTIF_CASES:
+            row = Adw.ActionRow(title=GLib.markup_escape_text(title), subtitle=GLib.markup_escape_text(what))
+            send = Gtk.Button(icon_name="mail-send-symbolic", valign=Gtk.Align.CENTER, tooltip_text="Send")
+            send.add_css_class("flat")
+            send.connect("clicked", self._on_send_test, case)
+            row.add_suffix(send)
+            row.set_activatable_widget(send)
+            tests.add_row(row)
+        if not NOTIF_TEST.exists():
+            tests.set_sensitive(False)
+            tests.set_subtitle(f"{NOTIF_TEST} is missing")
+        notifications.add(tests)
+
         toolbar = Adw.ToolbarView()
         toolbar.add_top_bar(Adw.HeaderBar())
         toolbar.set_content(page)
@@ -194,6 +244,9 @@ class SettingsWindow(Adw.ApplicationWindow):
             rgba = Gdk.RGBA()
             rgba.parse(accent)
             self.accent_picker.set_rgba(rgba)
+        quiet = data.get("quiet") is True
+        if self.quiet_switch.get_active() != quiet:
+            self.quiet_switch.set_active(quiet)
         night = data.get("nightLight") is True
         if self.night_switch.get_active() != night:
             self.night_switch.set_active(night)
@@ -223,6 +276,15 @@ class SettingsWindow(Adw.ApplicationWindow):
     def _on_accent_picked(self, picker, _pspec):
         if not self._syncing:
             self._set("accent", hex_of(picker.get_rgba()))
+
+    def _on_quiet_changed(self, row, _pspec):
+        if not self._syncing:
+            self._set("quiet", row.get_active())
+
+    def _on_send_test(self, _button, case):
+        # In the background: one waits for its buttons to be clicked, and "all" takes a while
+        subprocess.Popen([str(NOTIF_TEST)] + ([case] if case else []),
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
 
     def _on_night_changed(self, row, _pspec):
         if not self._syncing:

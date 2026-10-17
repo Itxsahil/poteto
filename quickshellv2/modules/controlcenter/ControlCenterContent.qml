@@ -6,13 +6,17 @@ import qs.services
 // The control center, with no surface of its own: the pill grows into it in pill mode, and a
 // panel drops down from the bar in bar mode.
 //
-// Mostly a design for now: Wi-Fi (services/Wifi.qml) and Bluetooth (services/BluetoothManager.qml)
-// — each with a menu (WifiPage.qml, BluetoothPage.qml) behind its label or a right click — Dark (the desktop's light/dark mode, Config.mode), Night (night light,
-// services/NightLight.qml), the Sound slider (services/Audio.qml; click "Sound" to mute), the
-// Screen slider (services/Brightness.qml), now playing with its transport (MPD, services/Mpd.qml),
-// the bell (notification history, NotificationsPage.qml) and the settings button (opens Poteto)
-// are real. Every other toggle and button changes only
-// what is drawn here; none of it reaches Bluetooth, the recorder or the session yet.
+// Mostly real now:
+// - Wi-Fi (services/Wifi.qml) and Bluetooth (services/BluetoothManager.qml), each with a menu
+//   (WifiPage.qml, BluetoothPage.qml) behind its label or a right click
+// - Quiet (notifications to history only, Config.quiet), Dark (light/dark mode, Config.mode) and
+//   Night (night light, services/NightLight.qml)
+// - the Sound slider (services/Audio.qml; click "Sound" to mute) and the Screen slider
+//   (services/Brightness.qml)
+// - now playing with its transport (MPD, services/Mpd.qml)
+// - the bell (notification history, NotificationsPage.qml) and the settings button (Poteto)
+// Awake, Airplane, the record button and the session buttons are still only drawn: they change
+// nothing outside this view yet.
 Item {
     id: root
 
@@ -20,7 +24,7 @@ Item {
     readonly property string page: ShellState.page
 
     // Stand-in state, so the controls can be tried
-    property var toggles: ({ quiet: false, awake: false, airplane: false })
+    property var toggles: ({ awake: false, airplane: false })
 
     signal closeRequested()
 
@@ -130,6 +134,7 @@ Item {
                         : isBluetooth ? BluetoothManager.enabled
                         : modelData.id === "dark" ? Config.mode === "dark"
                         : modelData.id === "night" ? NightLight.enabled
+                        : modelData.id === "quiet" ? Config.quiet
                         : root.toggles[modelData.id] ?? false
 
                     width: toggleRow.width / toggleRow.items.length
@@ -143,6 +148,7 @@ Item {
                             : toggle.isBluetooth ? BluetoothManager.setEnabled(!BluetoothManager.enabled)
                             : toggle.modelData.id === "dark" ? Config.toggleMode()
                             : toggle.modelData.id === "night" ? NightLight.toggle()
+                            : toggle.modelData.id === "quiet" ? Config.setQuiet(!Config.quiet)
                             : root.flip(toggle.modelData.id)
                         onSecondaryClicked: {
                             if (toggle.hasPage)
