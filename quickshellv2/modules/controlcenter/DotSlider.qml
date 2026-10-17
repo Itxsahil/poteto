@@ -18,8 +18,13 @@ Rectangle {
     // The label can be clicked (e.g. to mute); it shows a hover state then
     property bool labelClickable: false
 
+    // A small round button at the right end (e.g. the device in use, opening the Audio page);
+    // "" for none
+    property string actionGlyph: ""
+
     signal moved(real value)
     signal labelClicked()
+    signal actionClicked()
 
     readonly property real dotSize: 4.5
     readonly property real dotGap: 8
@@ -81,8 +86,8 @@ Rectangle {
 
     Text {
         id: number
-        anchors.right: parent.right
-        anchors.rightMargin: 14
+        anchors.right: action.visible ? action.left : parent.right
+        anchors.rightMargin: action.visible ? 8 : 14
         anchors.verticalCenter: parent.verticalCenter
         width: 28
         horizontalAlignment: Text.AlignRight
@@ -92,8 +97,10 @@ Rectangle {
         font.family: Theme.monoFamily
     }
 
+    // Above the slider's own mouse area (declared after it), so a click here is not a jump
     MouseArea {
         anchors.fill: parent
+        anchors.rightMargin: action.visible ? action.width + 6 : 0
         cursorShape: Qt.PointingHandCursor
         onPressed: mouse => root.setFromX(mouse.x)
         onPositionChanged: mouse => { if (pressed) root.setFromX(mouse.x); }
@@ -111,5 +118,34 @@ Rectangle {
 
     WheelHandler {
         onWheel: event => root.moved(Math.max(0, Math.min(root.maxValue, root.value + (event.angleDelta.y > 0 ? 5 : -5))))
+    }
+
+    Rectangle {
+        id: action
+        anchors.right: parent.right
+        anchors.rightMargin: 4
+        anchors.verticalCenter: parent.verticalCenter
+        visible: root.actionGlyph !== ""
+        width: 26
+        height: 26
+        radius: 13
+        color: actionMouse.containsMouse ? Theme.tileHover : Qt.alpha(Theme.text, 0.07)
+        Behavior on color { ColorAnimation { duration: 120 } }
+
+        Text {
+            anchors.centerIn: parent
+            text: root.actionGlyph
+            color: Theme.text
+            font.pixelSize: 13
+            font.family: Theme.monoFamily
+        }
+
+        MouseArea {
+            id: actionMouse
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: root.actionClicked()
+        }
     }
 }

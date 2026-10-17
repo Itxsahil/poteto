@@ -11,8 +11,8 @@ import qs.services
 //   (WifiPage.qml, BluetoothPage.qml) behind its label or a right click
 // - Quiet (notifications to history only, Config.quiet), Dark (light/dark mode, Config.mode) and
 //   Night (night light, services/NightLight.qml)
-// - the Sound and Mic sliders (services/Audio.qml; click the label to mute) and the Screen slider
-//   (services/Brightness.qml)
+// - the Sound and Mic sliders (services/Audio.qml; click the label to mute, the device button at
+//   the end for the Audio page, AudioPage.qml) and the Screen slider (services/Brightness.qml)
 // - now playing with its transport (MPD, services/Mpd.qml), and the record button
 //   (services/Recorder.qml)
 // - the bell (notification history, NotificationsPage.qml), the settings button (Poteto), and
@@ -44,6 +44,7 @@ Item {
     implicitHeight: page === "wifi" ? wifi.implicitHeight
         : page === "bluetooth" ? bluetooth.implicitHeight
         : page === "notifications" ? notifications.implicitHeight
+        : page === "audio" ? audio.implicitHeight
         : column.implicitHeight
 
     Item {
@@ -67,6 +68,16 @@ Item {
         width: parent.width
         active: root.active && root.page === "bluetooth"
         opacity: root.page === "bluetooth" ? 1 : 0
+        visible: opacity > 0
+        Behavior on opacity { NumberAnimation { duration: 180; easing.type: Easing.InOutQuad } }
+        onBackRequested: ShellState.page = "main"
+    }
+
+    AudioPage {
+        id: audio
+        width: parent.width
+        active: root.active && root.page === "audio"
+        opacity: root.page === "audio" ? 1 : 0
         visible: opacity > 0
         Behavior on opacity { NumberAnimation { duration: 180; easing.type: Easing.InOutQuad } }
         onBackRequested: ShellState.page = "main"
@@ -199,6 +210,9 @@ Item {
             labelClickable: true
             onMoved: v => Audio.setPercent(v)
             onLabelClicked: Audio.toggleMute()
+            // The device in use; opens the Audio page to switch
+            actionGlyph: Audio.glyphFor(Audio.activeOutput?.kind ?? "speaker")
+            onActionClicked: ShellState.openPage("audio")
         }
 
         DotSlider {
@@ -211,6 +225,8 @@ Item {
             labelClickable: true
             onMoved: v => Audio.setMicPercent(v)
             onLabelClicked: Audio.toggleMicMute()
+            actionGlyph: Audio.glyphFor(Audio.activeInput?.kind ?? "mic")
+            onActionClicked: ShellState.openPage("audio")
         }
 
         DotSlider {

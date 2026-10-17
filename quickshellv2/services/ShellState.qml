@@ -19,8 +19,8 @@ Singleton {
     // after the pointer leaves, and never takes the keyboard
     property bool peek: false
 
-    // The control center's page: "main", or "wifi", "bluetooth" or "notifications". Back to
-    // "main" once the control center has faded out (ControlCenterContent.qml)
+    // The control center's page: "main", or "wifi", "bluetooth", "audio" or "notifications". Back
+    // to "main" once the control center has faded out (ControlCenterContent.qml)
     property string page: "main"
 
     readonly property bool controlCenterOpen: view === "controlcenter" || (peek && view === "")

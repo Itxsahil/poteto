@@ -60,7 +60,8 @@ ShellRoot {
         function close(): void { ShellState.close("launcher"); }
     }
 
-    // qs ipc call controlcenter toggle|open|close|wifi|bluetooth|notifications (Super + C in hypr/bindings.lua)
+    // qs ipc call controlcenter toggle|open|close|wifi|bluetooth|audio|notifications
+    // (Super + C in hypr/bindings.lua)
     IpcHandler {
         target: "controlcenter"
         function toggle(): void { ShellState.toggle("controlcenter"); }
@@ -68,6 +69,7 @@ ShellRoot {
         function close(): void { ShellState.close("controlcenter"); }
         function wifi(): void { ShellState.openPage("wifi"); }
         function bluetooth(): void { ShellState.openPage("bluetooth"); }
+        function audio(): void { ShellState.openPage("audio"); }
         function notifications(): void { ShellState.openPage("notifications"); }
     }
 

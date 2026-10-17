@@ -9,8 +9,6 @@ What is still left to bring over from the old shell (`quickshell/`) or to finish
       themes in `themes/` and apply it to the shell, kitty, Hyprland, hyprlock, Neovim, rmpc,
       VS Code and the wallpaper. Has to fit with light/dark mode (`Config.mode`) and the accent
       color (`Config.accent`).
-- [ ] **Audio output picker** — choose speakers, headphones or HDMI from the control center (old:
-      `controlcenter/controls/DeviceChips.qml`, the port-aware list in `services/Audio.qml`).
 - [ ] **Media panel in the bar** — the MPD song with album art and the audio visualizer (old:
       `bar/MediaPanel.qml`, `bar/MpdWidget.qml`, `services/AlbumArt.qml`, `services/Cava.qml`).
 - [ ] **`qs ipc call mpd toggle|next|previous|status`** — for MPD keybinds.
@@ -57,8 +55,9 @@ and most button clicks.
 
 Pill and bar layouts, launcher (with calculator and `?` for the cheatsheet), control center
 (Wi-Fi, Bluetooth, Quiet, Dark, Night, Sound, Mic, Screen, MPD, notifications, lock / restart /
-power, record; Awake and Airplane dropped as not needed), light/dark mode, accent color, night
-light, brightness and volume OSD with mic mute, notifications in the pill with history,
-screenshots, color picker, screen recorder, clipboard, emoji, wallpaper picker, video browser
-and player, camera, login theme and video pickers, polkit agent, power menu, keybind
-cheatsheet, workspaces / battery / Wi-Fi capsules, and the Poteto settings app.
+power, record, and an Audio page for outputs and inputs; Awake and Airplane dropped as not
+needed), light/dark mode, accent color, night light, brightness and volume OSD with mic mute,
+notifications in the pill with history, screenshots, color picker, screen recorder, clipboard,
+emoji, wallpaper picker, video browser and player, camera, login theme and video pickers,
+polkit agent, power menu, keybind cheatsheet, workspaces / battery / Wi-Fi capsules, and the
+Poteto settings app.
