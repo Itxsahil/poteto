@@ -89,7 +89,7 @@ Item {
 
             Text {
                 text: chip.label
-                color: chip.current ? Theme.onFill : Theme.text
+                color: chip.current ? Theme.fillText : Theme.text
                 font.pixelSize: 12
                 font.weight: Font.DemiBold
                 font.family: Theme.fontFamily
@@ -98,7 +98,7 @@ Item {
             Text {
                 visible: chip.count >= 0
                 text: chip.count
-                color: chip.current ? Qt.alpha(Theme.onFill, 0.55) : Theme.textDim
+                color: chip.current ? Qt.alpha(Theme.fillText, 0.55) : Theme.textDim
                 font.pixelSize: 11
                 font.family: Theme.fontFamily
             }

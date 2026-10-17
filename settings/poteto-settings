@@ -138,6 +138,13 @@ class SettingsWindow(Adw.ApplicationWindow):
         self.wifi_switch.connect("notify::active", self._on_wifi_changed)
         appearance.add(self.wifi_switch)
 
+        self.calendar_switch = Adw.SwitchRow(
+            title="Calendar",
+            subtitle="Show the calendar button next to Wi-Fi (the bar always shows it)",
+        )
+        self.calendar_switch.connect("notify::active", self._on_calendar_changed)
+        appearance.add(self.calendar_switch)
+
         self.mode_toggle = Adw.ToggleGroup(valign=Gtk.Align.CENTER)
         self.mode_toggle.add(Adw.Toggle(name="light", icon_name="weather-clear-symbolic", tooltip="Light"))
         self.mode_toggle.add(Adw.Toggle(name="dark", icon_name="weather-clear-night-symbolic", tooltip="Dark"))
@@ -268,6 +275,9 @@ class SettingsWindow(Adw.ApplicationWindow):
         workspaces = data.get("showWorkspaces") is not False
         if self.workspaces_switch.get_active() != workspaces:
             self.workspaces_switch.set_active(workspaces)
+        calendar = data.get("showCalendar") is not False
+        if self.calendar_switch.get_active() != calendar:
+            self.calendar_switch.set_active(calendar)
         wifi = data.get("showWifi") is not False
         if self.wifi_switch.get_active() != wifi:
             self.wifi_switch.set_active(wifi)
@@ -310,6 +320,10 @@ class SettingsWindow(Adw.ApplicationWindow):
     def _on_workspaces_changed(self, row, _pspec):
         if not self._syncing:
             self._set("showWorkspaces", row.get_active())
+
+    def _on_calendar_changed(self, row, _pspec):
+        if not self._syncing:
+            self._set("showCalendar", row.get_active())
 
     def _on_wifi_changed(self, row, _pspec):
         if not self._syncing:

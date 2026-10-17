@@ -53,7 +53,8 @@ Singleton {
     readonly property color controlHover: c("controlHover", "#3a3a3c")
     // A solid button, e.g. the selected mode in the screenshot toolbar, and what is drawn on it
     readonly property color fill: c("fill", "#ffffff")
-    readonly property color onFill: c("onFill", "#000000")
+    // (Not "onFill": a read-only property starting with "on" + a capital never gets its value)
+    readonly property color fillText: c("onFill", "#000000")
     // Drop shadow under floating surfaces (components/Shadow.qml). Always dark, on every theme:
     // it is cast on the wallpaper, not a surface that follows the palette.
     readonly property color shadow: Qt.rgba(0, 0, 0, 0.45)

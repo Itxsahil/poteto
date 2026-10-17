@@ -39,7 +39,7 @@ PanelWindow {
         color: Theme.border
     }
 
-    // At the right end: a recording in progress, Wi-Fi and the battery
+    // At the right end: a recording in progress, Wi-Fi, the calendar and the battery
     Row {
         anchors.right: parent.right
         anchors.rightMargin: 12
@@ -60,6 +60,23 @@ PanelWindow {
 
             TapHandler {
                 onTapped: ShellState.openPage("wifi")
+            }
+        }
+
+        // Always on the bar too; click for the month
+        Text {
+            anchors.verticalCenter: parent.verticalCenter
+            text: "󰃭"
+            color: Theme.text
+            font.pixelSize: 15
+            font.family: Theme.monoFamily
+
+            HoverHandler {
+                cursorShape: Qt.PointingHandCursor
+            }
+
+            TapHandler {
+                onTapped: ShellState.toggle("calendar")
             }
         }
 

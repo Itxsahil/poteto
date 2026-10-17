@@ -62,6 +62,10 @@ PanelWindow {
         Region {
             item: wifiCapsule.visible ? wifiCapsule : null
         }
+
+        Region {
+            item: calendarCapsule.visible ? calendarCapsule : null
+        }
     }
 
     // Clicking anywhere else closes it. Armed a moment late, so the key press that opened it is
@@ -225,6 +229,47 @@ PanelWindow {
         WifiIndicator {
             id: wifiIndicator
             anchors.centerIn: parent
+        }
+    }
+
+    // The calendar, in its own capsule after Wi-Fi (or whichever capsule is the last one showing).
+    // Click for the month.
+    Rectangle {
+        id: calendarCapsule
+
+        readonly property bool shown: Config.showCalendar && !window.expanded
+
+        anchors.left: wifiCapsule.shown ? wifiCapsule.right
+            : batteryCapsule.shown ? batteryCapsule.right
+            : pill.right
+        anchors.leftMargin: 8
+        y: window.gapTop
+        width: 36
+        height: window.pillHeight
+        radius: height / 2
+        color: Theme.background
+        border.color: Theme.border
+        border.width: 1
+        opacity: shown ? 1 : 0
+        scale: shown ? 1 : 0.85
+        visible: opacity > 0
+        Behavior on opacity { NumberAnimation { duration: 200 } }
+        Behavior on scale { NumberAnimation { duration: 260; easing.type: Easing.OutBack } }
+
+        HoverHandler {
+            cursorShape: Qt.PointingHandCursor
+        }
+
+        TapHandler {
+            onTapped: ShellState.toggle("calendar")
+        }
+
+        Text {
+            anchors.centerIn: parent
+            text: "󰃭"
+            color: Theme.text
+            font.pixelSize: 15
+            font.family: Theme.monoFamily
         }
     }
 

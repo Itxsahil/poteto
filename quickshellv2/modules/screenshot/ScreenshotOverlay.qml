@@ -269,7 +269,7 @@ PanelWindow {
                             width: 16
                             height: 16
                             anchors.verticalCenter: parent.verticalCenter
-                            property color tint: modeBtn.selected ? Theme.onFill : Theme.text
+                            property color tint: modeBtn.selected ? Theme.fillText : Theme.text
                             onTintChanged: requestPaint()
                             onPaint: {
                                 const ctx = getContext("2d");
@@ -308,7 +308,7 @@ PanelWindow {
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
                             text: modeBtn.modelData.label
-                            color: modeBtn.selected ? Theme.onFill : Theme.text
+                            color: modeBtn.selected ? Theme.fillText : Theme.text
                             font.pixelSize: 13
                             font.weight: Font.DemiBold
                             font.family: Theme.fontFamily

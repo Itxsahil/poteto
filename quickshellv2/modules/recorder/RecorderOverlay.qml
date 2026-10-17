@@ -177,7 +177,7 @@ PanelWindow {
             : btnMouse.containsMouse ? Theme.control : "transparent"
         Behavior on color { ColorAnimation { duration: 150 } }
 
-        readonly property color contentColor: selected ? (accentWhenSelected ? Theme.accentText : Theme.onFill) : Theme.text
+        readonly property color contentColor: selected ? (accentWhenSelected ? Theme.accentText : Theme.fillText) : Theme.text
 
         Row {
             id: btnRow

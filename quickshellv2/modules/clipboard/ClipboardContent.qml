@@ -118,7 +118,7 @@ Item {
             id: chipText
             anchors.centerIn: parent
             text: chip.label
-            color: chip.selected ? Theme.onFill : Theme.text
+            color: chip.selected ? Theme.fillText : Theme.text
             font.pixelSize: 12
             font.weight: Font.DemiBold
             font.family: Theme.fontFamily

@@ -38,6 +38,10 @@ Singleton {
     // Wi-Fi beside the pill, right of the battery; on unless turned off. (The bar always shows it.)
     readonly property bool showWifi: data.showWifi !== false
 
+    // The calendar button beside the pill, after Wi-Fi; on unless turned off. (The bar always
+    // shows it.)
+    readonly property bool showCalendar: data.showCalendar !== false
+
     // Quiet mode: notifications go straight to history instead of the pill (critical ones still
     // show); services/Notifications.qml
     readonly property bool quiet: data.quiet === true

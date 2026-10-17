@@ -274,7 +274,7 @@ PanelWindow {
                     Text {
                         anchors.centerIn: parent
                         text: fmt.modelData.toUpperCase()
-                        color: fmt.selected ? Theme.onFill : Theme.text
+                        color: fmt.selected ? Theme.fillText : Theme.text
                         font.pixelSize: 12
                         font.weight: Font.Bold
                         font.family: Theme.fontFamily

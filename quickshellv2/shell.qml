@@ -73,6 +73,14 @@ ShellRoot {
         function notifications(): void { ShellState.openPage("notifications"); }
     }
 
+    // qs ipc call calendar toggle|open|close
+    IpcHandler {
+        target: "calendar"
+        function toggle(): void { ShellState.toggle("calendar"); }
+        function open(): void { ShellState.open("calendar"); }
+        function close(): void { ShellState.close("calendar"); }
+    }
+
     // qs ipc call keybinds toggle|open|close (Alt + / in hypr/bindings.lua)
     IpcHandler {
         target: "keybinds"
