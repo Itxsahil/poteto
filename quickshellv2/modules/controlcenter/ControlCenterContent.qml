@@ -9,9 +9,9 @@ import qs.services
 // Mostly a design for now: Wi-Fi (services/Wifi.qml; its label or a right click opens the Wi-Fi
 // menu, WifiPage.qml), Dark (the desktop's light/dark mode, Config.mode), Night (night light,
 // services/NightLight.qml), the Sound slider (services/Audio.qml; click "Sound" to mute), the
-// Screen slider (services/Brightness.qml) and the settings button (opens Poteto) are real. Every
-// other toggle and button changes only what is drawn here; none of it reaches Bluetooth, the
-// player or the session yet.
+// Screen slider (services/Brightness.qml), now playing with its transport (MPD, services/Mpd.qml)
+// and the settings button (opens Poteto) are real. Every other toggle and button changes only
+// what is drawn here; none of it reaches Bluetooth, the recorder or the session yet.
 Item {
     id: root
 
@@ -20,7 +20,6 @@ Item {
 
     // Stand-in state, so the controls can be tried
     property var toggles: ({ bluetooth: false, quiet: false, awake: false, airplane: false })
-    property bool playing: true
 
     signal closeRequested()
 
@@ -213,7 +212,7 @@ Item {
                 Text {
                     width: parent.width
                     elide: Text.ElideRight
-                    text: "Song name"
+                    text: Mpd.active ? Mpd.title : !Mpd.connected ? "MPD is not running" : "Nothing playing"
                     color: Theme.text
                     font.pixelSize: 13
                     font.weight: Font.DemiBold
@@ -223,10 +222,28 @@ Item {
                 Text {
                     width: parent.width
                     elide: Text.ElideRight
-                    text: "Artist"
+                    visible: text !== ""
+                    text: Mpd.active ? (Mpd.artist || Mpd.album) : ""
                     color: Theme.textDim
                     font.pixelSize: 11
                     font.family: Theme.fontFamily
+                }
+
+                // How far into the song
+                Rectangle {
+                    width: parent.width
+                    height: 2
+                    radius: 1
+                    visible: Mpd.active && Mpd.duration > 0
+                    color: Qt.alpha(Theme.text, 0.16)
+
+                    Rectangle {
+                        width: parent.width * Math.min(1, Mpd.elapsed / Math.max(1, Mpd.duration))
+                        height: parent.height
+                        radius: parent.radius
+                        color: Theme.textDim
+                        Behavior on width { NumberAnimation { duration: 900 } }
+                    }
                 }
             }
 
@@ -236,6 +253,9 @@ Item {
                 anchors.rightMargin: 12
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 4
+                // MPD (services/Mpd.qml); faded and inert while it is not running
+                enabled: Mpd.connected
+                opacity: enabled ? 1 : 0.4
 
                 RoundButton {
                     anchors.verticalCenter: parent.verticalCenter
@@ -244,6 +264,7 @@ Item {
                     flat: true
                     glyph: "󰒮"
                     glyphSize: 14
+                    onClicked: Mpd.previous()
                 }
 
                 // Play / pause: the one solid button in the row
@@ -254,9 +275,9 @@ Item {
                     on: true
                     onColor: Theme.text
                     onGlyph: Theme.background
-                    glyph: root.playing ? "󰏤" : "󰐊"
+                    glyph: Mpd.playing ? "󰏤" : "󰐊"
                     glyphSize: 14
-                    onClicked: root.playing = !root.playing
+                    onClicked: Mpd.toggle()
                 }
 
                 RoundButton {
@@ -266,6 +287,7 @@ Item {
                     flat: true
                     glyph: "󰒭"
                     glyphSize: 14
+                    onClicked: Mpd.next()
                 }
             }
 
