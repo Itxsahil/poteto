@@ -6,8 +6,8 @@ import qs.services
 // The control center, with no surface of its own: the pill grows into it in pill mode, and a
 // panel drops down from the bar in bar mode.
 //
-// Mostly a design for now: Wi-Fi (services/Wifi.qml; its label or a right click opens the Wi-Fi
-// menu, WifiPage.qml), Dark (the desktop's light/dark mode, Config.mode), Night (night light,
+// Mostly a design for now: Wi-Fi (services/Wifi.qml) and Bluetooth (services/BluetoothManager.qml)
+// — each with a menu (WifiPage.qml, BluetoothPage.qml) behind its label or a right click — Dark (the desktop's light/dark mode, Config.mode), Night (night light,
 // services/NightLight.qml), the Sound slider (services/Audio.qml; click "Sound" to mute), the
 // Screen slider (services/Brightness.qml), now playing with its transport (MPD, services/Mpd.qml)
 // and the settings button (opens Poteto) are real. Every other toggle and button changes only
@@ -19,7 +19,7 @@ Item {
     readonly property string page: ShellState.page
 
     // Stand-in state, so the controls can be tried
-    property var toggles: ({ bluetooth: false, quiet: false, awake: false, airplane: false })
+    property var toggles: ({ quiet: false, awake: false, airplane: false })
 
     signal closeRequested()
 
@@ -44,7 +44,9 @@ Item {
     }
 
     implicitWidth: 448
-    implicitHeight: page === "wifi" ? wifi.implicitHeight : column.implicitHeight
+    implicitHeight: page === "wifi" ? wifi.implicitHeight
+        : page === "bluetooth" ? bluetooth.implicitHeight
+        : column.implicitHeight
 
     Item {
         id: keys
@@ -57,6 +59,16 @@ Item {
         width: parent.width
         active: root.active && root.page === "wifi"
         opacity: root.page === "wifi" ? 1 : 0
+        visible: opacity > 0
+        Behavior on opacity { NumberAnimation { duration: 180; easing.type: Easing.InOutQuad } }
+        onBackRequested: ShellState.page = "main"
+    }
+
+    BluetoothPage {
+        id: bluetooth
+        width: parent.width
+        active: root.active && root.page === "bluetooth"
+        opacity: root.page === "bluetooth" ? 1 : 0
         visible: opacity > 0
         Behavior on opacity { NumberAnimation { duration: 180; easing.type: Easing.InOutQuad } }
         onBackRequested: ShellState.page = "main"
@@ -94,7 +106,16 @@ Item {
 
                     required property var modelData
                     readonly property bool isWifi: modelData.id === "wifi"
+                    readonly property bool isBluetooth: modelData.id === "bluetooth"
+                    // Has a menu of its own, opened from the label or a right click
+                    readonly property bool hasPage: isWifi || isBluetooth
+                    // What the label says: the network or device in use, or the toggle's name
+                    readonly property string labelText: isWifi && Wifi.enabled && Wifi.active ? Wifi.active.ssid
+                        : isBluetooth && BluetoothManager.connectedDevices.length > 0
+                            ? BluetoothManager.displayName(BluetoothManager.connectedDevices[0])
+                        : modelData.label
                     readonly property bool isOn: isWifi ? Wifi.enabled
+                        : isBluetooth ? BluetoothManager.enabled
                         : modelData.id === "dark" ? Config.mode === "dark"
                         : modelData.id === "night" ? NightLight.enabled
                         : root.toggles[modelData.id] ?? false
@@ -107,16 +128,17 @@ Item {
                         glyph: toggle.modelData.glyph
                         on: toggle.isOn
                         onClicked: toggle.isWifi ? Wifi.setEnabled(!Wifi.enabled)
+                            : toggle.isBluetooth ? BluetoothManager.setEnabled(!BluetoothManager.enabled)
                             : toggle.modelData.id === "dark" ? Config.toggleMode()
                             : toggle.modelData.id === "night" ? NightLight.toggle()
                             : root.flip(toggle.modelData.id)
                         onSecondaryClicked: {
-                            if (toggle.isWifi)
-                                ShellState.openPage("wifi");
+                            if (toggle.hasPage)
+                                ShellState.openPage(toggle.modelData.id);
                         }
                     }
 
-                    // Wi-Fi's label names the network and opens the Wi-Fi menu
+                    // Wi-Fi's and Bluetooth's labels name what is in use and open their menus
                     Item {
                         anchors.horizontalCenter: parent.horizontalCenter
                         width: name.width + (chevron.visible ? chevron.implicitWidth + 2 : 0)
@@ -125,9 +147,9 @@ Item {
                         Text {
                             id: name
                             // A long network name is cut short, with room left for the chevron
-                            width: toggle.isWifi ? Math.min(implicitWidth, toggle.width - 12) : implicitWidth
+                            width: toggle.hasPage ? Math.min(implicitWidth, toggle.width - 12) : implicitWidth
                             elide: Text.ElideRight
-                            text: toggle.isWifi && Wifi.enabled && Wifi.active ? Wifi.active.ssid : toggle.modelData.label
+                            text: toggle.labelText
                             color: toggle.isOn || labelMouse.containsMouse ? Theme.text : Theme.textDim
                             font.pixelSize: 11
                             font.family: Theme.fontFamily
@@ -136,7 +158,7 @@ Item {
 
                         Text {
                             id: chevron
-                            visible: toggle.isWifi
+                            visible: toggle.hasPage
                             anchors.left: name.right
                             anchors.leftMargin: 2
                             anchors.verticalCenter: name.verticalCenter
@@ -150,10 +172,10 @@ Item {
                             id: labelMouse
                             anchors.fill: parent
                             anchors.margins: -4
-                            enabled: toggle.isWifi
+                            enabled: toggle.hasPage
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: ShellState.openPage("wifi")
+                            onClicked: ShellState.openPage(toggle.modelData.id)
                         }
                     }
                 }

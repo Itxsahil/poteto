@@ -65,7 +65,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             color: Theme.text
             selectionColor: Theme.accent
-            selectedTextColor: Theme.onAccent
+            selectedTextColor: Theme.accentText
             font.pixelSize: 16
             font.family: Theme.fontFamily
             clip: true
@@ -219,7 +219,7 @@ Item {
                             id: currentLabel
                             anchors.centerIn: parent
                             text: "on the login screen"
-                            color: Theme.onAccent
+                            color: Theme.accentText
                             font.pixelSize: 10
                             font.weight: Font.DemiBold
                             font.family: Theme.fontFamily

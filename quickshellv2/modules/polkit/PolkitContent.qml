@@ -66,7 +66,7 @@ Item {
                     anchors.centerIn: parent
                     width: 16
                     height: 18
-                    property color tint: Theme.onAccent
+                    property color tint: Theme.accentText
                     onTintChanged: requestPaint()
                     onPaint: {
                         const ctx = getContext("2d");
@@ -148,7 +148,7 @@ Item {
                 inputMethodHints: Qt.ImhSensitiveData | Qt.ImhNoPredictiveText | Qt.ImhNoAutoUppercase
                 color: Theme.text
                 selectionColor: Theme.accent
-                selectedTextColor: Theme.onAccent
+                selectedTextColor: Theme.accentText
                 font.pixelSize: 15
                 font.family: Theme.fontFamily
                 clip: true

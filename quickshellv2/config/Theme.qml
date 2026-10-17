@@ -31,7 +31,9 @@ Singleton {
     readonly property color accent: Config.accent || c("accent", "#0a84ff")
     // Text on the accent: the theme's for its own accent, otherwise dark on light colors and
     // white on the rest (the same rule scripts/apply-accent uses for apps)
-    readonly property color onAccent: Config.accent ? (luminance(accent) > 0.45 ? "#1a1a1a" : "#ffffff")
+    // (Not "onAccent": QML takes a name starting with "on" + a capital as a signal handler, and
+    // the binding never runs)
+    readonly property color accentText: Config.accent ? (luminance(accent) > 0.45 ? "#1a1a1a" : "#ffffff")
         : c("onAccent", "#ffffff")
 
     function luminance(color) {

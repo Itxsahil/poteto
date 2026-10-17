@@ -17,7 +17,7 @@ Singleton {
     // after the pointer leaves, and never takes the keyboard
     property bool peek: false
 
-    // The control center's page: "main", or "wifi" for the Wi-Fi menu. Back to "main" once the
+    // The control center's page: "main", "wifi" or "bluetooth" for their menus. Back to "main" once the
     // control center has faded out (ControlCenterContent.qml)
     property string page: "main"
 

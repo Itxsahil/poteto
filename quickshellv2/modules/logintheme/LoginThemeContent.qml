@@ -256,7 +256,7 @@ Item {
                     Text {
                         anchors.centerIn: parent
                         text: "󰄬"
-                        color: Theme.onAccent
+                        color: Theme.accentText
                         font.pixelSize: 13
                         font.family: Theme.monoFamily
                     }

@@ -76,84 +76,13 @@ Item {
         width: parent.width
         spacing: 10
 
-        // Header: back, title, rescan, the radio switch
-        Item {
-            width: parent.width
-            height: 34
-
-            RoundButton {
-                id: back
-                anchors.left: parent.left
-                anchors.verticalCenter: parent.verticalCenter
-                implicitWidth: 32
-                implicitHeight: 32
-                flat: true
-                glyph: "󰁍"
-                glyphSize: 15
-                onClicked: root.backRequested()
-            }
-
-            Text {
-                anchors.left: back.right
-                anchors.leftMargin: 8
-                anchors.verticalCenter: parent.verticalCenter
-                text: "Wi-Fi"
-                color: Theme.text
-                font.pixelSize: 15
-                font.weight: Font.DemiBold
-                font.family: Theme.fontFamily
-            }
-
-            RoundButton {
-                id: rescan
-                anchors.right: radio.left
-                anchors.rightMargin: 10
-                anchors.verticalCenter: parent.verticalCenter
-                implicitWidth: 32
-                implicitHeight: 32
-                flat: true
-                visible: Wifi.enabled
-                glyph: "󰑐"
-                glyphSize: 15
-                onClicked: Wifi.rescan()
-
-                RotationAnimation on rotation {
-                    running: Wifi.scanning
-                    from: 0
-                    to: 360
-                    duration: 900
-                    loops: Animation.Infinite
-                    onStopped: rescan.rotation = 0
-                }
-            }
-
-            // The radio switch
-            Rectangle {
-                id: radio
-                anchors.right: parent.right
-                anchors.verticalCenter: parent.verticalCenter
-                width: 42
-                height: 24
-                radius: height / 2
-                color: Wifi.enabled ? Theme.accent : Theme.tileHover
-                Behavior on color { ColorAnimation { duration: 160 } }
-
-                Rectangle {
-                    width: 18
-                    height: 18
-                    radius: 9
-                    anchors.verticalCenter: parent.verticalCenter
-                    x: Wifi.enabled ? parent.width - width - 3 : 3
-                    color: Wifi.enabled ? Theme.onAccent : Theme.text
-                    Behavior on x { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: Wifi.setEnabled(!Wifi.enabled)
-                }
-            }
+        PageHeader {
+            title: "Wi-Fi"
+            checked: Wifi.enabled
+            scanning: Wifi.scanning
+            onBackClicked: root.backRequested()
+            onRescanClicked: Wifi.rescan()
+            onToggled: on => Wifi.setEnabled(on)
         }
 
         Rectangle {
@@ -232,7 +161,7 @@ Item {
                         Text {
                             anchors.centerIn: parent
                             text: root.glyphFor(row.net.signal)
-                            color: row.net.active ? Theme.onAccent : Theme.text
+                            color: row.net.active ? Theme.accentText : Theme.text
                             font.pixelSize: 15
                             font.family: Theme.monoFamily
                         }
@@ -418,7 +347,7 @@ Item {
                             id: joinText
                             anchors.centerIn: parent
                             text: "Join"
-                            color: password.text ? Theme.onAccent : Theme.textDim
+                            color: password.text ? Theme.accentText : Theme.textDim
                             font.pixelSize: 12
                             font.weight: Font.DemiBold
                             font.family: Theme.fontFamily

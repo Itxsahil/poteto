@@ -89,7 +89,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             color: Theme.text
             selectionColor: Theme.accent
-            selectedTextColor: Theme.onAccent
+            selectedTextColor: Theme.accentText
             font.pixelSize: 16
             font.family: Theme.fontFamily
             clip: true
@@ -311,7 +311,7 @@ Item {
                         Text {
                             anchors.centerIn: parent
                             text: "󰄬"
-                            color: Theme.onAccent
+                            color: Theme.accentText
                             font.pixelSize: 13
                             font.family: Theme.monoFamily
                         }

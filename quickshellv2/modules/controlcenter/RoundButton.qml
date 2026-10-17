@@ -12,7 +12,7 @@ Rectangle {
     // No background until hovered, for the skip buttons beside play/pause
     property bool flat: false
     property color onColor: Theme.accent
-    property color onGlyph: Theme.onAccent
+    property color onGlyph: Theme.accentText
     readonly property alias hovered: mouse.containsMouse
     signal clicked()
     // Right click
