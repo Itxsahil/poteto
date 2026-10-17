@@ -1,8 +1,9 @@
 import QtQuick
 import qs.config
 
-// The top of a control center page (Wi-Fi, Bluetooth): back, the title, a rescan button that
-// spins while scanning, and an on/off switch for the radio.
+// The top of a control center page (Wi-Fi, Bluetooth, Notifications): back, the title, and on the
+// right either a rescan button that spins while scanning plus an on/off switch for the radio, or
+// one text button (actionText).
 Item {
     id: root
 
@@ -11,10 +12,13 @@ Item {
     property bool checked: false
     property bool scanning: false
     property bool showSwitch: true
+    // A text button on the right instead of rescan and the switch (e.g. "Clear all"); "" for none
+    property string actionText: ""
 
     signal backClicked()
     signal rescanClicked()
     signal toggled(bool on)
+    signal actionClicked()
 
     width: parent?.width ?? 0
     height: 34
@@ -50,7 +54,7 @@ Item {
         implicitWidth: 32
         implicitHeight: 32
         flat: true
-        visible: root.checked
+        visible: root.checked && root.actionText === ""
         glyph: "󰑐"
         glyphSize: 15
         onClicked: root.rescanClicked()
@@ -70,7 +74,7 @@ Item {
         id: radio
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
-        visible: root.showSwitch
+        visible: root.showSwitch && root.actionText === ""
         width: 42
         height: 24
         radius: height / 2
@@ -91,6 +95,35 @@ Item {
             anchors.fill: parent
             cursorShape: Qt.PointingHandCursor
             onClicked: root.toggled(!root.checked)
+        }
+    }
+
+    Rectangle {
+        anchors.right: parent.right
+        anchors.verticalCenter: parent.verticalCenter
+        visible: root.actionText !== ""
+        width: actionLabel.implicitWidth + 22
+        height: 28
+        radius: 14
+        color: actionMouse.containsMouse ? Theme.tileHover : Theme.tile
+        Behavior on color { ColorAnimation { duration: 120 } }
+
+        Text {
+            id: actionLabel
+            anchors.centerIn: parent
+            text: root.actionText
+            color: Theme.text
+            font.pixelSize: 12
+            font.weight: Font.Medium
+            font.family: Theme.fontFamily
+        }
+
+        MouseArea {
+            id: actionMouse
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: root.actionClicked()
         }
     }
 }

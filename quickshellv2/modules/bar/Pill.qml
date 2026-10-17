@@ -23,6 +23,8 @@ PanelWindow {
     readonly property string current: !focusedScreen ? ""
         : ShellState.view !== "" ? ShellState.view
         : ShellState.controlCenterOpen ? "controlcenter"
+        // A notification takes the pill only when nothing else has it, and never the keyboard
+        : Notifications.current ? "notification"
         : ""
     readonly property bool expanded: views.item !== null
     // A change from outside, e.g. the brightness keys: the pill widens into a level bar for a
@@ -74,6 +76,46 @@ PanelWindow {
         precision: SystemClock.Minutes
     }
 
+    // A notification arriving: the pill gives a quick squash-and-pop, and a ring in the accent
+    // ripples out of it, before it grows into the notification
+    Connections {
+        target: Notifications
+        function onArrived() {
+            // Only from the resting pill: over the control center or a view it would just be noise
+            if (window.focusedScreen && ShellState.view === "" && !ShellState.controlCenterOpen) {
+                // From the pill as it is now, not as it grows
+                ring.width = pill.width;
+                ring.height = pill.height;
+                ring.radius = pill.radius;
+                ripple.restart();
+                pop.restart();
+            }
+        }
+    }
+
+    Rectangle {
+        id: ring
+        anchors.centerIn: pill
+        color: "transparent"
+        border.width: 2
+        border.color: Theme.accent
+        opacity: 0
+        visible: opacity > 0
+
+        ParallelAnimation {
+            id: ripple
+            NumberAnimation { target: ring; property: "scale"; from: 1; to: 1.35; duration: 700; easing.type: Easing.OutCubic }
+            NumberAnimation { target: ring; property: "opacity"; from: 0.9; to: 0; duration: 700; easing.type: Easing.OutCubic }
+        }
+    }
+
+    SequentialAnimation {
+        id: pop
+        NumberAnimation { target: pill; property: "scale"; to: 0.9; duration: 90; easing.type: Easing.OutQuad }
+        NumberAnimation { target: pill; property: "scale"; to: 1.06; duration: 160; easing.type: Easing.OutQuad }
+        NumberAnimation { target: pill; property: "scale"; to: 1; duration: 260; easing.type: Easing.OutBack; easing.overshoot: 2 }
+    }
+
     Rectangle {
         id: pill
 
@@ -95,7 +137,14 @@ PanelWindow {
         Behavior on radius { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
 
         HoverHandler {
-            onHoveredChanged: hovered ? ShellState.hoverEnter() : ShellState.hoverExit()
+            // Not while it shows a notification: there, hovering is for reading it and reaching
+            // its buttons (and holds its timer), not for opening the control center over it
+            onHoveredChanged: {
+                if (!hovered)
+                    ShellState.hoverExit();
+                else if (window.current !== "notification")
+                    ShellState.hoverEnter();
+            }
         }
 
         Clock {

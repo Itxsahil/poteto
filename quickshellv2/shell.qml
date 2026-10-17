@@ -18,8 +18,10 @@ ShellRoot {
         Appearance.applyAccent();
         NightLight.apply();
         Osd.shown;
-        // The polkit agent has to be registered before anything asks, not on first use
+        // The polkit agent and the notification server have to be up before anything asks, not on
+        // first use
         Polkit.registered;
+        Notifications.count;
     }
 
     // qs ipc call layout toggle|pill|bar|status
@@ -57,7 +59,7 @@ ShellRoot {
         function close(): void { ShellState.close("launcher"); }
     }
 
-    // qs ipc call controlcenter toggle|open|close|wifi|bluetooth (Super + C in hypr/bindings.lua)
+    // qs ipc call controlcenter toggle|open|close|wifi|bluetooth|notifications (Super + C in hypr/bindings.lua)
     IpcHandler {
         target: "controlcenter"
         function toggle(): void { ShellState.toggle("controlcenter"); }
@@ -65,6 +67,7 @@ ShellRoot {
         function close(): void { ShellState.close("controlcenter"); }
         function wifi(): void { ShellState.openPage("wifi"); }
         function bluetooth(): void { ShellState.openPage("bluetooth"); }
+        function notifications(): void { ShellState.openPage("notifications"); }
     }
 
     // qs ipc call clipboard toggle|open|close (Super + V in hypr/bindings.lua)
@@ -105,6 +108,17 @@ ShellRoot {
 
     // The video window: one, opened by the video browser or qs ipc call player play
     PlayerWindow {}
+
+    // qs ipc call notifications status|next|clear
+    IpcHandler {
+        target: "notifications"
+        function status(): string {
+            return `${Notifications.queue.length} waiting, ${Notifications.count} in history`
+                + (Notifications.current ? ` · showing "${Notifications.current.summary}"` : "");
+        }
+        function next(): void { Notifications.next(); }
+        function clear(): void { Notifications.clearAll(); }
+    }
 
     // qs ipc call wallpaper toggle|open|close|random (Alt + W in hypr/bindings.lua)
     IpcHandler {

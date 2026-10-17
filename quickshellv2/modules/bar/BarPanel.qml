@@ -19,6 +19,8 @@ PanelWindow {
     readonly property string current: !focusedScreen ? ""
         : ShellState.view !== "" ? ShellState.view
         : ShellState.controlCenterOpen ? "controlcenter"
+        // A notification takes the pill only when nothing else has it, and never the keyboard
+        : Notifications.current ? "notification"
         : ""
     readonly property bool expanded: views.item !== null
     // Opened from the keyboard, as opposed to a hover peek: takes the keyboard, closes on click-away
@@ -95,7 +97,14 @@ PanelWindow {
 
         // Keeps a hover peek open while the pointer is on the panel rather than the clock
         HoverHandler {
-            onHoveredChanged: hovered ? ShellState.hoverEnter() : ShellState.hoverExit()
+            // Not while it shows a notification: there, hovering is for reading it and reaching
+            // its buttons (and holds its timer), not for opening the control center over it
+            onHoveredChanged: {
+                if (!hovered)
+                    ShellState.hoverExit();
+                else if (window.current !== "notification")
+                    ShellState.hoverEnter();
+            }
         }
 
         Views {

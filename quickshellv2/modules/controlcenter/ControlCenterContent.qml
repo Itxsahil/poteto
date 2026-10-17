@@ -9,8 +9,9 @@ import qs.services
 // Mostly a design for now: Wi-Fi (services/Wifi.qml) and Bluetooth (services/BluetoothManager.qml)
 // — each with a menu (WifiPage.qml, BluetoothPage.qml) behind its label or a right click — Dark (the desktop's light/dark mode, Config.mode), Night (night light,
 // services/NightLight.qml), the Sound slider (services/Audio.qml; click "Sound" to mute), the
-// Screen slider (services/Brightness.qml), now playing with its transport (MPD, services/Mpd.qml)
-// and the settings button (opens Poteto) are real. Every other toggle and button changes only
+// Screen slider (services/Brightness.qml), now playing with its transport (MPD, services/Mpd.qml),
+// the bell (notification history, NotificationsPage.qml) and the settings button (opens Poteto)
+// are real. Every other toggle and button changes only
 // what is drawn here; none of it reaches Bluetooth, the recorder or the session yet.
 Item {
     id: root
@@ -46,6 +47,7 @@ Item {
     implicitWidth: 448
     implicitHeight: page === "wifi" ? wifi.implicitHeight
         : page === "bluetooth" ? bluetooth.implicitHeight
+        : page === "notifications" ? notifications.implicitHeight
         : column.implicitHeight
 
     Item {
@@ -69,6 +71,16 @@ Item {
         width: parent.width
         active: root.active && root.page === "bluetooth"
         opacity: root.page === "bluetooth" ? 1 : 0
+        visible: opacity > 0
+        Behavior on opacity { NumberAnimation { duration: 180; easing.type: Easing.InOutQuad } }
+        onBackRequested: ShellState.page = "main"
+    }
+
+    NotificationsPage {
+        id: notifications
+        width: parent.width
+        active: root.active && root.page === "notifications"
+        opacity: root.page === "notifications" ? 1 : 0
         visible: opacity > 0
         Behavior on opacity { NumberAnimation { duration: 180; easing.type: Easing.InOutQuad } }
         onBackRequested: ShellState.page = "main"
@@ -328,6 +340,36 @@ Item {
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 4
+
+                // Notifications: the history page, with the number of unread ones
+                RoundButton {
+                    implicitWidth: 32
+                    implicitHeight: 32
+                    glyph: Notifications.unread > 0 ? "󰂚" : "󰂜"
+                    glyphSize: 14
+                    onClicked: ShellState.openPage("notifications")
+
+                    Rectangle {
+                        anchors.right: parent.right
+                        anchors.top: parent.top
+                        anchors.margins: -3
+                        visible: Notifications.unread > 0
+                        width: Math.max(16, unreadText.implicitWidth + 8)
+                        height: 16
+                        radius: 8
+                        color: Theme.accent
+
+                        Text {
+                            id: unreadText
+                            anchors.centerIn: parent
+                            text: Notifications.unread > 99 ? "99+" : Notifications.unread
+                            color: Theme.accentText
+                            font.pixelSize: 9
+                            font.weight: Font.Bold
+                            font.family: Theme.fontFamily
+                        }
+                    }
+                }
 
                 // Settings: opens Poteto (settings/poteto-settings), and gets out of its way
                 RoundButton {
