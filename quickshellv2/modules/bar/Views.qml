@@ -13,12 +13,14 @@ import qs.modules.notifications
 import qs.modules.power
 import qs.modules.recorder
 import qs.modules.keybinds
+import qs.modules.camera
 
 // Everything the pill grows into (or the bar's panel holds), in one place for both: the
 // launcher, the control center, the keybind cheatsheet, clipboard history, the emoji picker, the
-// video browser, the wallpaper picker, the login theme and video pickers, the power menu, naming
-// a recording, the password prompt, and notifications. The host fills its surface with this,
-// sizes the surface to wantedWidth × wantedHeight, and makes room for maxWidth × maxHeight.
+// video browser, the camera, the wallpaper picker, the login theme and video pickers, the power
+// menu, naming a recording, the password prompt, and notifications. The host fills its surface
+// with this, sizes the surface to wantedWidth × wantedHeight, and makes room for maxWidth ×
+// maxHeight.
 //
 // Each view is laid out at its own padding (padX, padTop, padBottom) inside the surface, comes
 // in once the surface has mostly grown, and leaves before it shrinks.
@@ -33,7 +35,7 @@ Item {
     readonly property Item item: views.find(v => v.name === current) ?? null
     readonly property real wantedWidth: item ? item.implicitWidth + item.padX * 2 : 0
     readonly property real wantedHeight: item ? item.implicitHeight + item.padTop + item.padBottom : 0
-    readonly property var views: [launcher, controlCenter, keybinds, clipboard, emoji, videos, wallpaper, loginTheme, loginVideo, power, recordName, polkit, notification]
+    readonly property var views: [launcher, controlCenter, keybinds, clipboard, emoji, videos, camera, wallpaper, loginTheme, loginVideo, power, recordName, polkit, notification]
     readonly property real maxWidth: Math.max(...views.map(v => v.implicitWidth + v.padX * 2))
     // The launcher grows with its results, so its room is its tallest, not what it is now
     readonly property real maxHeight: Math.max(launcher.maxRows * launcher.rowHeight + 120,
@@ -139,6 +141,23 @@ Item {
         readonly property int padX: 12
         readonly property int padTop: 12
         readonly property int padBottom: 10
+        x: padX
+        y: padTop
+        width: implicitWidth
+        height: implicitHeight
+        active: root.current === name
+        opacity: active ? 1 : 0
+        visible: opacity > 0
+        Fade on opacity {}
+        onCloseRequested: ShellState.close(name)
+    }
+
+    CameraContent {
+        id: camera
+        readonly property string name: "camera"
+        readonly property int padX: 14
+        readonly property int padTop: 14
+        readonly property int padBottom: 12
         x: padX
         y: padTop
         width: implicitWidth

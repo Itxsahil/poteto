@@ -1,10 +1,13 @@
 import QtQuick
 import Quickshell
 import qs.config
+import qs.services
+import "../../utils/Calc.js" as Calc
 
 // The launcher itself, with no surface of its own: the pill grows into it in pill mode, and a
 // panel drops down from the bar in bar mode. Type to filter, arrows or Ctrl+J/K to move, Enter
-// to launch, Esc to close.
+// to launch, Esc to close. Typing a sum shows its answer on a card above the apps (Enter copies
+// it, utils/Calc.js), and "?" or "keys" offers the keybind cheatsheet the same way.
 Item {
     id: root
 
@@ -15,7 +18,13 @@ Item {
     // Apps that run in a terminal open in this one
     readonly property string terminal: "kitty"
 
+    // -1 is the card above the list (the answer, or the cheatsheet), when there is one
     property int selected: 0
+
+    readonly property var calc: Calc.evaluate(input.text)
+    readonly property bool wantsKeys: ["?", "keys", "keybinds", "shortcuts", "cheatsheet", "bindings"]
+        .includes(input.text.trim().toLowerCase())
+    readonly property bool hasCard: calc !== null || wantsKeys
 
     signal closeRequested()
 
@@ -73,27 +82,43 @@ Item {
     }
 
     function move(delta) {
-        if (results.length === 0)
+        // The card is one more stop, before the first app
+        const first = hasCard ? -1 : 0;
+        const count = results.length - first;
+        if (count <= 0)
             return;
-        selected = (selected + delta + results.length) % results.length;
+        selected = ((selected - first + delta) % count + count) % count + first;
     }
 
-    onResultsChanged: {
-        selected = 0;
+    function activate() {
+        if (selected === -1 && calc) {
+            Quickshell.execDetached(["wl-copy", calc.value]);
+            root.closeRequested();
+        } else if (selected === -1 && wantsKeys) {
+            ShellState.open("keybinds");
+        } else {
+            launch(results[selected]);
+        }
+    }
+
+    function resetSelection() {
+        selected = hasCard ? -1 : 0;
         list.positionViewAtBeginning();
     }
+
+    onResultsChanged: resetSelection()
+    onHasCardChanged: resetSelection()
 
     onActiveChanged: {
         if (active) {
             input.text = "";
-            selected = 0;
-            list.positionViewAtBeginning();
+            resetSelection();
             input.forceActiveFocus();
         }
     }
 
     implicitWidth: 500
-    implicitHeight: search.height + divider.height + listArea.height + 8
+    implicitHeight: search.height + divider.height + (hasCard ? card.height + 8 : 0) + listArea.height + 8
 
     Item {
         id: search
@@ -149,7 +174,7 @@ Item {
                         || (ctrl && (event.key === Qt.Key_K || event.key === Qt.Key_P))) {
                     root.move(-1);
                 } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                    root.launch(root.results[root.selected]);
+                    root.activate();
                 } else {
                     return;
                 }
@@ -159,7 +184,7 @@ Item {
             Text {
                 anchors.verticalCenter: parent.verticalCenter
                 visible: !input.text
-                text: "Search apps"
+                text: "Search apps, or calculate"
                 color: Theme.textDim
                 font: input.font
             }
@@ -185,17 +210,116 @@ Item {
         color: Theme.border
     }
 
-    Item {
-        id: listArea
+    // The answer to a sum, or the way to the cheatsheet
+    Rectangle {
+        id: card
+
+        readonly property bool isSelected: root.selected === -1
+        // Kept while the card fades, so it does not empty out as it goes
+        property var shown: null
+
         anchors.top: divider.bottom
         anchors.topMargin: 8
         width: parent.width
-        height: root.results.length === 0 ? 52
+        height: 58
+        radius: 14
+        visible: root.hasCard
+        color: isSelected ? Qt.alpha(Theme.accent, 0.16) : Theme.tile
+        Behavior on color { ColorAnimation { duration: 120 } }
+
+        Connections {
+            target: root
+            function onCalcChanged() {
+                if (root.calc)
+                    card.shown = root.calc;
+            }
+        }
+
+        Rectangle {
+            id: badge
+            anchors.left: parent.left
+            anchors.leftMargin: 12
+            anchors.verticalCenter: parent.verticalCenter
+            width: 34
+            height: 34
+            radius: 17
+            color: Theme.accent
+
+            Text {
+                anchors.centerIn: parent
+                text: root.calc ? "=" : "󰌌"
+                color: Theme.accentText
+                font.pixelSize: root.calc ? 19 : 16
+                font.weight: Font.Bold
+                font.family: root.calc ? Theme.fontFamily : Theme.monoFamily
+            }
+        }
+
+        Column {
+            anchors.left: badge.right
+            anchors.leftMargin: 12
+            anchors.right: hint.left
+            anchors.rightMargin: 12
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 1
+
+            Text {
+                width: parent.width
+                elide: Text.ElideLeft
+                text: root.calc ? input.text.trim().replace(/^=/, "") : "Keyboard shortcuts"
+                color: root.calc ? Theme.textDim : Theme.text
+                font.pixelSize: root.calc ? 11 : 14
+                font.weight: root.calc ? Font.Normal : Font.DemiBold
+                font.family: root.calc ? Theme.monoFamily : Theme.fontFamily
+            }
+
+            Text {
+                width: parent.width
+                elide: Text.ElideRight
+                text: root.calc ? (card.shown?.display ?? "") : "Every keybind, from hypr/bindings.lua"
+                color: root.calc ? Theme.text : Theme.textDim
+                font.pixelSize: root.calc ? 20 : 11
+                font.weight: root.calc ? Font.DemiBold : Font.Normal
+                font.family: root.calc ? Theme.monoFamily : Theme.fontFamily
+            }
+        }
+
+        Text {
+            id: hint
+            anchors.right: parent.right
+            anchors.rightMargin: 14
+            anchors.verticalCenter: parent.verticalCenter
+            opacity: card.isSelected ? 1 : 0.5
+            text: root.calc ? "↵ copy" : "↵ open"
+            color: Theme.textDim
+            font.pixelSize: 11
+            font.family: Theme.fontFamily
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onEntered: root.selected = -1
+            onClicked: {
+                root.selected = -1;
+                root.activate();
+            }
+        }
+    }
+
+    Item {
+        id: listArea
+        anchors.top: root.hasCard ? card.bottom : divider.bottom
+        anchors.topMargin: 8
+        width: parent.width
+        // With a card and no apps, the card is the answer: no "nothing matches" under it
+        height: root.results.length === 0 ? (root.hasCard ? 0 : 52)
             : Math.min(root.results.length, root.maxRows) * root.rowHeight
 
         Text {
             anchors.centerIn: parent
-            visible: root.results.length === 0
+            visible: root.results.length === 0 && !root.hasCard
             text: `Nothing matches "${input.text}"`
             color: Theme.textDim
             font.pixelSize: 13

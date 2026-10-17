@@ -171,6 +171,14 @@ ShellRoot {
         function clear(): void { Notifications.clearAll(); }
     }
 
+    // qs ipc call camera toggle|open|close (Alt + Shift + C in hypr/bindings.lua)
+    IpcHandler {
+        target: "camera"
+        function toggle(): void { ShellState.toggle("camera"); }
+        function open(): void { ShellState.open("camera"); }
+        function close(): void { ShellState.close("camera"); }
+    }
+
     // qs ipc call wallpaper toggle|open|close|random (Alt + W in hypr/bindings.lua)
     IpcHandler {
         target: "wallpaper"
