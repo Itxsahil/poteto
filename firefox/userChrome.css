@@ -207,48 +207,36 @@
 /* the site / search engine chip at the start: just its icon, no grey button */
 #identity-box,
 #identity-icon-box,
-#identity-permission-box,
-.searchmode-switcher,
-#urlbar-searchmode-switcher {
+#identity-permission-box {
     background: transparent !important;
     box-shadow: none !important;
     border: none !important;
 }
 
-.searchmode-switcher {
-    --button-background-color: transparent !important;
-    --button-background-color-hover: var(--poteto-hover) !important;
-}
-
-.searchmode-switcher::part(button) {
-    background-color: transparent !important;
-    border-radius: var(--poteto-field-radius) !important;
-}
-
 #identity-box,
 #identity-icon-box,
 #identity-permission-box,
-#urlbar .urlbar-icon,
+.urlbar-icon,
 #urlbar-go-button {
     border-radius: var(--poteto-field-radius) !important;
 }
 
-/* whatever the switcher is called in this Firefox, and whatever paints its pill */
-#urlbar [id*="searchmode-switcher"],
-#urlbar [class*="searchmode-switcher"],
-#urlbar [id*="searchmode-switcher"]::part(button),
-#urlbar [class*="searchmode-switcher"]::part(button) {
-    background: transparent !important;
-    background-color: transparent !important;
-    border-radius: var(--poteto-field-radius) !important;
-}
-
-.searchmode-switcher:hover::part(button) {
-    background-color: var(--poteto-hover) !important;
+/* The search engine switcher is a <moz-button type="muted">: its grey comes from the muted
+   button colors, set here as variables because they reach inside the button's shadow DOM
+   (a ::part(button) rule from this stylesheet does not). */
+.searchmode-switcher {
+    --button-background-color-muted: transparent !important;
+    --button-background-color-muted-hover: var(--poteto-hover) !important;
+    --button-background-color-muted-active: var(--poteto-hover) !important;
+    --button-background-color-muted-selected: var(--poteto-hover) !important;
+    --button-border-color-muted: transparent !important;
+    --button-border-color-muted-hover: transparent !important;
+    --button-border-color-muted-active: transparent !important;
+    --button-border-color-muted-selected: transparent !important;
+    --button-border-radius: var(--poteto-field-radius) !important;
 }
 
 .searchmode-switcher-dropmarker,
-#searchmode-switcher-dropmarker,
 #identity-icon-label {
     display: none !important;
 }
