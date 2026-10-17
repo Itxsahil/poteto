@@ -6,34 +6,25 @@ import qs.services
 // The control center, with no surface of its own: the pill grows into it in pill mode, and a
 // panel drops down from the bar in bar mode.
 //
-// Mostly real now:
+// What is in it:
 // - Wi-Fi (services/Wifi.qml) and Bluetooth (services/BluetoothManager.qml), each with a menu
 //   (WifiPage.qml, BluetoothPage.qml) behind its label or a right click
 // - Quiet (notifications to history only, Config.quiet), Dark (light/dark mode, Config.mode) and
 //   Night (night light, services/NightLight.qml)
 // - the Sound and Mic sliders (services/Audio.qml; click the label to mute) and the Screen slider
 //   (services/Brightness.qml)
-// - now playing with its transport (MPD, services/Mpd.qml)
+// - now playing with its transport (MPD, services/Mpd.qml), and the record button
+//   (services/Recorder.qml)
 // - the bell (notification history, NotificationsPage.qml), the settings button (Poteto), and
 //   lock, restart and power (services/Session.qml; restart and power open the power menu on
-//   that action), and the record button (services/Recorder.qml)
-// Awake and Airplane are still only drawn: they change nothing outside this view yet.
+//   that action)
 Item {
     id: root
 
     property bool active: false
     readonly property string page: ShellState.page
 
-    // Stand-in state, so the controls can be tried
-    property var toggles: ({ awake: false, airplane: false })
-
     signal closeRequested()
-
-    function flip(id) {
-        const next = Object.assign({}, toggles);
-        next[id] = !next[id];
-        toggles = next;
-    }
 
     onActiveChanged: {
         if (active && page === "main")
@@ -108,9 +99,7 @@ Item {
                 { id: "bluetooth", label: "Bluetooth", glyph: "󰂯" },
                 { id: "quiet", label: "Quiet", glyph: "󰽥" },
                 { id: "dark", label: "Dark", glyph: "󰔎" },
-                { id: "night", label: "Night", glyph: "󰖨" },
-                { id: "awake", label: "Awake", glyph: "󰅶" },
-                { id: "airplane", label: "Airplane", glyph: "󰀝" }
+                { id: "night", label: "Night", glyph: "󰖨" }
             ]
 
             width: parent.width
@@ -136,7 +125,7 @@ Item {
                         : modelData.id === "dark" ? Config.mode === "dark"
                         : modelData.id === "night" ? NightLight.enabled
                         : modelData.id === "quiet" ? Config.quiet
-                        : root.toggles[modelData.id] ?? false
+                        : false
 
                     width: toggleRow.width / toggleRow.items.length
                     spacing: 6
@@ -149,8 +138,7 @@ Item {
                             : toggle.isBluetooth ? BluetoothManager.setEnabled(!BluetoothManager.enabled)
                             : toggle.modelData.id === "dark" ? Config.toggleMode()
                             : toggle.modelData.id === "night" ? NightLight.toggle()
-                            : toggle.modelData.id === "quiet" ? Config.setQuiet(!Config.quiet)
-                            : root.flip(toggle.modelData.id)
+                            : Config.setQuiet(!Config.quiet)
                         onSecondaryClicked: {
                             if (toggle.hasPage)
                                 ShellState.openPage(toggle.modelData.id);
