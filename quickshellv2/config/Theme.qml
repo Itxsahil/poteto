@@ -3,13 +3,17 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import qs.config
 
-// Colors from the active theme's quickshell/colors.json (the symlink the theme switcher keeps in
-// ~/.cache/quickshell/theme/), with fallbacks so the shell still draws without one.
+// Colors from quickshell/colors.json: in dark mode the active theme's (the symlink the theme
+// switcher keeps in ~/.cache/quickshell/theme/), in light mode Config.lightTheme's. Fallbacks
+// keep the shell drawing without one.
 Singleton {
     id: root
 
-    readonly property string colorsFile: Quickshell.env("HOME") + "/.cache/quickshell/theme/colors.json"
+    readonly property string colorsFile: Config.mode === "light"
+        ? Quickshell.shellDir + "/../themes/" + Config.lightTheme + "/quickshell/colors.json"
+        : Quickshell.env("HOME") + "/.cache/quickshell/theme/colors.json"
     property var colors: ({})
 
     function c(key, fallback) {

@@ -19,6 +19,7 @@ from gi.repository import Adw, Gio, GLib, Gtk  # noqa: E402
 APP_ID = "dev.poteto.Settings"
 CONFIG = Path(GLib.get_user_config_dir()) / "poteto" / "shell.json"
 STYLES = ("pill", "bar")
+MODES = ("dark", "light")
 
 
 def load():
@@ -41,10 +42,14 @@ def current_style(data):
     return data.get("style") if data.get("style") in STYLES else "pill"
 
 
+def current_mode(data):
+    return data.get("mode") if data.get("mode") in MODES else "dark"
+
+
 class SettingsWindow(Adw.ApplicationWindow):
     def __init__(self, app):
         super().__init__(application=app, title="Poteto")
-        self.set_default_size(520, 360)
+        self.set_default_size(560, 420)
         # True while the window itself is updating a control, so that does not write back
         self._syncing = False
 
@@ -56,13 +61,25 @@ class SettingsWindow(Adw.ApplicationWindow):
         self.style_toggle = Adw.ToggleGroup(valign=Gtk.Align.CENTER)
         self.style_toggle.add(Adw.Toggle(name="pill", label="Pill"))
         self.style_toggle.add(Adw.Toggle(name="bar", label="Bar"))
-        self.style_toggle.connect("notify::active-name", self._on_style_changed)
+        self.style_toggle.connect("notify::active-name", self._on_changed, "style")
 
         row = Adw.ActionRow(
             title="Layout",
             subtitle="A floating pill at the top center, or a bar across the whole top",
         )
         row.add_suffix(self.style_toggle)
+        appearance.add(row)
+
+        self.mode_toggle = Adw.ToggleGroup(valign=Gtk.Align.CENTER)
+        self.mode_toggle.add(Adw.Toggle(name="light", icon_name="weather-clear-symbolic", tooltip="Light"))
+        self.mode_toggle.add(Adw.Toggle(name="dark", icon_name="weather-clear-night-symbolic", tooltip="Dark"))
+        self.mode_toggle.connect("notify::active-name", self._on_changed, "mode")
+
+        row = Adw.ActionRow(
+            title="Mode",
+            subtitle="Light or dark, for the shell and every app that follows the system setting",
+        )
+        row.add_suffix(self.mode_toggle)
         appearance.add(row)
 
         toolbar = Adw.ToolbarView()
@@ -76,20 +93,21 @@ class SettingsWindow(Adw.ApplicationWindow):
         self._sync_from_file()
 
     def _sync_from_file(self):
-        style = current_style(load())
-        if self.style_toggle.get_active_name() != style:
-            self._syncing = True
-            self.style_toggle.set_active_name(style)
-            self._syncing = False
+        data = load()
+        self._syncing = True
+        for toggle, value in ((self.style_toggle, current_style(data)), (self.mode_toggle, current_mode(data))):
+            if toggle.get_active_name() != value:
+                toggle.set_active_name(value)
+        self._syncing = False
 
-    def _on_style_changed(self, toggle, _pspec):
+    def _on_changed(self, toggle, _pspec, key):
         if self._syncing:
             return
-        style = toggle.get_active_name()
+        value = toggle.get_active_name()
         data = load()
-        if data.get("style") == style:
+        if data.get(key) == value:
             return
-        data["style"] = style
+        data[key] = value
         save(data)
 
     def _on_file_changed(self, _monitor, _file, _other, event):

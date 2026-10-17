@@ -4,8 +4,9 @@ import qs.config
 // The control center, with no surface of its own: the pill grows into it in pill mode, and a
 // panel drops down from the bar in bar mode.
 //
-// A design for now: every toggle, slider and button changes only what is drawn here. None of it
-// reaches Wi-Fi, Bluetooth, audio, brightness, the player or the session yet.
+// Mostly a design for now: apart from Dark (the desktop's light/dark mode, Config.mode), every
+// toggle, slider and button changes only what is drawn here. None of it reaches Wi-Fi, Bluetooth,
+// audio, brightness, the player or the session yet.
 Item {
     id: root
 
@@ -30,7 +31,7 @@ Item {
             keys.forceActiveFocus();
     }
 
-    implicitWidth: 412
+    implicitWidth: 448
     implicitHeight: column.implicitHeight
 
     readonly property string iconFont: "JetBrainsMono Nerd Font"
@@ -94,6 +95,7 @@ Item {
                 { id: "wifi", label: "Wi-Fi", glyph: "󰖩" },
                 { id: "bluetooth", label: "Bluetooth", glyph: "󰂯" },
                 { id: "quiet", label: "Quiet", glyph: "󰽥" },
+                { id: "dark", label: "Dark", glyph: "󰔎" },
                 { id: "night", label: "Night", glyph: "󰖨" },
                 { id: "awake", label: "Awake", glyph: "󰅶" },
                 { id: "airplane", label: "Airplane", glyph: "󰀝" }
@@ -108,7 +110,8 @@ Item {
                     id: toggle
 
                     required property var modelData
-                    readonly property bool isOn: root.toggles[modelData.id] ?? false
+                    readonly property bool isOn: modelData.id === "dark" ? Config.mode === "dark"
+                        : root.toggles[modelData.id] ?? false
 
                     width: toggleRow.width / toggleRow.items.length
                     spacing: 6
@@ -117,7 +120,7 @@ Item {
                         anchors.horizontalCenter: parent.horizontalCenter
                         glyph: toggle.modelData.glyph
                         on: toggle.isOn
-                        onClicked: root.flip(toggle.modelData.id)
+                        onClicked: toggle.modelData.id === "dark" ? Config.toggleMode() : root.flip(toggle.modelData.id)
                     }
 
                     Text {

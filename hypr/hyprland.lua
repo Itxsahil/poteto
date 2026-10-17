@@ -194,6 +194,9 @@ hl.config({
 -- Environment variables
 hl.env("__GL_GSYNC_ALLOWED", "0")
 hl.env("__GL_VRR_ALLOWED", "0")
+-- Qt apps take light or dark from the desktop portal, live, like GTK apps do
+-- (quickshellv2/scripts/apply-mode sets it)
+hl.env("QT_QPA_PLATFORMTHEME", "xdgdesktopportal")
 
 -- Screenshot Preview (matches your config)
 hl.window_rule({

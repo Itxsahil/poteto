@@ -7,6 +7,10 @@ import qs.services
 import qs.modules.bar
 
 ShellRoot {
+    // Singletons start when first used; Appearance has no UI, so start it here (it applies the
+    // saved mode once, then follows changes)
+    Component.onCompleted: Appearance.apply()
+
     // qs ipc call layout toggle|pill|bar|status
     IpcHandler {
         target: "layout"
@@ -14,6 +18,15 @@ ShellRoot {
         function pill(): string { Config.setStyle("pill"); return Config.style; }
         function bar(): string { Config.setStyle("bar"); return Config.style; }
         function status(): string { return Config.style; }
+    }
+
+    // qs ipc call appearance toggle|dark|light|status
+    IpcHandler {
+        target: "appearance"
+        function toggle(): string { Config.toggleMode(); return Config.mode; }
+        function dark(): string { Config.setMode("dark"); return Config.mode; }
+        function light(): string { Config.setMode("light"); return Config.mode; }
+        function status(): string { return Config.mode; }
     }
 
     // qs ipc call launcher toggle|open|close (Alt + Space in hypr/bindings.lua)

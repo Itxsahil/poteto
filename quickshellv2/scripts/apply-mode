@@ -1,0 +1,22 @@
+#!/bin/sh
+# Set the desktop's light/dark preference, the way macOS does: apps that support it follow it
+# live, and nothing else is touched (kitty, Neovim, VS Code and the like keep their own themes).
+#
+#   apply-mode <dark|light>
+#
+# - GTK 4 / libadwaita, and anything that reads the desktop portal (Firefox, Chromium, Electron,
+#   Qt and KDE apps through QT_QPA_PLATFORMTHEME=xdgdesktopportal in hypr/hyprland.lua): the
+#   color-scheme, which xdg-desktop-portal-gtk passes on
+# - GTK 3, which has no such preference: Adwaita or Adwaita-dark
+set -e
+
+case "$1" in
+    dark)  scheme=prefer-dark;  gtk=Adwaita-dark ;;
+    light) scheme=prefer-light; gtk=Adwaita ;;
+    *) echo "usage: apply-mode <dark|light>" >&2; exit 2 ;;
+esac
+
+[ "$(gsettings get org.gnome.desktop.interface color-scheme)" = "'$scheme'" ] \
+    || gsettings set org.gnome.desktop.interface color-scheme "$scheme"
+[ "$(gsettings get org.gnome.desktop.interface gtk-theme)" = "'$gtk'" ] \
+    || gsettings set org.gnome.desktop.interface gtk-theme "$gtk"
