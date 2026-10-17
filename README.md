@@ -28,6 +28,7 @@ poteto/
 | **OSD** | Volume, brightness and mic changes (including the Fn mic-mute key) briefly turn the island into a level bar |
 | **Notifications** | Popups under the island with icons, images, actions and markup; history page and Do Not Disturb in the control center; unread dot in the island |
 | **Workspaces** | Separate pill top-left: click to switch, scroll to cycle |
+| **Music pill** | Small pill left of the center island: circular MPD album art (music icon when unavailable), four live visualizer bars while playing; click for media controls, right click for play/pause, Esc or click outside to close. Shown in island mode |
 | **Status pill** | Top-right: MPD track with a live cava visualizer (click play/pause, right click next, middle click previous) and the date |
 | **Media panel** (hover the status pill) | Album art, track, seek bar, play/pause, next/previous, shuffle, repeat (all / one) and MPD volume |
 | **Launcher** | Fuzzy app search, terminal apps open in kitty, built-in calculator, and a **Keybindings** card when you type `key` |
@@ -73,6 +74,7 @@ poteto/
 | `mod + Shift + ;` | Lock screen |
 | `mod + B` | Border around the focused window on / off (remembered across reloads) |
 | `mod + Shift + B` | Simple bar instead of the floating island, and back |
+| `mod + S` | Scrolling layout (columns on an endless strip) instead of dwindle, and back |
 | Hover the island | Control center |
 
 The table above is the shell's own keys. `mod + /` lists **every** bind, window management
@@ -233,21 +235,95 @@ automatically.
 
 ### Firefox (optional)
 
-`firefox/` is a flat dark chrome for Firefox: compact, rounded tabs and address bar, no lines
-between the toolbar and the page, and only the buttons that earn their place. It is fixed dark, not
-part of the theme system. Link both files into your profile — `about:profiles` shows its path,
+`firefox/` is a clean chrome for Firefox: compact tabs, square fields in the address bar, the page
+as a rounded card inset under the toolbars, no lines between them, and only the buttons that earn
+their place. It follows the system's light/dark mode live (the shell's mode toggle), and uses the
+shell's accent color for focus rings, selections, menu hover and Firefox's own buttons.
+`userContent.css` does the same for Firefox's own pages (new tab, settings).
+
+Link the three files into your profile — `about:profiles` shows its path,
 `~/.config/mozilla/firefox/…` on current Firefox and `~/.mozilla/firefox/…` before that:
 
 ```sh
 profile=~/.config/mozilla/firefox/xxxxxxxx.default-release
 mkdir -p "$profile/chrome"
-ln -s "$PWD/firefox/userChrome.css" "$profile/chrome/userChrome.css"
-ln -s "$PWD/firefox/user.js"        "$profile/user.js"
+ln -s "$PWD/firefox/userChrome.css"  "$profile/chrome/userChrome.css"
+ln -s "$PWD/firefox/userContent.css" "$profile/chrome/userContent.css"
+ln -s "$PWD/firefox/user.js"         "$profile/user.js"
 ```
 
-`user.js` turns on `toolkit.legacyUserProfileCustomizations.stylesheets` for you. Firefox re-applies
-it on every start, so those prefs win over `about:preferences`; delete a line to hand it back.
-Changes land after a full restart (`about:profiles` → **Restart normally…**), not a new window.
+`user.js` turns on `toolkit.legacyUserProfileCustomizations.stylesheets`, lets websites follow
+Firefox's light/dark mode, and asks for the theme's accent. Firefox re-applies it on every start,
+so those prefs win over `about:preferences`; delete a line to hand it back. Changes land after a
+full restart (`about:profiles` → **Restart normally…**), not a new window.
+
+The accent comes from `chrome/poteto-accent.css`, which quickshell v2 writes into every profile
+whose `userChrome.css` links here, whenever the accent changes (Poteto → Accent Color). Without it,
+Firefox keeps its own accent.
+
+If Firefox stays dark in light mode, an older `user.js` forced it: reset `ui.systemUsesDarkTheme`
+in `about:config`. Setting a pref in `user.js` stores it in the profile, so taking the line out of
+`user.js` alone does not undo it.
+
+### Accent color in apps (optional, quickshell v2)
+
+The accent color picked in the **Poteto** settings app reaches most apps on its own: GTK 3 and
+GTK 4 through `gtk.css`, VS Code through its settings, and Firefox through
+`chrome/poteto-accent.css` in the profile. Those apply when each app starts.
+
+To have **libadwaita and Qt apps change it live**, the desktop portal has to pass the accent on.
+`xdg-desktop-portal-gtk` only passes light/dark, so add the GNOME backend for settings only. This
+is a one-time setup outside the repo:
+
+1. Install it:
+
+   ```sh
+   sudo pacman -S xdg-desktop-portal-gnome
+   ```
+
+2. Let it answer settings (color scheme and accent), and leave everything else — screenshots,
+   screen sharing, file pickers — to Hyprland and GTK as before. In
+   `~/.config/xdg-desktop-portal/hyprland-portals.conf`:
+
+   ```ini
+   [preferred]
+   default=hyprland;gtk
+   org.freedesktop.impl.portal.Settings=gnome;gtk
+   ```
+
+3. The packaged service only starts inside a systemd graphical session, which Hyprland started
+   on its own does not have. Override it with the same service minus that requirement, in
+   `~/.config/systemd/user/xdg-desktop-portal-gnome.service`:
+
+   ```ini
+   [Unit]
+   Description=Portal service (GNOME implementation, without a GNOME session)
+
+   [Service]
+   Type=dbus
+   BusName=org.freedesktop.impl.portal.desktop.gnome
+   ExecStart=/usr/lib/xdg-desktop-portal-gnome
+   ```
+
+4. Reload and restart the portal:
+
+   ```sh
+   systemctl --user daemon-reload
+   systemctl --user restart xdg-desktop-portal
+   ```
+
+Check it: this should print three numbers (the accent as red, green, blue) rather than
+`Requested setting not found`.
+
+```sh
+busctl --user call org.freedesktop.portal.Desktop /org/freedesktop/portal/desktop \
+    org.freedesktop.portal.Settings ReadOne ss org.freedesktop.appearance accent-color
+```
+
+Qt apps follow the portal because `hypr/hyprland.lua` sets `QT_QPA_PLATFORMTHEME=xdgdesktopportal`.
+The portal only knows GNOME's nine named accent colors: the swatches in Poteto change live
+everywhere, while a custom color shows as the nearest named one in live apps and exactly in
+`gtk.css` apps once they restart.
 
 ---
 
@@ -436,7 +512,8 @@ quickshell/
 │   └── icons/                 Battery, Bell, Bluetooth, Check, Speaker, Sun, Wifi
 └── modules/                   one folder per feature
     ├── ipc/Ipc.qml            every `qs ipc` target and global shortcut
-    ├── bar/                   workspace pill (left), status pill with MPD and date (right),
+    ├── bar/                   workspace pill (left), MusicPill beside the center island,
+    │                          status pill with MPD and date (right),
     │                          media panel it expands into on hover, and the flat SimpleBar
     │                          that replaces all three in bar mode
     ├── island/                island window, idle row, volume/brightness OSD
@@ -531,6 +608,7 @@ The same actions are registered as Hyprland global shortcuts named `quickshell:l
 | `~/.cache/quickshell/album-art/` | album art extracted from the playing track |
 | `~/.cache/quickshell/border` | `on` / `off` for the focused window's border (`mod + B`) |
 | `~/.cache/quickshell/layout` | `island` / `bar`, the shell's shape (`mod + Shift + B`) |
+| `~/.cache/quickshell/hypr-layout` | `dwindle` / `scrolling`, Hyprland's window layout (`mod + S`) |
 | `/tmp/qs-cliphist-$USER/` | decoded clipboard images |
 
 All of them can be deleted safely; they are rebuilt on demand, and `border` falls back to `on`.
