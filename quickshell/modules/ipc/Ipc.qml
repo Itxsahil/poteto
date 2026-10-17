@@ -55,6 +55,14 @@ Scope {
     // Referenced here so the polkit agent registers at startup, not on first use.
     readonly property bool polkitAgent: Polkit.registered
 
+    // qs ipc call performance toggle|open|close (Super + M)
+    IpcHandler {
+        target: "performance"
+        function toggle(): void { ShellState.toggle("performance"); }
+        function open(): void { ShellState.open("performance"); }
+        function close(): void { ShellState.close("performance"); }
+    }
+
     IpcHandler {
         target: "keybinds"
         function toggle(): void { ShellState.toggle("keybinds"); }

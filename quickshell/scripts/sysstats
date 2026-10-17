@@ -1,0 +1,375 @@
+#!/usr/bin/env python3
+"""System stats for the performance view (services/SystemStats.qml): one JSON line a second on
+stdout, for as long as it runs. The shell runs it only while the view is open.
+
+Everything comes from /proc and /sys, which costs next to nothing to read, except the NVIDIA
+card: nvidia-smi is asked only while the card is already awake (runtime PM "active"). Asking a
+sleeping one would wake it, and polling would keep it awake and drain the battery.
+"""
+
+import glob
+import json
+import os
+import shutil
+import subprocess
+import sys
+import time
+
+INTERVAL = 1.0
+# Disk space and the process list change slowly, and the process list is the costly part
+SLOW_EVERY = 3
+MOUNTS = ("/", "/home")
+TOP = 6
+# Never offered an End button: ending one of these ends the session, the shell or its sound
+PROTECTED = {
+    "Hyprland", "Xwayland", "quickshell", "qs", "systemd", "dbus-daemon", "dbus-broker",
+    "dbus-broker-lau", "pipewire", "pipewire-pulse", "wireplumber", "sddm", "sddm-helper",
+    "gnome-keyring-d", "xdg-desktop-por", "kitty", "sysstats",
+}
+
+
+def read(path, default=""):
+    try:
+        with open(path) as f:
+            return f.read().strip()
+    except OSError:
+        return default
+
+
+def read_int(path, default=0):
+    try:
+        return int(read(path))
+    except ValueError:
+        return default
+
+
+# ---- CPU ----
+
+def cpu_times():
+    """[(busy, total)] for the whole CPU, then each thread."""
+    out = []
+    for line in read("/proc/stat").splitlines():
+        if not line.startswith("cpu"):
+            break
+        v = [int(x) for x in line.split()[1:]]
+        idle = v[3] + v[4]                       # idle + iowait
+        out.append((sum(v) - idle, sum(v)))
+    return out
+
+
+def cpu_freqs():
+    """MHz per thread, in thread order."""
+    paths = sorted(glob.glob("/sys/devices/system/cpu/cpu[0-9]*/cpufreq/scaling_cur_freq"),
+                   key=lambda p: int(p.split("/cpu")[2].split("/")[0]))
+    return [read_int(p) // 1000 for p in paths]
+
+
+def hwmon():
+    """{name: dir} of the hardware monitors."""
+    return {read(d + "/name"): d for d in glob.glob("/sys/class/hwmon/hwmon*")}
+
+
+def temps(mons):
+    """CPU package and per-core temperatures, the SSD's and the fan, where there are such."""
+    out = {"cpu": None, "cores": [], "ssd": None, "fan": None}
+    core = mons.get("coretemp") or mons.get("k10temp") or mons.get("zenpower")
+    if core:
+        cores = []
+        for label in sorted(glob.glob(core + "/temp*_label")):
+            name = read(label)
+            value = read_int(label.replace("_label", "_input")) / 1000
+            if name.startswith(("Package", "Tctl", "Tdie")):
+                out["cpu"] = value
+            elif name.startswith("Core"):
+                cores.append((int(name.split()[-1]), value))
+        out["cores"] = [v for _, v in sorted(cores)]
+        if out["cpu"] is None and cores:
+            out["cpu"] = max(v for _, v in cores)
+    if "nvme" in mons:
+        out["ssd"] = read_int(mons["nvme"] + "/temp1_input") / 1000
+    for d in mons.values():
+        fan = glob.glob(d + "/fan*_input")
+        if fan:
+            out["fan"] = read_int(fan[0])
+            break
+    return out
+
+
+# ---- memory, load ----
+
+def memory():
+    info = {}
+    for line in read("/proc/meminfo").splitlines():
+        key, value = line.split(":", 1)
+        info[key] = int(value.split()[0]) * 1024
+    return {
+        "total": info.get("MemTotal", 0),
+        "used": info.get("MemTotal", 0) - info.get("MemAvailable", 0),
+        "cached": info.get("Cached", 0) + info.get("Buffers", 0),
+        "swapTotal": info.get("SwapTotal", 0),
+        "swapUsed": info.get("SwapTotal", 0) - info.get("SwapFree", 0),
+    }
+
+
+def load():
+    parts = read("/proc/loadavg").split()
+    running, total = parts[3].split("/")
+    return {"avg": [float(x) for x in parts[:3]], "processes": int(total),
+            "uptime": int(float(read("/proc/uptime").split()[0]))}
+
+
+# ---- disk, network ----
+
+def physical_disk(name, depth=0):
+    """The whole disk a block device lives on: a partition's disk, and through device-mapper
+    (LUKS, LVM) or md RAID to the first disk underneath. "" if there is none."""
+    if not name or depth > 8 or not os.path.exists(f"/sys/class/block/{name}"):
+        return ""
+    slaves = sorted(glob.glob(f"/sys/class/block/{name}/slaves/*"))
+    if slaves:
+        return physical_disk(os.path.basename(slaves[0]), depth + 1)
+    if os.path.exists(f"/sys/class/block/{name}/partition"):
+        return os.path.basename(os.path.dirname(os.path.realpath(f"/sys/class/block/{name}")))
+    return name if os.path.exists(f"/sys/block/{name}") else ""
+
+
+def main_disk():
+    """The disk / is on, by its kernel name (nvme0n1, sda), or "" if it cannot be told."""
+    # Its device number, when that is a real block device (ext4, xfs)
+    try:
+        dev = os.stat("/").st_dev
+        node = f"/sys/dev/block/{os.major(dev)}:{os.minor(dev)}"
+        if os.path.exists(node):
+            disk = physical_disk(os.path.basename(os.path.realpath(node)))
+            if disk:
+                return disk
+    except OSError:
+        pass
+    # Btrfs (and others) give / an anonymous device number with no block device behind it: the
+    # device it is mounted from is in the mount table (the last mount on / wins)
+    source = ""
+    for line in read("/proc/self/mountinfo").splitlines():
+        before, _, after = line.partition(" - ")
+        fields = before.split()
+        if len(fields) > 4 and fields[4] == "/" and len(after.split()) > 1:
+            source = after.split()[1]
+    if source.startswith("/dev/"):
+        return physical_disk(os.path.basename(os.path.realpath(source)))
+    return ""
+
+
+def disk_bytes(disk):
+    """(read, written) bytes since boot, or None when the disk is unknown."""
+    for line in read("/proc/diskstats").splitlines():
+        f = line.split()
+        if disk and len(f) > 9 and f[2] == disk:
+            return int(f[5]) * 512, int(f[9]) * 512
+    return None
+
+
+def disk_space():
+    out = []
+    seen = set()
+    for mount in MOUNTS:
+        try:
+            st = os.statvfs(mount)
+            dev = os.stat(mount).st_dev
+        except OSError:
+            continue
+        if dev in seen:
+            continue
+        seen.add(dev)
+        total = st.f_blocks * st.f_frsize
+        out.append({"mount": mount, "total": total,
+                    "used": total - st.f_bfree * st.f_frsize})
+    return out
+
+
+def net_iface():
+    """The interface of the default route."""
+    for line in read("/proc/net/route").splitlines()[1:]:
+        f = line.split()
+        if len(f) > 1 and f[1] == "00000000":
+            return f[0]
+    return ""
+
+
+def net_bytes(iface):
+    for line in read("/proc/net/dev").splitlines()[2:]:
+        name, rest = line.split(":", 1)
+        if name.strip() == iface:
+            f = rest.split()
+            return int(f[0]), int(f[8])
+    return 0, 0
+
+
+# ---- GPU, battery ----
+
+def nvidia_device():
+    for d in glob.glob("/sys/bus/pci/devices/*"):
+        if read(d + "/vendor") == "0x10de" and read(d + "/class").startswith("0x03"):
+            return d
+    return ""
+
+
+def nvidia(device):
+    """The NVIDIA card's numbers, or just that it is asleep (and not woken to ask)."""
+    if not device:
+        return None
+    if read(device + "/power/runtime_status", "active") != "active":
+        return {"asleep": True}
+    if not shutil.which("nvidia-smi"):
+        return {"asleep": False}
+    try:
+        out = subprocess.run(
+            ["nvidia-smi", "--query-gpu=name,utilization.gpu,memory.used,memory.total,temperature.gpu,power.draw",
+             "--format=csv,noheader,nounits"],
+            capture_output=True, text=True, timeout=3).stdout.strip().splitlines()[0]
+        name, util, used, total, temp, power = [x.strip() for x in out.split(",")]
+        num = lambda x: float(x) if x.replace(".", "", 1).isdigit() else None
+        return {"asleep": False, "name": name.replace("NVIDIA ", ""), "util": num(util),
+                "memUsed": num(used), "memTotal": num(total), "temp": num(temp), "power": num(power)}
+    except (OSError, subprocess.TimeoutExpired, IndexError, ValueError):
+        return {"asleep": False}
+
+
+def intel_gpu():
+    for card in glob.glob("/sys/class/drm/card[0-9]"):
+        if read(card + "/device/vendor") == "0x8086" and os.path.exists(card + "/gt_act_freq_mhz"):
+            return {"freq": read_int(card + "/gt_act_freq_mhz"), "max": read_int(card + "/gt_max_freq_mhz")}
+    return None
+
+
+def battery():
+    for bat in glob.glob("/sys/class/power_supply/BAT*"):
+        status = read(bat + "/status")
+        if os.path.exists(bat + "/power_now"):
+            watts = read_int(bat + "/power_now") / 1e6
+        else:
+            watts = read_int(bat + "/current_now") * read_int(bat + "/voltage_now") / 1e12
+        return {"status": status, "watts": round(watts, 1), "level": read_int(bat + "/capacity")}
+    return None
+
+
+# ---- processes ----
+
+def proc_times():
+    """{pid: (cpu ticks, name, rss bytes)} of every process."""
+    out = {}
+    page = os.sysconf("SC_PAGE_SIZE")
+    for pid in os.listdir("/proc"):
+        if not pid.isdigit():
+            continue
+        try:
+            with open(f"/proc/{pid}/stat") as f:
+                stat = f.read()
+            name = stat[stat.index("(") + 1:stat.rindex(")")]
+            fields = stat[stat.rindex(")") + 2:].split()
+            ticks = int(fields[11]) + int(fields[12])
+            rss = int(fields[21]) * page
+            out[int(pid)] = (ticks, name, rss)
+        except (OSError, ValueError, IndexError):
+            continue
+    return out
+
+
+def main():
+    ticks_per_s = os.sysconf("SC_CLK_TCK")
+    me = os.getuid()
+    disk = main_disk()
+    gpu_dev = nvidia_device()
+    mons = hwmon()
+
+    prev_cpu = cpu_times()
+    prev_disk = disk_bytes(disk)
+    iface = net_iface()
+    prev_net = net_bytes(iface)
+    prev_procs = proc_times()
+    # When that snapshot was taken: the span between two is not always SLOW_EVERY seconds
+    # (nvidia-smi can take a while), and the process percentages divide by the real one
+    prev_procs_at = time.monotonic()
+    prev_time = time.monotonic()
+    space = disk_space()
+    top = []
+    gpu = nvidia(gpu_dev)
+    tick = 0
+    parent = os.getppid()
+
+    while True:
+        time.sleep(INTERVAL)
+        # The shell that started this is gone (restarted, crashed): stop rather than linger
+        if os.getppid() != parent:
+            return
+        now = time.monotonic()
+        dt = max(0.001, now - prev_time)
+        prev_time = now
+        tick += 1
+
+        cpu = cpu_times()
+        usage = [round(100 * (b - pb) / (t - pt), 1) if t > pt else 0.0
+                 for (b, t), (pb, pt) in zip(cpu, prev_cpu)]
+        prev_cpu = cpu
+
+        # Unknown disk: no numbers at all rather than a steady, misleading zero
+        current_disk = disk_bytes(disk)
+        if current_disk and prev_disk:
+            disk_rate = [max(0, current_disk[0] - prev_disk[0]) / dt, max(0, current_disk[1] - prev_disk[1]) / dt]
+        else:
+            disk_rate = [None, None]
+        prev_disk = current_disk
+
+        current = net_iface()
+        if current != iface:
+            iface = current
+            prev_net = net_bytes(iface)
+        rx, tx = net_bytes(iface)
+        net_rate = [max(0, rx - prev_net[0]) / dt, max(0, tx - prev_net[1]) / dt]
+        prev_net = (rx, tx)
+
+        if tick % SLOW_EVERY == 0:
+            space = disk_space()
+            procs = proc_times()
+            procs_at = time.monotonic()
+            span = max(0.001, procs_at - prev_procs_at)
+            rows = []
+            for pid, (t, name, rss) in procs.items():
+                before = prev_procs.get(pid)
+                if before is None:
+                    continue
+                try:
+                    mine = os.stat(f"/proc/{pid}").st_uid == me
+                except OSError:
+                    continue
+                rows.append({"pid": pid, "name": name, "rss": rss,
+                             "cpu": round(100 * (t - before[0]) / ticks_per_s / span, 1),
+                             # Yours, and not one the session depends on
+                             "endable": mine and name not in PROTECTED and pid != os.getpid()})
+            rows.sort(key=lambda r: (r["cpu"], r["rss"]), reverse=True)
+            top = rows[:TOP]
+            prev_procs = procs
+            prev_procs_at = procs_at
+        if tick % 2 == 0:
+            gpu = nvidia(gpu_dev)
+
+        print(json.dumps({
+            "cpu": usage[0] if usage else 0,
+            "threads": usage[1:],
+            "freqs": cpu_freqs(),
+            "governor": read("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor"),
+            "temps": temps(mons),
+            "mem": memory(),
+            "load": load(),
+            "disk": {"name": disk, "read": disk_rate[0], "write": disk_rate[1], "space": space},
+            "net": {"iface": iface, "down": net_rate[0], "up": net_rate[1], "rxTotal": rx, "txTotal": tx},
+            "gpu": gpu,
+            "igpu": intel_gpu(),
+            "battery": battery(),
+            "top": top,
+        }, separators=(",", ":")), flush=True)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (KeyboardInterrupt, BrokenPipeError):
+        sys.exit(0)

@@ -22,7 +22,8 @@ poteto/
 | **Simple bar mode** | `mod + Shift + B` swaps the floating pills for one flat bar across the top — workspaces, the playing track and status in a single strip that reserves its own space. Everything the island opens still opens; click the right of the bar for the control center. The choice is remembered |
 | **Island (idle)** | Wi-Fi strength · 12-hour clock · battery, colored by level · red mic icon while the mic is muted |
 | **Control center** (rest the pointer on the island, or click it to keep it open) | A compact bento grid: clock (click it for the calendar), battery with health, Wi-Fi, Bluetooth, Notifications and Night Light tiles (Night Light opens a warmth slider), and brightness, volume and microphone sliders (click the mic icon or right click to mute). The button beside volume and mic opens the Sound page, which lists every output and input, with unplugged ones greyed out |
-| **Audio devices** | A row of chips under the volume and mic sliders picks where sound goes and comes from — separate devices (Bluetooth, HDMI, USB) and the ports on one sound card (Speakers / Headphones, Internal / Headset Microphone) in the same list, shown only when there is more than one to choose from |
+| **Performance monitor** (`Super + M`, both shells) | Its own island view, like the control center: CPU with a one-minute graph, every thread's load and each core's temperature; memory and swap; the NVIDIA GPU (usage, VRAM, temperature, power; left asleep when it is, rather than woken to ask) and the Intel GPU's clock; disk space, SSD temperature and read/write speed; network speed; load, fan and battery draw; the busiest processes, with End (asked twice) for your own, never for the session's own (Hyprland, the shell, audio). It samples only while open (`scripts/sysstats` in each shell) |
+| **Audio devices** | The button beside the volume and mic sliders opens the Sound page: every output and input as a row with an icon, the one in use checked, unplugged ones greyed out |
 | **Wi-Fi page** | Scan, connect (with password), disconnect, forget |
 | **Bluetooth page** | Scan, pair + connect, disconnect, forget, device battery |
 | **OSD** | Volume, brightness and mic changes (including the Fn mic-mute key) briefly turn the island into a level bar |
@@ -64,6 +65,7 @@ poteto/
 | `mod + Shift + V` | Videos |
 | `mod + Shift + C` | Camera |
 | `mod + /` | Keybinding cheatsheet |
+| `Super + M` | Performance monitor |
 | `Super + V` | Clipboard history |
 | `Super + .` | Emoji picker |
 | `Super + Shift + C` | Color picker |
@@ -526,6 +528,7 @@ quickshell/
     ├── logintheme/            login screen (SDDM) theme switcher
     ├── loginvideo/            login screen background video picker
     ├── keybinds/              keybinding cheatsheet
+    ├── perf/                  performance monitor (services/SystemStats.qml, scripts/sysstats)
     ├── videos/                video grid with folder chips
     ├── camera/                webcam preview, shutter and self-timer
     ├── player/                video window (QtMultimedia)
@@ -565,6 +568,7 @@ qs ipc call notifications toggleDnd|dnd|clear|count|unread
 qs ipc call session    toggle|open|close|lock
 qs ipc call mpd        toggle|next|previous|status
 qs ipc call keybinds   toggle|open|close
+qs ipc call performance toggle|open|close
 qs ipc call videos     toggle|open|close
 qs ipc call camera     toggle|open|close
 qs ipc call bar        toggle|simple|island|status|panel

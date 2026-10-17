@@ -18,6 +18,7 @@ import qs.modules.loginvideo
 import qs.modules.videos
 import qs.modules.camera
 import qs.modules.keybinds
+import qs.modules.perf
 import qs.modules.polkit
 
 PanelWindow {
@@ -111,6 +112,7 @@ PanelWindow {
             : view === "videos" ? videosView
             : view === "camera" ? cameraView
             : view === "keybinds" ? keybindsView
+            : view === "performance" ? performanceView
             : view === "logintheme" ? loginThemeView
             : view === "loginvideo" ? loginVideoView
             : view === "polkit" ? polkitView
@@ -336,6 +338,19 @@ PanelWindow {
             visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: 200 } }
             onCloseRequested: ShellState.close("keybinds")
+        }
+
+        PerformanceView {
+            id: performanceView
+            anchors.top: parent.top
+            anchors.topMargin: 12
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: implicitWidth
+            active: pill.view === "performance"
+            opacity: active ? 1 : 0
+            visible: opacity > 0
+            Behavior on opacity { NumberAnimation { duration: 200 } }
+            onCloseRequested: ShellState.close("performance")
         }
 
         VideosView {
