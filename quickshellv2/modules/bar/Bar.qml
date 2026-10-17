@@ -39,12 +39,17 @@ PanelWindow {
         color: Theme.border
     }
 
-    // At the right end: a recording in progress, Wi-Fi, the calendar and the battery
+    // At the right end: what MPD is playing, a recording in progress, Wi-Fi, the calendar and
+    // the battery
     Row {
         anchors.right: parent.right
         anchors.rightMargin: 12
         anchors.verticalCenter: parent.verticalCenter
         spacing: 14
+
+        MediaIndicator {
+            anchors.verticalCenter: parent.verticalCenter
+        }
 
         RecordingIndicator {
             anchors.verticalCenter: parent.verticalCenter

@@ -73,6 +73,23 @@ ShellRoot {
         function notifications(): void { ShellState.openPage("notifications"); }
     }
 
+    // qs ipc call media toggle|open|close: what MPD is playing, in full
+    IpcHandler {
+        target: "media"
+        function toggle(): void { ShellState.toggle("media"); }
+        function open(): void { ShellState.open("media"); }
+        function close(): void { ShellState.close("media"); }
+    }
+
+    // qs ipc call mpd toggle|next|previous|status, for MPD keybinds
+    IpcHandler {
+        target: "mpd"
+        function toggle(): void { Mpd.toggle(); }
+        function next(): void { Mpd.next(); }
+        function previous(): void { Mpd.previous(); }
+        function status(): string { return Mpd.connected ? `${Mpd.state}: ${Mpd.title}` : "disconnected"; }
+    }
+
     // qs ipc call calendar toggle|open|close
     IpcHandler {
         target: "calendar"

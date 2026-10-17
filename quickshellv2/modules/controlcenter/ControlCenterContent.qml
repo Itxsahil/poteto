@@ -13,7 +13,8 @@ import qs.services
 //   Night (night light, services/NightLight.qml)
 // - the Sound and Mic sliders (services/Audio.qml; click the label to mute, the device button at
 //   the end for the Audio page, AudioPage.qml) and the Screen slider (services/Brightness.qml)
-// - now playing with its transport (MPD, services/Mpd.qml), and the record button
+// - now playing with its transport (MPD, services/Mpd.qml; the song opens the media view), and
+//   the record button
 //   (services/Recorder.qml)
 // - the bell (notification history, NotificationsPage.qml), the settings button (Poteto), and
 //   lock, restart and power (services/Session.qml; restart and power open the power menu on
@@ -266,6 +267,7 @@ Item {
             }
 
             Column {
+                id: nowPlaying
                 anchors.left: record.right
                 anchors.leftMargin: 10
                 anchors.right: transport.left
@@ -309,6 +311,15 @@ Item {
                         Behavior on width { NumberAnimation { duration: 900 } }
                     }
                 }
+            }
+
+            // The song opens the media view: art, seek, shuffle, repeat. Over the column, not in
+            // it, so the column does not size itself from its own click area
+            MouseArea {
+                anchors.fill: nowPlaying
+                enabled: Mpd.connected
+                cursorShape: Qt.PointingHandCursor
+                onClicked: ShellState.open("media")
             }
 
             Row {
