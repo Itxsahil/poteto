@@ -7,6 +7,7 @@ import qs.services
 import qs.modules.bar
 import qs.modules.screenshot
 import qs.modules.player
+import qs.modules.colorpicker
 
 ShellRoot {
     // Singletons start when first used. These have no UI, so start them here: each one applies
@@ -134,6 +135,14 @@ ShellRoot {
         function current(): string { return LoginVideo.current; }
     }
 
+    // qs ipc call colorpicker pick|cancel|last (Super + Shift + C in hypr/bindings.lua)
+    IpcHandler {
+        target: "colorpicker"
+        function pick(): void { ColorPicker.start(); }
+        function cancel(): void { ColorPicker.cancel(); }
+        function last(): string { return ColorPicker.history[0] ?? ""; }
+    }
+
     // qs ipc call screenshot region|window|screen|cancel (Super + Shift + 4 / 3 in hypr/bindings.lua)
     IpcHandler {
         target: "screenshot"
@@ -157,6 +166,10 @@ ShellRoot {
             }
 
             ScreenshotPreview {
+                targetScreen: screenScope.modelData
+            }
+
+            ColorPickerOverlay {
                 targetScreen: screenScope.modelData
             }
 
