@@ -12,13 +12,14 @@
 @import url("poteto-accent.css");
 
 :root {
-    --poteto-bg: #161616;
-    --poteto-surface: #232323;
-    --poteto-raised: #2d2d2d;
-    --poteto-hover: #333333;
-    --poteto-text: #e4e4e4;
-    --poteto-dim: #8e8e8e;
-    --poteto-line: #3a3a3a;
+    /* Poteto's dark palette (quickshellv2/config/palettes.json) */
+    --poteto-bg: #121316;
+    --poteto-surface: #1b1c20;
+    --poteto-raised: #26282d;
+    --poteto-hover: #2c2e34;
+    --poteto-text: #e8e9ec;
+    --poteto-dim: #9b9ea6;
+    --poteto-line: #2c2e34;
     --poteto-shadow: rgba(0, 0, 0, 0.45);
     --poteto-radius: 10px;
     /* fields (the address bar and what is inside it): square, barely rounded */
@@ -60,15 +61,16 @@
 /* the same, light, when the system is in light mode */
 @media (prefers-color-scheme: light) {
     :root {
-        --poteto-bg: #ececec;
+        /* and its light one */
+        --poteto-bg: #f6f6f8;
         --poteto-surface: #ffffff;
         --poteto-raised: #ffffff;
-        --poteto-hover: #dedede;
-        --poteto-text: #1d1d1d;
-        --poteto-dim: #6b6b6b;
-        --poteto-line: #d4d4d4;
+        --poteto-hover: #dfe1e6;
+        --poteto-text: #1c1d21;
+        --poteto-dim: #5e626b;
+        --poteto-line: #d9dbe0;
         --poteto-shadow: rgba(0, 0, 0, 0.12);
-        --toolbar-field-background-color: #e0e0e0 !important;
+        --toolbar-field-background-color: #ebecef !important;
     }
 }
 

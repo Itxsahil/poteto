@@ -1,0 +1,50 @@
+{
+  "dark": {
+    "palette": {
+      "bg": "#121316",
+      "surface": "#1b1c20",
+      "overlay": "#26282d",
+      "border": "#2c2e34",
+      "text": "#e8e9ec",
+      "subtext": "#9b9ea6",
+      "accent": "#7ba4f7",
+      "error": "#f07178",
+      "warning": "#e5b567",
+      "success": "#7fc98f",
+      "info": "#6cbfe0"
+    },
+    "terminal": {
+      "foreground": "#e1e3e8",
+      "colors": [
+        "#1b1c20", "#f07178", "#87c98f", "#e5c07b", "#7ba4f7", "#c792ea", "#6cc4d8", "#c8cbd2",
+        "#5c606a", "#ff8b92", "#a3dba9", "#f0d090", "#9dbcfa", "#d7aef2", "#8fd6e6", "#f2f3f5"
+      ]
+    },
+    "nvim": "vscode_dark",
+    "vscode": "Default Dark Modern"
+  },
+  "light": {
+    "palette": {
+      "bg": "#f6f6f8",
+      "surface": "#ebecef",
+      "overlay": "#dfe1e6",
+      "border": "#d9dbe0",
+      "text": "#1c1d21",
+      "subtext": "#5e626b",
+      "accent": "#2f6fdb",
+      "error": "#c8323a",
+      "warning": "#9a6400",
+      "success": "#2b8a4a",
+      "info": "#1d77ad"
+    },
+    "terminal": {
+      "foreground": "#2a2c31",
+      "colors": [
+        "#e4e5e9", "#c8323a", "#2b8a4a", "#9a6400", "#2f6fdb", "#8b45c4", "#0f7f8f", "#2a2c31",
+        "#7a7e88", "#d9434b", "#33985a", "#ad7400", "#3d7de8", "#9b55d4", "#1590a0", "#1c1d21"
+      ]
+    },
+    "nvim": "vscode_light",
+    "vscode": "Default Light Modern"
+  }
+}

@@ -17,13 +17,12 @@ Singleton {
     // "pill": the floating clock pill; "bar": a flat strip across the top of the screen
     readonly property string style: data.style === "bar" ? "bar" : "pill"
 
-    // "dark" or "light": the desktop's preference (services/Appearance.qml) and the shell's colors
+    // "dark" or "light": the shell's palette (config/palettes.json), the apps' and the desktop's
+    // preference (services/Appearance.qml)
     readonly property string mode: data.mode === "light" ? "light" : "dark"
-    // The themes/<id>/ whose colors the shell uses in light mode; dark mode keeps the active theme
-    readonly property string lightTheme: typeof data.lightTheme === "string" ? data.lightTheme : "catppuccin-latte"
 
     // The accent color for the shell and every app that can take one (services/Appearance.qml),
-    // as #rrggbb; "" keeps the theme's own
+    // as #rrggbb; "" keeps the palette's own
     readonly property string accent: typeof data.accent === "string" && /^#[0-9a-fA-F]{6}$/.test(data.accent)
         ? data.accent.toLowerCase() : ""
 

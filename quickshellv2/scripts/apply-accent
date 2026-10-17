@@ -24,6 +24,7 @@ selections, focus rings and buttons, everywhere that can take one.
 Only a marked block of each gtk.css is ever touched, so anything else in them stays.
 """
 
+import fcntl
 import json
 import re
 import subprocess
@@ -35,6 +36,7 @@ GTK3 = HOME / ".config/gtk-3.0/gtk.css"
 GTK4 = HOME / ".config/gtk-4.0/gtk.css"
 VSCODE = HOME / ".config/Code/User/settings.json"
 VSCODE_BACKUP = HOME / ".cache/quickshell/accent-vscode-backup.json"
+VSCODE_LOCK = HOME / ".cache/quickshell/vscode-settings.lock"
 # The system accent as it was before this script first set one, so the default can put it back.
 # Its existence is what says this script owns the current value.
 SYSTEM_BACKUP = HOME / ".cache/quickshell/accent-system-backup.json"
@@ -153,6 +155,14 @@ menu menuitem:hover, .menu menuitem:hover, menubar > menuitem:hover, popover mod
 def vscode(accent):
     if not VSCODE.exists():
         return
+    # scripts/apply-theme edits the same file
+    VSCODE_LOCK.parent.mkdir(parents=True, exist_ok=True)
+    with open(VSCODE_LOCK, "w") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        vscode_locked(accent)
+
+
+def vscode_locked(accent):
     try:
         raw = VSCODE.read_text()
         settings = json.loads(raw)

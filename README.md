@@ -368,46 +368,35 @@ Switching a theme (`mod + T`, or `qs ipc call theme apply <id>`):
 | solitude | monochrome | Noctokai (`farigab.noctokai-theme`) |
 | tokyo-night-storm | tokyonight | Tokyo Night Storm (`enkia.tokyo-night`) |
 
-### `quickshell/colors.json`
+### Dark and light mode in quickshell v2
 
-```jsonc
-{
-  "name": "Everforest Dark",     // shown in the theme switcher
-  "variant": "dark",             // "dark" | "light"
-  "island": "#2d353b",           // island, workspace pill, panel background
-  "border": "#3a444a",           // island outline
-  "tile": "#3a444a",             // control-center tiles, search fields
-  "tileHover": "#475258",
-  "control": "#475258",          // slider tracks, buttons, chips
-  "controlHover": "#859289",
-  "fill": "#d3c6aa",             // slider fill, active workspace
-  "onFill": "#2d353b",           // icons/text drawn on "fill"
-  "text": "#d3c6aa",
-  "textDim": "#9da9a0",
-  "muted": "#859289",            // disconnected / inactive states
-  "accent": "#a7c080",           // toggles, badges, selection, today in the calendar
-  "onAccent": "#2d353b",         // text/icons drawn on "accent"
-  "success": "#a7c080",          // battery ok, strong Wi-Fi
-  "warning": "#dbbc7f",          // battery low, medium Wi-Fi
-  "caution": "#e69875",          // weak Wi-Fi
-  "danger": "#e67e80"            // battery critical, errors, delete buttons
-}
-```
+Quickshell v2 has no themes: it has one dark palette and one light one, in
+`quickshellv2/config/palettes.json`, and the accent color on top. Both palettes are neutral
+grays, so any accent sits well on them.
 
-Editing a theme's `colors.json` while that theme is active updates the shell immediately.
+- **Mode** is set in Poteto, the control center's Dark button, or `qs ipc call appearance toggle`.
+  It switches the shell, the system's light/dark preference (GTK, Qt, Firefox) and the apps below.
+- **Accent** is set in Poteto. A picked color is made a little lighter in dark mode, or darker
+  in light mode, until it stands out from the background.
 
-### Adding a theme
+`quickshellv2/scripts/apply-palette` puts the palettes on the apps:
 
-```sh
-cd themes
-cp -r everforest-dark my-theme
-mv my-theme/kitty/everforest-dark.conf my-theme/kitty/my-theme.conf
-# edit the colors, nvim/theme.lua, vscode/theme, and replace wallpaper/wall.*
-```
+| App | Dark | Light | How it switches |
+|---|---|---|---|
+| kitty | palette colors | palette colors | `SIGUSR1`, open windows too |
+| Neovim (NvChad) | `vscode_dark`, see-through | `vscode_light`, see-through | every running instance, plus the cache for new ones |
+| VS Code | Dark Modern | Light Modern | `workbench.colorTheme` |
+| rmpc | palette colors | palette colors | `rmpc remote set theme` |
+| Hyprland borders | accent | accent | `hyprctl reload` |
+| hyprlock | palette colors | palette colors | read at lock time |
 
-It appears in the theme switcher the next time it opens.
-
----
+The script writes both modes' files into `~/.cache/quickshell/theme/dark/` and `light/` at
+start and when the accent changes. Switching the mode only points
+`~/.cache/quickshell/theme/active` at one of them and reloads the apps. kitty must not have a
+`dark-theme.auto.conf` or `light-theme.auto.conf`: open windows ignore reloads while those
+exist, so the script moves them aside as `.bak`. Edit `palettes.json` to change the colors;
+the shell picks it up live, and the apps on the next accent change or shell start. The
+wallpaper is never changed.
 
 ## Login screen (SDDM)
 
@@ -602,6 +591,8 @@ The same actions are registered as Hyprland global shortcuts named `quickshell:l
 | Path | Contents |
 |---|---|
 | `~/.cache/quickshell/theme/` | symlinks to the active theme's files |
+| `~/.cache/quickshell/theme/dark/`, `light/`, `active` | v2: the apps' files for each mode, and the active one (`scripts/apply-palette`) |
+| `~/.cache/quickshell/vscode-settings.lock` | v2: keeps the palette and accent scripts from editing VS Code's settings at once |
 | `~/.cache/quickshell/wallpaper-thumbs/` | wallpaper grid thumbnails |
 | `~/.cache/quickshell/login-thumbs/` | login theme stills |
 | `~/.cache/quickshell/video-thumbs/` | video poster frames and durations |

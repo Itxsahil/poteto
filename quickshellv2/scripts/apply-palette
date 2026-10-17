@@ -1,0 +1,271 @@
+#!/usr/bin/env python3
+"""Put Poteto's dark and light palettes (config/palettes.json) on the apps: kitty, Hyprland's
+window borders, hyprlock, Neovim, rmpc and VS Code.
+
+    apply-palette build <dark|light> [#accent]   write both palettes' files (at start, and when the
+                                                 accent or palettes.json changes), then do `mode`
+    apply-palette mode <dark|light>              switch the apps to that mode's files
+
+build writes ~/.cache/quickshell/theme/dark/ and light/. mode only points
+~/.cache/quickshell/theme/active at one of them (the apps read links such as theme/kitty.conf ->
+active/kitty.conf), sets VS Code's theme for the mode, and tells the running apps to reload.
+
+The accent (Poteto → Accent Color) colors the window borders, kitty's cursor and selection and
+rmpc's highlights, made lighter in dark mode or darker in light mode until it reads (3:1), the
+same rule as config/Theme.qml. An app that is not installed is skipped.
+"""
+
+import colorsys
+import fcntl
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+HOME = Path.home()
+SHELL = Path(__file__).resolve().parent.parent
+PALETTES = SHELL / "config/palettes.json"
+RMPC_TEMPLATE = SHELL / "scripts/rmpc-theme.ron"
+CACHE = HOME / ".cache/quickshell/theme"
+KITTY = HOME / ".config/kitty"
+VSCODE = HOME / ".config/Code/User/settings.json"
+# Shared with scripts/apply-accent, which edits the same settings.json
+VSCODE_LOCK = HOME / ".cache/quickshell/vscode-settings.lock"
+MODES = ("dark", "light")
+# What the apps read, each a link into active/
+FILES = ("kitty.conf", "hyprland.lua", "hyprlock.conf", "nvim.lua", "nvim-transparent", "rmpc.ron")
+
+
+def warn(message):
+    print(f"apply-palette: {message}", file=sys.stderr)
+
+
+# ---- colors ----
+
+def rgb(h):
+    h = h.lstrip("#")
+    return tuple(int(h[i:i + 2], 16) / 255 for i in (0, 2, 4))
+
+
+def hexc(c):
+    return "#%02x%02x%02x" % tuple(round(max(0, min(1, v)) * 255) for v in c)
+
+
+def lum(h):
+    lin = lambda v: v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4
+    r, g, b = map(lin, rgb(h))
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def contrast(a, b):
+    la, lb = sorted((lum(a), lum(b)), reverse=True)
+    return (la + 0.05) / (lb + 0.05)
+
+
+def readable(color, bg, target):
+    """color, its lightness moved away from bg's until the two have `target` contrast."""
+    h, l, s = colorsys.rgb_to_hls(*rgb(color))
+    step = -0.01 if lum(bg) > 0.5 else 0.01
+    while contrast(color, bg) < target and 0.02 < l < 0.98:
+        l += step
+        color = hexc(colorsys.hls_to_rgb(h, l, s))
+    return color
+
+
+def mix(a, b, amount):
+    """a with `amount` of b."""
+    return hexc(tuple(x + (y - x) * amount for x, y in zip(rgb(a), rgb(b))))
+
+
+def strip(color):
+    return color.lstrip("#").lower()
+
+
+# ---- files ----
+
+def write(path, text):
+    """Replace a file (or link) in one step, so an app never reads half of it."""
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.unlink(missing_ok=True)
+    tmp.write_text(text)
+    os.replace(tmp, path)
+
+
+def link(path, target):
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.unlink(missing_ok=True)
+    tmp.symlink_to(target)
+    os.replace(tmp, path)
+
+
+def remove(path):
+    if path.is_symlink() or path.exists():
+        path.unlink()
+
+
+def kitty_conf(p, term, accent):
+    lines = [
+        "# written by quickshellv2/scripts/apply-palette from config/palettes.json", "",
+        f"background {p['bg']}", f"foreground {term['foreground']}",
+        f"selection_background {mix(p['bg'], accent, 0.35)}", f"selection_foreground {p['text']}",
+        f"cursor {accent}", f"cursor_text_color {p['bg']}", f"url_color {accent}",
+        f"active_border_color {accent}", f"inactive_border_color {p['border']}",
+        f"active_tab_background {p['overlay']}", f"active_tab_foreground {p['text']}",
+        f"inactive_tab_background {p['bg']}", f"inactive_tab_foreground {p['subtext']}",
+        f"tab_bar_background {p['bg']}", "",
+    ]
+    lines += [f"color{i} {c}" for i, c in enumerate(term["colors"])]
+    return "\n".join(lines) + "\n"
+
+
+def hyprland_lua(p, accent):
+    return ("-- written by quickshellv2/scripts/apply-palette\n"
+            "return {\n"
+            f'    active_border = "rgba({strip(accent)}ff)",\n'
+            f'    inactive_border = "rgba({strip(p["overlay"])}aa)",\n'
+            "}\n")
+
+
+def hyprlock_conf(p, accent):
+    return ("# written by quickshellv2/scripts/apply-palette\n"
+            f"$accent = rgb({strip(accent)})\n$surface = rgb({strip(p['bg'])})\n"
+            f"$text = rgb({strip(p['text'])})\n$time = rgb({strip(p['text'])})\n"
+            f"$date = rgb({strip(p['subtext'])})\n$warning = rgb({strip(p['warning'])})\n"
+            f"$danger = rgb({strip(p['error'])})\n")
+
+
+def rmpc_ron(p, accent):
+    # (the template's first line says what it is; RON wants its #![...] lines first)
+    text = RMPC_TEMPLATE.read_text().split("\n", 1)[1]
+    values = dict(p, accent=accent)
+    return re.sub(r"\{(\w+)\}", lambda m: values.get(m.group(1), m.group(0)), text)
+
+
+def build(mode, spec, accent):
+    files = CACHE / mode
+    files.mkdir(parents=True, exist_ok=True)
+    p = spec["palette"]
+    accent = readable(accent, p["bg"], 3) if accent else p["accent"]
+    write(files / "kitty.conf", kitty_conf(p, spec["terminal"], accent))
+    write(files / "hyprland.lua", hyprland_lua(p, accent))
+    write(files / "hyprlock.conf", hyprlock_conf(p, accent))
+    write(files / "nvim.lua", f'return "{spec["nvim"]}"\n')
+    # Neovim draws no background of its own, so it sits on kitty's (the palette's bg)
+    write(files / "nvim-transparent", "")
+    write(files / "rmpc.ron", rmpc_ron(p, accent))
+
+
+def kitty_auto_files():
+    """kitty takes its colors from theme/kitty.conf (an include in kitty.conf), which open windows
+    re-read on SIGUSR1. dark-/light-theme.auto.conf would take over from it, and open windows only
+    read those at start, so they are moved aside (as .bak, .bak.1, ...)."""
+    for mode in MODES:
+        path = KITTY / f"{mode}-theme.auto.conf"
+        if not path.is_file():
+            continue
+        backup = path.with_name(path.name + ".bak")
+        n = 0
+        while backup.exists():
+            n += 1
+            backup = path.with_name(f"{path.name}.bak.{n}")
+        os.replace(path, backup)
+
+
+def vscode(theme):
+    if not VSCODE.exists() or not theme:
+        return
+    VSCODE_LOCK.parent.mkdir(parents=True, exist_ok=True)
+    with open(VSCODE_LOCK, "w") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        try:
+            raw = VSCODE.read_text()
+            settings = json.loads(raw)
+        except (OSError, ValueError):
+            warn("VS Code settings.json is not plain JSON, skipped")
+            return
+        if settings.get("workbench.colorTheme") == theme:
+            return
+        settings["workbench.colorTheme"] = theme
+        indent = re.search(r"\n([ \t]+)\"", raw)
+        write(VSCODE, json.dumps(settings, indent=indent.group(1) if indent else 4, ensure_ascii=False) + "\n")
+
+
+def activate(mode):
+    """Point active/ at a mode and the app links at active/; no file contents change."""
+    if not (CACHE / mode).is_dir():
+        return False
+    if not (CACHE / "active").is_symlink() or os.readlink(CACHE / "active") != mode:
+        link(CACHE / "active", mode)
+    for name in FILES:
+        target = f"active/{name}"
+        path = CACHE / name
+        if not path.is_symlink() or os.readlink(path) != target:
+            remove(path)
+            path.symlink_to(target)
+    return True
+
+
+def run(*command):
+    try:
+        return subprocess.run(command, capture_output=True, text=True, timeout=20)
+    except (OSError, subprocess.TimeoutExpired) as e:
+        warn(f"{command[0]}: {e}")
+        return None
+
+
+def reload_apps():
+    if shutil.which("kitty"):
+        run("pkill", "-USR1", "-x", "kitty")
+    if shutil.which("hyprctl"):
+        run("hyprctl", "reload")
+
+    if shutil.which("rmpc"):
+        pids = run("pgrep", "-x", "rmpc")
+        for pid in (pids.stdout.split() if pids else []):
+            run("rmpc", "remote", "--pid", pid, "set", "theme", str(CACHE / "rmpc.ron"))
+
+    if shutil.which("nvim"):
+        match = re.search(r'return "([A-Za-z0-9_-]+)"', (CACHE / "nvim.lua").read_text())
+        if match:
+            transparent = "true" if (CACHE / "nvim-transparent").exists() else "false"
+            lua = (f'local c = require("nvconfig").base46; c.theme = "{match.group(1)}"; '
+                   f'c.transparency = {transparent}; require("base46").load_all_highlights()')
+            runtime = Path(os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}"))
+            for sock in runtime.glob("nvim.*"):
+                if sock.is_socket():
+                    run("nvim", "--server", str(sock), "--remote-expr", f"execute('lua {lua}')")
+            # NvChad starts from a compiled highlight cache: rebuild it so the next Neovim gets
+            # this mode too (chadrc.lua reads theme/nvim.lua)
+            run("nvim", "--headless", "+lua require('base46').load_all_highlights()", "+qa")
+
+
+def main(argv):
+    if len(argv) not in (2, 3) or argv[0] not in ("build", "mode") or argv[1] not in MODES:
+        print(__doc__.split("\n\n")[1], file=sys.stderr)
+        return 2
+    mode = argv[1]
+    try:
+        palettes = json.loads(PALETTES.read_text())
+    except (OSError, ValueError) as e:
+        warn(f"{PALETTES}: {e}")
+        return 1
+
+    if argv[0] == "build":
+        accent = argv[2] if len(argv) == 3 and re.fullmatch(r"#[0-9a-fA-F]{6}", argv[2]) else ""
+        CACHE.mkdir(parents=True, exist_ok=True)
+        for m in MODES:
+            build(m, palettes[m], accent.lower())
+        kitty_auto_files()
+
+    if not activate(mode):
+        warn(f"nothing built for {mode} yet: run apply-palette build first")
+        return 1
+    vscode(palettes[mode].get("vscode"))
+    reload_apps()
+    return 0
+
+
+sys.exit(main(sys.argv[1:]))
