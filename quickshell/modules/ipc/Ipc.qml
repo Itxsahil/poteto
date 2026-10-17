@@ -79,6 +79,23 @@ Scope {
         function panel(): string { ShellState.panel = !ShellState.panel; return ShellState.panel ? "open" : "closed"; }
     }
 
+    // The names quickshell v2 uses, which hypr/bindings.lua calls (Alt + Shift + B, Super + C), so
+    // the keys work in either shell
+    IpcHandler {
+        target: "layout"
+        function toggle(): string { Layout.toggle(); return status(); }
+        function pill(): string { Layout.setMode("island"); return status(); }
+        function bar(): string { Layout.setMode("bar"); return status(); }
+        function status(): string { return Layout.mode === "bar" ? "bar" : "pill"; }
+    }
+
+    IpcHandler {
+        target: "controlcenter"
+        function toggle(): void { ShellState.panel = !ShellState.panel; }
+        function open(): void { ShellState.panel = true; }
+        function close(): void { ShellState.panel = false; }
+    }
+
     IpcHandler {
         target: "loginvideo"
         function toggle(): void { ShellState.toggle("loginvideo"); }
