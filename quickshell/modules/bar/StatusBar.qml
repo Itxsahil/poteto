@@ -124,10 +124,12 @@ PanelWindow {
             onTriggered: pill.expanded = false
         }
 
+        // Held at the top rather than centered, so it stays put while the pill grows into the
+        // media panel; the margin is what centers it in the 36px idle pill
         Row {
             id: content
             anchors.top: parent.top
-            anchors.topMargin: 8
+            anchors.topMargin: (36 - height) / 2
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: 10
             opacity: pill.showMedia ? 0 : 1

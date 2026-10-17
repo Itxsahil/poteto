@@ -94,9 +94,12 @@ Singleton {
         root.single = fields.single === "1";
         const file = fields.file ?? "";
         root.file = file;
-        root.title = fields.Title || file.split("/").pop().replace(/\.[^.]+$/, "").replace(/\s*\[[\w-]{11}\]$/, "");
-        root.artist = (fields.Artist ?? "").replace(/\s+-\s+Topic$/, "");
-        root.album = fields.Album ?? "";
+        // NFKC turns styled Unicode letters (𝐒𝐅 𝐋𝐘𝐑𝐈𝐂𝐒, used to fake bold in uploaded tags)
+        // into plain ones: the UI font has no glyphs for them and fell back to a serif one
+        const plain = text => String(text ?? "").normalize("NFKC");
+        root.title = plain(fields.Title || file.split("/").pop().replace(/\.[^.]+$/, "").replace(/\s*\[[\w-]{11}\]$/, ""));
+        root.artist = plain(fields.Artist).replace(/\s+-\s+Topic$/, "");
+        root.album = plain(fields.Album);
     }
 
     Timer {

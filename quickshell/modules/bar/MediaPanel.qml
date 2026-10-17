@@ -8,7 +8,8 @@ Item {
     id: root
 
     implicitWidth: 380
-    implicitHeight: 196
+    // As tall as what it holds: art and track, the controls, then volume
+    implicitHeight: volume.visible ? volume.y + volume.height : transport.y + transport.height
 
     function timeText(seconds) {
         if (!(seconds > 0))
@@ -319,16 +320,13 @@ Item {
         font.family: Theme.fontFamily
     }
 
-    // Transport
+    // Transport, centered under the art and the track together
     Row {
         id: transport
-        anchors.left: art.right
-        anchors.leftMargin: 14
-        anchors.right: parent.right
-        anchors.rightMargin: 14
+        anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: art.bottom
         anchors.topMargin: 12
-        spacing: 14
+        spacing: 18
 
         IconButton {
             anchors.verticalCenter: parent.verticalCenter
@@ -366,18 +364,20 @@ Item {
         }
     }
 
-    // Volume
+    // Volume: MPD's own, so it is separate from the system volume in the control center
     Item {
         id: volume
         anchors.left: parent.left
-        anchors.leftMargin: 26
+        anchors.leftMargin: 4
         anchors.right: parent.right
-        anchors.rightMargin: 26
-        anchors.bottom: parent.bottom
+        anchors.rightMargin: 4
+        anchors.top: transport.bottom
+        anchors.topMargin: 12
         height: 16
         visible: Mpd.volume >= 0
 
-        readonly property real ratio: Mpd.volume / 100
+        readonly property real ratio: Math.max(0, Math.min(1, Mpd.volume / 100))
+        readonly property bool engaged: volumeMouse.containsMouse || volumeMouse.pressed
 
         Canvas {
             id: speaker
@@ -409,32 +409,63 @@ Item {
             }
         }
 
+        Text {
+            id: volumeText
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            width: 30
+            horizontalAlignment: Text.AlignRight
+            text: Math.round(Mpd.volume) + "%"
+            color: volume.engaged ? Theme.textPrimary : Theme.textSecondary
+            font.pixelSize: 10
+            font.family: Theme.fontFamily
+        }
+
         Rectangle {
+            id: volumeTrack
             anchors.verticalCenter: parent.verticalCenter
             anchors.left: speaker.right
-            anchors.leftMargin: 8
-            anchors.right: parent.right
-            height: 4
-            radius: 2
+            anchors.leftMargin: 10
+            anchors.right: volumeText.left
+            anchors.rightMargin: 8
+            height: volume.engaged ? 6 : 4
+            radius: height / 2
             color: Theme.controlBg
+            Behavior on height { NumberAnimation { duration: 120 } }
 
             Rectangle {
                 width: parent.width * volume.ratio
                 height: parent.height
-                radius: 2
-                color: Qt.alpha(Theme.textPrimary, 0.75)
+                radius: parent.radius
+                color: volume.engaged ? Theme.textPrimary : Qt.alpha(Theme.textPrimary, 0.75)
             }
-        }
 
-        MouseArea {
-            anchors.fill: parent
-            anchors.margins: -5
-            cursorShape: Qt.PointingHandCursor
-            onPressed: mouse => set(mouse.x)
-            onPositionChanged: mouse => { if (pressed) set(mouse.x); }
-            function set(x) {
-                const track = volume.width - 21;      // the slider starts after the speaker glyph
-                Mpd.setVolume(Math.max(0, Math.min(1, (x - 26) / track)) * 100);
+            Rectangle {
+                x: parent.width * volume.ratio - width / 2
+                anchors.verticalCenter: parent.verticalCenter
+                width: volume.engaged ? 12 : 0
+                height: width
+                radius: width / 2
+                color: Theme.textPrimary
+                Behavior on width { NumberAnimation { duration: 120 } }
+            }
+
+            MouseArea {
+                id: volumeMouse
+                anchors.fill: parent
+                anchors.topMargin: -6
+                anchors.bottomMargin: -6
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onPressed: mouse => set(mouse.x)
+                onPositionChanged: mouse => { if (pressed) set(mouse.x); }
+                function set(x) {
+                    Mpd.setVolume(Math.max(0, Math.min(1, x / width)) * 100);
+                }
+            }
+
+            WheelHandler {
+                onWheel: event => Mpd.setVolume(Math.max(0, Math.min(100, Mpd.volume + event.angleDelta.y / 120 * 5)))
             }
         }
     }

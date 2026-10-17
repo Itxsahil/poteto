@@ -24,14 +24,20 @@ Item {
 
         Item {
             id: visualizer
-            width: Cava.barCount * 3 + (Cava.barCount - 1) * 2
+            // Room for the bars while playing; paused, only as wide as the play glyph, so it does
+            // not sit in an empty stretch of pill
+            width: Mpd.playing ? Cava.barCount * 3 + (Cava.barCount - 1) * 2 : 12
             height: 18
+            clip: true
+            Behavior on width { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
             anchors.verticalCenter: parent.verticalCenter
 
+            // Bars while playing; paused, only the play glyph (what a click does), not a row of
+            // dim dots under it
             Row {
                 anchors.bottom: parent.bottom
                 spacing: 2
-                opacity: Mpd.playing ? 1 : 0.35
+                opacity: Mpd.playing ? 1 : 0
                 Behavior on opacity { NumberAnimation { duration: 200 } }
 
                 Repeater {
@@ -51,10 +57,11 @@ Item {
 
             Text {
                 anchors.centerIn: parent
-                visible: !Mpd.playing
-                text: "󰏤"
+                opacity: Mpd.playing ? 0 : 1
+                Behavior on opacity { NumberAnimation { duration: 200 } }
+                text: "󰐊"
                 color: Theme.textPrimary
-                font.pixelSize: 13
+                font.pixelSize: 15
                 font.family: "JetBrainsMono Nerd Font"
             }
         }
