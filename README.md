@@ -617,7 +617,7 @@ The same actions are registered as Hyprland global shortcuts named `quickshell:l
 | `~/.cache/quickshell/border` | `on` / `off` for the focused window's border (`mod + B`) |
 | `~/.cache/quickshell/layout` | `island` / `bar`, the shell's shape (`mod + Shift + B`) |
 | `~/.cache/quickshell/hypr-layout` | `dwindle` / `scrolling`, Hyprland's window layout (`mod + S`) |
-| `/tmp/qs-cliphist-$USER/` | decoded clipboard images |
+| `$XDG_RUNTIME_DIR/qs-cliphist/` | decoded clipboard images (private: folder 0700, files 0600, cleared at logout) |
 
 All of them can be deleted safely; they are rebuilt on demand, and `border` falls back to `on`.
 

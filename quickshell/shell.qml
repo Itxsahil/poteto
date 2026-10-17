@@ -12,9 +12,12 @@ import qs.modules.recorder
 import qs.modules.player
 
 ShellRoot {
-    // Singletons start when first used; night light has no UI until the control center opens,
-    // so start it here to apply the saved setting
-    Component.onCompleted: NightLight.enabled
+    // Singletons start when first used. Night light has no UI until the control center opens, so
+    // start it here to apply the saved setting; the clipboard to clear out its old /tmp previews
+    Component.onCompleted: {
+        NightLight.enabled;
+        Clipboard.legacyDir;
+    }
 
     Ipc {}
 

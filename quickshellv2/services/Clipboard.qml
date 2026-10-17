@@ -14,7 +14,16 @@ Singleton {
     property var thumbs: ({})
     property var pendingThumbs: []
 
-    readonly property string cacheDir: "/tmp/qs-cliphist-" + Quickshell.env("USER")
+    // Decoded image previews: in the private per-login runtime folder (0700, in memory, gone at
+    // logout), not shared /tmp, where other users could read them or claim the folder first
+    readonly property string cacheDir: (Quickshell.env("XDG_RUNTIME_DIR")
+        || Quickshell.env("HOME") + "/.cache/quickshell") + "/qs-cliphist"
+    // Where previews went before, readable by other users: removed at start and by Clear all,
+    // but only when it really is ours (a folder, not a link, owned by us)
+    readonly property string legacyDir: Quickshell.env("USER") ? "/tmp/qs-cliphist-" + Quickshell.env("USER") : ""
+    readonly property string removeLegacy: '[ -n "$1" ] && [ -d "$1" ] && [ ! -L "$1" ] && [ -O "$1" ] && rm -rf -- "$1"; true'
+
+    Component.onCompleted: legacyProc.running = true
 
     signal copied()
 
@@ -62,7 +71,9 @@ Singleton {
         thumbProc.entryId = id;
         thumbProc.out = `${cacheDir}/${id}.${entry.format || "png"}`;
         thumbProc.command = ["sh", "-c",
-            'mkdir -p "$1" && { [ -s "$4" ] || printf "%s\\t%s\\n" "$2" "$3" | cliphist decode > "$4"; }',
+            // Files 0600 and the folder 0700; nothing is written into a folder that is a link or
+            // someone else's
+            'umask 077; mkdir -p "$1" && [ -d "$1" ] && [ ! -L "$1" ] && [ -O "$1" ] && chmod 700 "$1" && { [ -s "$4" ] || printf "%s\\t%s\\n" "$2" "$3" | cliphist decode > "$4"; }',
             "sh", cacheDir, id, entry.raw, thumbProc.out];
         thumbProc.running = true;
     }
@@ -122,6 +133,11 @@ Singleton {
 
     Process {
         id: wipeProc
-        command: ["sh", "-c", 'cliphist wipe && rm -rf "$1"', "sh", root.cacheDir]
+        command: ["sh", "-c", 'cliphist wipe && rm -rf "$1"; shift; ' + root.removeLegacy, "sh", root.cacheDir, root.legacyDir]
+    }
+
+    Process {
+        id: legacyProc
+        command: ["sh", "-c", root.removeLegacy, "sh", root.legacyDir]
     }
 }

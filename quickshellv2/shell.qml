@@ -18,6 +18,8 @@ ShellRoot {
         Appearance.apply();
         Appearance.applyAccent();
         NightLight.apply();
+        // Its start clears out the old /tmp previews, readable by other users
+        Clipboard.legacyDir;
         Osd.shown;
         // The polkit agent and the notification server have to be up before anything asks, not on
         // first use
