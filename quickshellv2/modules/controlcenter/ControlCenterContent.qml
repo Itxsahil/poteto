@@ -11,7 +11,7 @@ import qs.services
 //   (WifiPage.qml, BluetoothPage.qml) behind its label or a right click
 // - Quiet (notifications to history only, Config.quiet), Dark (light/dark mode, Config.mode) and
 //   Night (night light, services/NightLight.qml)
-// - the Sound slider (services/Audio.qml; click "Sound" to mute) and the Screen slider
+// - the Sound and Mic sliders (services/Audio.qml; click the label to mute) and the Screen slider
 //   (services/Brightness.qml)
 // - now playing with its transport (MPD, services/Mpd.qml)
 // - the bell (notification history, NotificationsPage.qml), the settings button (Poteto), and
@@ -211,6 +211,18 @@ Item {
             labelClickable: true
             onMoved: v => Audio.setPercent(v)
             onLabelClicked: Audio.toggleMute()
+        }
+
+        DotSlider {
+            width: parent.width
+            label: "Mic"
+            visible: Audio.micAvailable
+            value: Audio.micPercent
+            dimmed: Audio.micMuted
+            dimmedText: "Off"
+            labelClickable: true
+            onMoved: v => Audio.setMicPercent(v)
+            onLabelClicked: Audio.toggleMicMute()
         }
 
         DotSlider {
