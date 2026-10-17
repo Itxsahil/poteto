@@ -8,6 +8,7 @@ import qs.modules.bar
 import qs.modules.screenshot
 import qs.modules.player
 import qs.modules.colorpicker
+import qs.modules.recorder
 
 ShellRoot {
     // Singletons start when first used. These have no UI, so start them here: each one applies
@@ -123,6 +124,25 @@ ShellRoot {
         function poweroff(): void { Session.openMenu("poweroff"); }
     }
 
+    // qs ipc call recorder toggle|screen|stop|status (Super + Shift + R in hypr/bindings.lua);
+    // screen records the whole focused monitor without the picker
+    IpcHandler {
+        target: "recorder"
+        function toggle(): void { Recorder.toggle(); }
+        function screen(): void { Recorder.recordScreen(); }
+        function stop(): void { Recorder.stop(); }
+        function status(): string {
+            return Recorder.recording ? `recording ${Recorder.formatElapsed(Recorder.elapsed)}`
+                : Recorder.finishing ? "saving" : "idle";
+        }
+    }
+
+    // Stopping a recording asks for its name in the pill
+    Connections {
+        target: Recorder
+        function onNameRequested() { ShellState.open("recordname"); }
+    }
+
     // qs ipc call quiet toggle|on|off|status: notifications to history only (critical ones still show)
     IpcHandler {
         target: "quiet"
@@ -207,6 +227,10 @@ ShellRoot {
             }
 
             ColorPickerOverlay {
+                targetScreen: screenScope.modelData
+            }
+
+            RecorderOverlay {
                 targetScreen: screenScope.modelData
             }
 

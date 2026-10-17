@@ -5,6 +5,7 @@ import Quickshell.Hyprland
 import qs.config
 import qs.services
 import qs.modules.osd
+import qs.modules.recorder
 
 // The flat layout: one strip across the full width of the top of the screen, workspaces on the
 // left and the time in the middle. Hovering the time drops the control center down under it
@@ -36,6 +37,13 @@ PanelWindow {
         width: parent.width
         height: 1
         color: Theme.border
+    }
+
+    // A recording in progress, at the right end
+    RecordingIndicator {
+        anchors.right: parent.right
+        anchors.rightMargin: 12
+        anchors.verticalCenter: parent.verticalCenter
     }
 
     Workspaces {

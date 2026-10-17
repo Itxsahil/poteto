@@ -5,6 +5,7 @@ import Quickshell.Hyprland
 import qs.config
 import qs.services
 import qs.modules.osd
+import qs.modules.recorder
 
 // The floating layout: the time in a rounded pill at the top center of the screen. The same pill
 // grows into whatever is opened (Views.qml: the launcher, the control center, the pickers, the
@@ -123,7 +124,7 @@ PanelWindow {
         y: window.gapTop
         width: window.expanded ? views.wantedWidth
             : window.showOsd ? osd.implicitWidth + 28
-            : time.implicitWidth + 80
+            : idle.implicitWidth + 80
         height: window.expanded ? views.wantedHeight : window.pillHeight
         radius: window.expanded ? 24 : window.pillHeight / 2
         color: Theme.background
@@ -147,14 +148,26 @@ PanelWindow {
             }
         }
 
-        Clock {
-            id: time
+        // At rest: the time, led by a recording in progress (red dot, time so far, stop)
+        Row {
+            id: idle
             anchors.centerIn: parent
-            date: clock.date
+            spacing: recording.shown ? 12 : 0
             opacity: window.expanded || window.showOsd ? 0 : 1
             scale: window.expanded || window.showOsd ? 0.8 : 1
             Behavior on opacity { NumberAnimation { duration: 140 } }
             Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+
+            RecordingIndicator {
+                id: recording
+                anchors.verticalCenter: parent.verticalCenter
+            }
+
+            Clock {
+                id: time
+                anchors.verticalCenter: parent.verticalCenter
+                date: clock.date
+            }
         }
 
         OsdContent {

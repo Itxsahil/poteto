@@ -16,9 +16,8 @@ import qs.services
 // - now playing with its transport (MPD, services/Mpd.qml)
 // - the bell (notification history, NotificationsPage.qml), the settings button (Poteto), and
 //   lock, restart and power (services/Session.qml; restart and power open the power menu on
-//   that action)
-// Awake, Airplane and the record button are still only drawn: they change nothing outside this
-// view yet.
+//   that action), and the record button (services/Recorder.qml)
+// Awake and Airplane are still only drawn: they change nothing outside this view yet.
 Item {
     id: root
 
@@ -233,13 +232,20 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 implicitWidth: 34
                 implicitHeight: 34
+                // Starts the screen recorder, or stops the recording in progress
+                onClicked: {
+                    root.closeRequested();
+                    Recorder.toggle();
+                }
 
+                // A dot to record, a square to stop
                 Rectangle {
                     anchors.centerIn: parent
                     width: 10
                     height: 10
-                    radius: 5
+                    radius: Recorder.recording ? 2 : 5
                     color: Theme.danger
+                    Behavior on radius { NumberAnimation { duration: 160 } }
                 }
             }
 
