@@ -5,6 +5,7 @@ import Quickshell.Io
 import qs.config
 import qs.services
 import qs.modules.bar
+import qs.modules.screenshot
 
 ShellRoot {
     // Singletons start when first used; Appearance has no UI, so start it here (it applies the
@@ -46,6 +47,15 @@ ShellRoot {
         function wifi(): void { ShellState.openPage("wifi"); }
     }
 
+    // qs ipc call screenshot region|window|screen|cancel (Super + Shift + 4 / 3 in hypr/bindings.lua)
+    IpcHandler {
+        target: "screenshot"
+        function region(): void { Screenshot.start("region"); }
+        function window(): void { Screenshot.start("window"); }
+        function screen(): void { Screenshot.start("screen"); }
+        function cancel(): void { Screenshot.cancel(); }
+    }
+
     Variants {
         model: Quickshell.screens
 
@@ -53,6 +63,15 @@ ShellRoot {
             id: screenScope
 
             required property ShellScreen modelData
+
+            // The same in either layout
+            ScreenshotOverlay {
+                targetScreen: screenScope.modelData
+            }
+
+            ScreenshotPreview {
+                targetScreen: screenScope.modelData
+            }
 
             // Only the chosen layout exists at all, so the other one reserves no space. In pill
             // mode the pill itself grows into the launcher and control center; the bar drops a

@@ -30,6 +30,13 @@ Singleton {
     readonly property color accent: c("accent", "#0a84ff")
     readonly property color onAccent: c("onAccent", "#ffffff")
     readonly property color danger: c("danger", "#ff453a")
+    readonly property color controlHover: c("controlHover", "#3a3a3c")
+    // A solid button, e.g. the selected mode in the screenshot toolbar, and what is drawn on it
+    readonly property color fill: c("fill", "#ffffff")
+    readonly property color onFill: c("onFill", "#000000")
+    // Drop shadow under floating surfaces (components/Shadow.qml). Always dark, on every theme:
+    // it is cast on the wallpaper, not a surface that follows the palette.
+    readonly property color shadow: Qt.rgba(0, 0, 0, 0.45)
 
     readonly property string fontFamily: "Inter"
     // Numbers that should not jump around as they change
