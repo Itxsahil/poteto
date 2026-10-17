@@ -7,10 +7,11 @@ import qs.services
 import qs.modules.launcher
 import qs.modules.controlcenter
 import qs.modules.osd
+import qs.modules.wallpaper
 
 // The floating layout: the time in a rounded pill at the top center of the screen. The same pill
-// grows into whatever is opened — the launcher (Alt + Space) or the control center (hover it, or
-// Super + C) — and shrinks back when it closes.
+// grows into whatever is opened — the launcher (Alt + Space), the control center (hover it, or
+// Super + C) or the wallpaper picker (Alt + W) — and shrinks back when it closes.
 PanelWindow {
     id: window
 
@@ -23,7 +24,8 @@ PanelWindow {
     readonly property bool focusedScreen: Hyprland.focusedMonitor?.name === targetScreen.name
     readonly property bool showLauncher: ShellState.launcherOpen && focusedScreen
     readonly property bool showControlCenter: ShellState.controlCenterOpen && focusedScreen && !showLauncher
-    readonly property bool expanded: showLauncher || showControlCenter
+    readonly property bool showWallpaper: ShellState.wallpaperOpen && focusedScreen
+    readonly property bool expanded: showLauncher || showControlCenter || showWallpaper
     // A change from outside, e.g. the brightness keys: the pill widens into a level bar for a
     // moment. Only on the focused screen, and never over something that is open.
     readonly property bool showOsd: Osd.shown && focusedScreen && !expanded
@@ -34,8 +36,9 @@ PanelWindow {
     anchors.top: true
     // Room for the pill at its largest. Only the pill itself takes input, and only its resting
     // height is reserved, so windows never move when it grows.
-    implicitWidth: Math.max(launcher.implicitWidth, controlCenter.implicitWidth) + 60
-    implicitHeight: gapTop + Math.max(launcher.maxRows * launcher.rowHeight + 120, controlCenter.implicitHeight + 60)
+    implicitWidth: Math.max(launcher.implicitWidth, controlCenter.implicitWidth, wallpaper.implicitWidth) + 60
+    implicitHeight: gapTop + Math.max(launcher.maxRows * launcher.rowHeight + 120, controlCenter.implicitHeight + 60,
+        wallpaper.implicitHeight + 60)
     exclusiveZone: gapTop + pillHeight
     color: "transparent"
 
@@ -79,10 +82,12 @@ PanelWindow {
         anchors.horizontalCenter: parent.horizontalCenter
         y: window.gapTop
         width: window.showLauncher ? launcher.implicitWidth + 20
+            : window.showWallpaper ? wallpaper.implicitWidth + 20
             : window.showControlCenter ? controlCenter.implicitWidth + 28
             : window.showOsd ? osd.implicitWidth + 28
             : time.implicitWidth + 80
         height: window.showLauncher ? launcher.implicitHeight + 12
+            : window.showWallpaper ? wallpaper.implicitHeight + 20
             : window.showControlCenter ? controlCenter.implicitHeight + 28
             : window.pillHeight
         radius: window.expanded ? 24 : window.pillHeight / 2
@@ -132,6 +137,21 @@ PanelWindow {
                 NumberAnimation { duration: window.showLauncher ? 260 : 120; easing.type: Easing.InOutQuad }
             }
             onCloseRequested: ShellState.close("launcher")
+        }
+
+        WallpaperContent {
+            id: wallpaper
+            x: 10
+            y: 10
+            width: implicitWidth
+            height: implicitHeight
+            active: window.showWallpaper
+            opacity: window.showWallpaper ? 1 : 0
+            visible: opacity > 0
+            Behavior on opacity {
+                NumberAnimation { duration: window.showWallpaper ? 260 : 120; easing.type: Easing.InOutQuad }
+            }
+            onCloseRequested: ShellState.close("wallpaper")
         }
 
         ControlCenterContent {

@@ -61,6 +61,15 @@ ShellRoot {
         function wifi(): void { ShellState.openPage("wifi"); }
     }
 
+    // qs ipc call wallpaper toggle|open|close|random (Alt + W in hypr/bindings.lua)
+    IpcHandler {
+        target: "wallpaper"
+        function toggle(): void { ShellState.toggle("wallpaper"); }
+        function open(): void { ShellState.open("wallpaper"); }
+        function close(): void { ShellState.close("wallpaper"); }
+        function random(): void { Wallpaper.applyRandom(); }
+    }
+
     // qs ipc call screenshot region|window|screen|cancel (Super + Shift + 4 / 3 in hypr/bindings.lua)
     IpcHandler {
         target: "screenshot"

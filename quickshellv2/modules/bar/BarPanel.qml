@@ -6,9 +6,11 @@ import qs.config
 import qs.services
 import qs.modules.launcher
 import qs.modules.controlcenter
+import qs.modules.wallpaper
 
 // Bar mode's stand-in for the pill growing: a panel that drops down from under the bar, holding
-// the launcher (Alt + Space) or the control center (hover the bar's clock, or Super + C).
+// the launcher (Alt + Space), the control center (hover the bar's clock, or Super + C) or the
+// wallpaper picker (Alt + W).
 PanelWindow {
     id: window
 
@@ -18,7 +20,8 @@ PanelWindow {
     readonly property bool focusedScreen: Hyprland.focusedMonitor?.name === targetScreen.name
     readonly property bool showLauncher: ShellState.launcherOpen && focusedScreen
     readonly property bool showControlCenter: ShellState.controlCenterOpen && focusedScreen && !showLauncher
-    readonly property bool expanded: showLauncher || showControlCenter
+    readonly property bool showWallpaper: ShellState.wallpaperOpen && focusedScreen
+    readonly property bool expanded: showLauncher || showControlCenter || showWallpaper
     // Opened from the keyboard, as opposed to a hover peek: takes the keyboard, closes on click-away
     readonly property bool pinned: ShellState.view !== "" && focusedScreen
 
@@ -26,8 +29,9 @@ PanelWindow {
     anchors.top: true
     margins.top: barHeight
     // Room for the panel at its largest; only the panel takes input
-    implicitWidth: Math.max(launcher.implicitWidth, controlCenter.implicitWidth) + 60
-    implicitHeight: Math.max(launcher.maxRows * launcher.rowHeight + 120, controlCenter.implicitHeight + 60)
+    implicitWidth: Math.max(launcher.implicitWidth, controlCenter.implicitWidth, wallpaper.implicitWidth) + 60
+    implicitHeight: Math.max(launcher.maxRows * launcher.rowHeight + 120, controlCenter.implicitHeight + 60,
+        wallpaper.implicitHeight + 60)
     exclusionMode: ExclusionMode.Ignore
     color: "transparent"
 
@@ -80,12 +84,16 @@ PanelWindow {
         Binding on targetWidth {
             when: window.expanded
             restoreMode: Binding.RestoreNone
-            value: window.showLauncher ? launcher.implicitWidth + 20 : controlCenter.implicitWidth + 28
+            value: window.showLauncher ? launcher.implicitWidth + 20
+                : window.showWallpaper ? wallpaper.implicitWidth + 20
+                : controlCenter.implicitWidth + 28
         }
         Binding on targetHeight {
             when: window.expanded
             restoreMode: Binding.RestoreNone
-            value: window.showLauncher ? launcher.implicitHeight + 12 : controlCenter.implicitHeight + 28
+            value: window.showLauncher ? launcher.implicitHeight + 12
+                : window.showWallpaper ? wallpaper.implicitHeight + 20
+                : controlCenter.implicitHeight + 28
         }
 
         Behavior on width { NumberAnimation { duration: 420; easing.type: Easing.OutBack; easing.overshoot: 1.1 } }
@@ -109,6 +117,21 @@ PanelWindow {
                 NumberAnimation { duration: window.showLauncher ? 260 : 120; easing.type: Easing.InOutQuad }
             }
             onCloseRequested: ShellState.close("launcher")
+        }
+
+        WallpaperContent {
+            id: wallpaper
+            x: 10
+            y: 10
+            width: implicitWidth
+            height: implicitHeight
+            active: window.showWallpaper
+            opacity: window.showWallpaper ? 1 : 0
+            visible: opacity > 0
+            Behavior on opacity {
+                NumberAnimation { duration: window.showWallpaper ? 260 : 120; easing.type: Easing.InOutQuad }
+            }
+            onCloseRequested: ShellState.close("wallpaper")
         }
 
         ControlCenterContent {
