@@ -21,7 +21,7 @@ Item {
     signal rightClicked()
 
     implicitWidth: 300
-    implicitHeight: 48
+    implicitHeight: 40
 
     // Dragging covers 0–100%; only the wheel goes past it, so a click never boosts by accident
     function setValue(v) {
@@ -36,10 +36,17 @@ Item {
         id: track
         anchors.fill: parent
         radius: height / 2
-        color: Theme.controlBg
+        // A little lighter under the pointer, so it reads as something to grab
+        color: hover.hovered || drag.pressed ? Theme.controlHover : Theme.controlBg
         clip: true
+        Behavior on color { ColorAnimation { duration: 120 } }
+
+        HoverHandler {
+            id: hover
+        }
 
         Rectangle {
+            id: fillBar
             anchors.left: parent.left
             anchors.top: parent.top
             anchors.bottom: parent.bottom
@@ -74,15 +81,36 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
         }
 
+        // The value, drawn twice: in the text color over the empty track, and in the fill's own
+        // text color over the filled part (clipped to it), so a label the fill edge runs through
+        // reads on both sides of the edge
         Text {
+            id: valueText
             anchors.right: parent.right
             anchors.rightMargin: 16
             anchors.verticalCenter: parent.verticalCenter
             text: root.label
-            color: root.fill > 0.85 && !root.dimmed ? Theme.controlIconOnFill : Theme.textSecondary
+            color: root.dimmed ? Theme.textSecondary : Theme.textPrimary
             font.pixelSize: 13
             font.weight: Font.DemiBold
             font.family: Theme.fontFamily
+        }
+
+        Item {
+            anchors.left: parent.left
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            width: fillBar.width
+            clip: true
+            visible: !root.dimmed
+
+            Text {
+                x: valueText.x
+                y: valueText.y
+                text: root.label
+                color: Theme.controlIconOnFill
+                font: valueText.font
+            }
         }
 
         MouseArea {

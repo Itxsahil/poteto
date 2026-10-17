@@ -96,6 +96,15 @@ Scope {
         function close(): void { ShellState.panel = false; }
     }
 
+    // qs ipc call nightlight toggle|on|off|status (the same as quickshell v2)
+    IpcHandler {
+        target: "nightlight"
+        function toggle(): bool { NightLight.toggle(); return NightLight.enabled; }
+        function on(): bool { NightLight.setEnabled(true); return true; }
+        function off(): bool { NightLight.setEnabled(false); return false; }
+        function status(): bool { return NightLight.enabled; }
+    }
+
     IpcHandler {
         target: "loginvideo"
         function toggle(): void { ShellState.toggle("loginvideo"); }

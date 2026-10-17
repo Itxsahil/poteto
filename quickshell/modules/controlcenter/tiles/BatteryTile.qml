@@ -9,12 +9,13 @@ Tile {
 
     BatteryIcon {
         id: icon
-        width: 34
-        height: 18
+        width: 28
+        height: 15
         anchors.left: parent.left
         anchors.top: parent.top
         level: Battery.level
-        fillColor: Battery.color
+        // Colored only when it says something: charging, low or critical (as in the island)
+        fillColor: Battery.charging || Battery.level <= 0.30 ? Battery.color : Qt.alpha(Theme.textPrimary, 0.85)
         charging: Battery.charging
     }
 
@@ -37,7 +38,7 @@ Tile {
         Text {
             text: Math.round(Battery.level * 100) + "%"
             color: Theme.textPrimary
-            font.pixelSize: 30
+            font.pixelSize: 24
             font.weight: Font.Bold
             font.family: Theme.fontFamily
         }
@@ -47,7 +48,7 @@ Tile {
             elide: Text.ElideRight
             text: Battery.statusText
             color: Theme.textSecondary
-            font.pixelSize: 12
+            font.pixelSize: 11
             font.family: Theme.fontFamily
         }
     }

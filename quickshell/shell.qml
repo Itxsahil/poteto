@@ -1,6 +1,7 @@
 //@ pragma IconTheme breeze-dark
 import QtQuick
 import Quickshell
+import qs.services
 import qs.modules.ipc
 import qs.modules.bar
 import qs.modules.island
@@ -11,6 +12,10 @@ import qs.modules.recorder
 import qs.modules.player
 
 ShellRoot {
+    // Singletons start when first used; night light has no UI until the control center opens,
+    // so start it here to apply the saved setting
+    Component.onCompleted: NightLight.enabled
+
     Ipc {}
 
     PlayerWindow {}

@@ -21,7 +21,7 @@ poteto/
 |---|---|
 | **Simple bar mode** | `mod + Shift + B` swaps the floating pills for one flat bar across the top — workspaces, the playing track and status in a single strip that reserves its own space. Everything the island opens still opens; click the right of the bar for the control center. The choice is remembered |
 | **Island (idle)** | Wi-Fi strength · 12-hour clock · battery, colored by level · red mic icon while the mic is muted |
-| **Control center** (hover the island) | Clock, battery with health, calendar, Wi-Fi, Bluetooth and Notifications tiles, brightness, volume and microphone sliders (click the mic icon or right click to mute) |
+| **Control center** (rest the pointer on the island, or click it to keep it open) | A compact bento grid: clock (click it for the calendar), battery with health, Wi-Fi, Bluetooth, Notifications and Night Light tiles (Night Light opens a warmth slider), and brightness, volume and microphone sliders (click the mic icon or right click to mute). The button beside volume and mic opens the Sound page, which lists every output and input, with unplugged ones greyed out |
 | **Audio devices** | A row of chips under the volume and mic sliders picks where sound goes and comes from — separate devices (Bluetooth, HDMI, USB) and the ports on one sound card (Speakers / Headphones, Internal / Headset Microphone) in the same list, shown only when there is more than one to choose from |
 | **Wi-Fi page** | Scan, connect (with password), disconnect, forget |
 | **Bluetooth page** | Scan, pair + connect, disconnect, forget, device battery |
@@ -75,7 +75,8 @@ poteto/
 | `mod + B` | Border around the focused window on / off (remembered across reloads) |
 | `mod + Shift + B` | Simple bar instead of the floating island, and back |
 | `mod + S` | Scrolling layout (columns on an endless strip) instead of dwindle, and back |
-| Hover the island | Control center |
+| Hover the island | Control center (opens after a moment, closes when the pointer leaves) |
+| Click the island | Control center, kept open until you click elsewhere or press Esc |
 
 The table above is the shell's own keys. `mod + /` lists **every** bind, window management
 included, parsed live from `hypr/bindings.lua`, and flags any combo bound twice.
@@ -519,7 +520,7 @@ quickshell/
     │                          media panel it expands into on hover, and the flat SimpleBar
     │                          that replaces all three in bar mode
     ├── island/                island window, idle row, volume/brightness OSD
-    ├── controlcenter/         grid, tiles/, controls/, wifi/, bluetooth/, notifications/
+    ├── controlcenter/         grid, tiles/, controls/, wifi/, bluetooth/, notifications/, audio/
     ├── notifications/         notification card + popup stack
     ├── launcher/  clipboard/  emoji/  wallpaper/  themes/  power/
     ├── logintheme/            login screen (SDDM) theme switcher
@@ -569,6 +570,7 @@ qs ipc call camera     toggle|open|close
 qs ipc call bar        toggle|simple|island|status|panel
 qs ipc call layout     toggle|pill|bar|status       # same names as quickshell v2 (Alt + Shift + B)
 qs ipc call controlcenter toggle|open|close        # same names as quickshell v2 (Super + C)
+qs ipc call nightlight toggle|on|off|status        # shared with quickshell v2 and Poteto (shell.json)
 qs ipc call player     play <path>|stop|next|previous|loop|status
 qs ipc call player     speed 1        # or -1, steps 0.5×…2×
 ```

@@ -64,6 +64,15 @@ Item {
                 onClicked: Notifications.clearAll()
             }
 
+            // What the switch is, which nothing said while it was off
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text: "Do Not Disturb"
+                color: Theme.textSecondary
+                font.pixelSize: 11
+                font.family: Theme.fontFamily
+            }
+
             Toggle {
                 anchors.verticalCenter: parent.verticalCenter
                 checked: Notifications.dnd
