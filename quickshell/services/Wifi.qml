@@ -10,7 +10,12 @@ Singleton {
     property bool enabled: true
     property string device: ""
     property var networks: []
-    property var savedNames: []
+    // Saved Wi-Fi profiles by the network they join: { ssid: [uuid, …] }. A profile's name is only
+    // a label (it may be "Office" for the SSID "CompanyWiFi"), so profiles are matched by their
+    // 802-11-wireless.ssid and addressed by UUID
+    property var savedBySsid: ({})
+    // The SSIDs that have a saved profile
+    readonly property var savedNames: Object.keys(savedBySsid)
     readonly property var active: networks.find(n => n.active) ?? null
 
     property bool scanning: false
@@ -36,7 +41,7 @@ Singleton {
     }
 
     function isSaved(ssid) {
-        return savedNames.includes(ssid);
+        return (savedBySsid[ssid] ?? []).length > 0;
     }
 
     function refresh() {
@@ -68,19 +73,23 @@ Singleton {
         errorSsid = "";
         errorText = "";
         connectingSsid = ssid;
-        const saved = isSaved(ssid);
+        const uuids = savedBySsid[ssid] ?? [];
+        const saved = uuids.length > 0;
         connectProc.ssid = ssid;
         connectProc.createdProfile = !saved || !!password;
+        // The profiles there were before, so a failed attempt removes only the one it made
+        connectProc.before = saved && !password ? uuids : [];
 
         if (saved && !password)
-            connectProc.command = ["nmcli", "connection", "up", "id", ssid];
+            connectProc.command = ["nmcli", "connection", "up", "uuid", uuids[0]];
         else if (password)
             connectProc.command = ["nmcli", "device", "wifi", "connect", ssid, "password", password];
         else
             connectProc.command = ["nmcli", "device", "wifi", "connect", ssid];
 
+        // A new password replaces the saved profiles for this network
         if (saved && password) {
-            forgetProc.command = ["nmcli", "connection", "delete", "id", ssid];
+            forgetProc.command = ["nmcli", "connection", "delete", ...uuids.flatMap(u => ["uuid", u])];
             forgetProc.thenConnect = true;
             forgetProc.running = true;
         } else {
@@ -95,8 +104,12 @@ Singleton {
         disconnectProc.running = true;
     }
 
+    // Every saved profile for this network
     function forget(ssid) {
-        forgetProc.command = ["nmcli", "connection", "delete", "id", ssid];
+        const uuids = savedBySsid[ssid] ?? [];
+        if (uuids.length === 0)
+            return;
+        forgetProc.command = ["nmcli", "connection", "delete", ...uuids.flatMap(u => ["uuid", u])];
         forgetProc.thenConnect = false;
         forgetProc.running = true;
     }
@@ -130,13 +143,27 @@ Singleton {
 
     Process {
         id: savedProc
-        command: ["nmcli", "-t", "-f", "NAME,TYPE", "connection", "show"]
+        // Each Wi-Fi profile's UUID and the SSID it joins (nmcli -g escapes ":" and "\\")
+        command: ["sh", "-c", `
+            nmcli -t -f UUID,TYPE connection show | while IFS=: read -r uuid type; do
+                [ "$type" = 802-11-wireless ] || continue
+                printf '%s\\t%s\\n' "$uuid" "$(nmcli -g 802-11-wireless.ssid connection show uuid "$uuid")"
+            done
+        `]
         stdout: StdioCollector {
             onStreamFinished: {
-                root.savedNames = text.split("\n")
-                    .map(l => root.splitFields(l))
-                    .filter(f => f[1] === "802-11-wireless")
-                    .map(f => f[0]);
+                const map = {};
+                for (const line of text.split("\n")) {
+                    const tab = line.indexOf("\t");
+                    if (tab < 0)
+                        continue;
+                    const uuid = line.slice(0, tab);
+                    const ssid = line.slice(tab + 1).replace(/\\(.)/g, "$1");
+                    if (!uuid || !ssid)
+                        continue;
+                    (map[ssid] = map[ssid] ?? []).push(uuid);
+                }
+                root.savedBySsid = map;
             }
         }
     }
@@ -203,6 +230,7 @@ Singleton {
         id: connectProc
         property string ssid: ""
         property bool createdProfile: false
+        property var before: []
 
         stderr: StdioCollector {
             id: connectErr
@@ -213,10 +241,20 @@ Singleton {
                 const err = connectErr.text;
                 root.errorSsid = ssid;
                 root.errorText = /secrets|password|802-1x|psk/i.test(err) ? "Incorrect password" : "Couldn't connect";
-                if (createdProfile)
-                    cleanupProc.command = ["nmcli", "connection", "delete", "id", ssid];
-                if (createdProfile)
+                // The profile this attempt made: one for this SSID that was not there before. By
+                // UUID, never by name, which another network's profile might have
+                if (createdProfile) {
+                    cleanupProc.command = ["sh", "-c", `
+                        ssid="$1"; shift
+                        nmcli -t -f UUID,TYPE connection show | while IFS=: read -r uuid type; do
+                            [ "$type" = 802-11-wireless ] || continue
+                            [ "$(nmcli -g 802-11-wireless.ssid connection show uuid "$uuid" | sed 's/\\\\\\(.\\)/\\1/g')" = "$ssid" ] || continue
+                            case " $* " in *" $uuid "*) continue ;; esac
+                            nmcli connection delete uuid "$uuid"
+                        done
+                    `, "sh", ssid, ...before];
                     cleanupProc.running = true;
+                }
             }
             root.connectingSsid = "";
             root.refresh();
