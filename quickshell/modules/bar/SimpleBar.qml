@@ -166,6 +166,16 @@ PanelWindow {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 12
 
+                // Only over the status cluster: the track keeps its own buttons. Handlers rather
+                // than a MouseArea, which a Row would lay out as one of its items
+                TapHandler {
+                    onTapped: ShellState.panel = !ShellState.panel
+                }
+
+                HoverHandler {
+                    cursorShape: Qt.PointingHandCursor
+                }
+
                 IdleContent {
                     anchors.verticalCenter: parent.verticalCenter
                     date: clock.date
@@ -190,14 +200,6 @@ PanelWindow {
             }
         }
 
-        // Only over the status cluster: the track keeps its own buttons
-        MouseArea {
-            anchors.fill: statusCluster
-            anchors.margins: -6
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: ShellState.panel = !ShellState.panel
-        }
     }
 
     Shadow {

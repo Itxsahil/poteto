@@ -170,19 +170,44 @@ PanelWindow {
             onHoveredChanged: {
                 if (hovered) {
                     closeTimer.stop();
-                    pill.expanded = true;
+                    if (!pill.expanded)
+                        openTimer.restart();
                 } else {
+                    openTimer.stop();
                     closeTimer.restart();
                 }
             }
         }
 
+        // The panel opens once the pointer rests on the pill, not as it passes over the top of
+        // the screen on its way somewhere else
+        Timer {
+            id: openTimer
+            interval: 180
+            onTriggered: pill.expanded = true
+        }
+
+        // A click opens it at once and pins it: it stays when the pointer leaves, until a click
+        // elsewhere or Esc (the same as opening it from the bar)
+        TapHandler {
+            enabled: !pill.showPanel && !pill.viewOpen && !pill.hidden
+            onTapped: {
+                openTimer.stop();
+                ShellState.panel = true;
+            }
+        }
+
         Timer {
             id: closeTimer
-            interval: 250
+            interval: 300
             onTriggered: {
                 if (controlCenter.busy) {
                     restart();
+                    return;
+                }
+                // Pinned with a click: leaving does not close it
+                if (ShellState.panel) {
+                    pill.expanded = false;
                     return;
                 }
                 pill.collapse();

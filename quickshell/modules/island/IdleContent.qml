@@ -12,13 +12,20 @@ Row {
     property bool showClock: true
 
     readonly property int wifiSignal: Wifi.active?.signal ?? 0
+    // Color only when it needs attention: a weak signal, or none. A good connection is plain text,
+    // like the clock beside it
     readonly property color wifiColor: !Wifi.enabled || !Wifi.active ? Theme.signalOff
-        : wifiSignal >= 60 ? Theme.signalStrong
-        : wifiSignal >= 35 ? Theme.signalMedium
-        : Theme.signalWeak
+        : wifiSignal < 35 ? Theme.signalWeak
+        : Theme.textPrimary
+    // The same for the battery: low, critical or charging get their color, the rest is plain
+    readonly property color batteryColor: Battery.charging ? Theme.batteryGood
+        : Battery.level <= 0.15 ? Theme.batteryCritical
+        : Battery.level <= 0.30 ? Theme.batteryLow
+        : Qt.alpha(Theme.textPrimary, 0.85)
 
     spacing: 12
 
+    // Recording: a red dot that pulses, so it reads as live rather than as a status color
     Rectangle {
         anchors.verticalCenter: parent.verticalCenter
         width: 8
@@ -26,6 +33,14 @@ Row {
         radius: 4
         color: Theme.danger
         visible: Recorder.recording || Recorder.finishing
+
+        SequentialAnimation on opacity {
+            running: Recorder.recording
+            loops: Animation.Infinite
+            alwaysRunToEnd: true
+            NumberAnimation { to: 0.35; duration: 700; easing.type: Easing.InOutSine }
+            NumberAnimation { to: 1; duration: 700; easing.type: Easing.InOutSine }
+        }
     }
 
     WifiIcon {
@@ -54,7 +69,7 @@ Row {
         height: 12.7
         visible: Battery.present
         level: Battery.level
-        fillColor: Battery.color
+        fillColor: root.batteryColor
         outlineColor: Qt.alpha(Theme.textPrimary, 0.6)
         boltStroke: Theme.islandBg
         charging: Battery.charging
@@ -73,12 +88,23 @@ Row {
         visible: Pipewire.defaultAudioSource?.audio?.muted ?? false
     }
 
+    // Unread notifications: how many, not just that there are some
     Rectangle {
         anchors.verticalCenter: parent.verticalCenter
-        width: 7
-        height: 7
-        radius: 3.5
+        width: Math.max(height, unreadText.implicitWidth + 10)
+        height: 16
+        radius: height / 2
         color: Theme.accent
         visible: Notifications.unread > 0 && !Notifications.dnd
+
+        Text {
+            id: unreadText
+            anchors.centerIn: parent
+            text: Notifications.unread > 9 ? "9+" : Notifications.unread
+            color: Theme.onAccent
+            font.pixelSize: 10
+            font.weight: Font.Bold
+            font.family: Theme.fontFamily
+        }
     }
 }

@@ -67,10 +67,13 @@ Item {
             textFormat: Text.StyledText
             text: {
                 const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                const artist = Mpd.artist ? `<font color="${Theme.textSecondary}"> · ${esc(Mpd.artist)}</font>` : "";
+                const dim = Qt.alpha(Theme.textPrimary, 0.55);
+                const artist = Mpd.artist ? `<font color="${dim}"> · ${esc(Mpd.artist)}</font>` : "";
                 return esc(Mpd.title) + artist;
             }
-            color: Mpd.playing ? Theme.textPrimary : Theme.textSecondary
+            // Paused: dimmed, but not to the theme's dim text, which some themes (Solitude) make
+            // too faint to read on the pill
+            color: Mpd.playing ? Theme.textPrimary : Qt.alpha(Theme.textPrimary, 0.6)
             font.pixelSize: 12
             font.weight: Font.DemiBold
             font.family: Theme.fontFamily
