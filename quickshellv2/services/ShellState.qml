@@ -9,8 +9,8 @@ Singleton {
     id: root
 
     // "" (nothing), or what is open, from the keyboard or an app: "launcher", "controlcenter",
-    // "clipboard", "wallpaper", "logintheme", "loginvideo" or "polkit" (modules/bar/Views.qml).
-    // Stays until closed.
+    // "clipboard", "emoji", "wallpaper", "logintheme", "loginvideo" or "polkit"
+    // (modules/bar/Views.qml). Stays until closed.
     property string view: ""
 
     // The control center opened by hovering the pill or the bar's clock: closes again shortly

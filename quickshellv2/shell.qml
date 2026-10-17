@@ -71,6 +71,14 @@ ShellRoot {
         function close(): void { ShellState.close("clipboard"); }
     }
 
+    // qs ipc call emoji toggle|open|close (Super + . in hypr/bindings.lua)
+    IpcHandler {
+        target: "emoji"
+        function toggle(): void { ShellState.toggle("emoji"); }
+        function open(): void { ShellState.open("emoji"); }
+        function close(): void { ShellState.close("emoji"); }
+    }
+
     // qs ipc call wallpaper toggle|open|close|random (Alt + W in hypr/bindings.lua)
     IpcHandler {
         target: "wallpaper"
