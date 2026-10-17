@@ -3,12 +3,12 @@ pragma Singleton
 import QtQuick
 import Quickshell
 
-// The on-screen display: what just changed from outside the shell (for now, the brightness keys),
-// shown for a moment in the pill, or in the middle of the bar, by modules/osd/OsdContent.qml.
+// The on-screen display: what just changed (the volume or brightness keys, say), shown for a
+// moment in the pill, or in the middle of the bar, by modules/osd/OsdContent.qml.
 Singleton {
     id: root
 
-    // "brightness"
+    // "volume" or "brightness"
     property string kind: "brightness"
     property bool shown: false
 
@@ -19,6 +19,24 @@ Singleton {
         kind = name;
         shown = true;
         hide.restart();
+    }
+
+    Connections {
+        target: Audio.sink?.audio ?? null
+        function onVolumeChanged() {
+            root.trigger("volume");
+        }
+        function onMutedChanged() {
+            root.trigger("volume");
+        }
+    }
+
+    // A different output (headphones plugged in, say) is not a volume change
+    Connections {
+        target: Audio
+        function onSinkChanged() {
+            startup.restart();
+        }
     }
 
     Connections {

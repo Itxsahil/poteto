@@ -2,20 +2,30 @@ import QtQuick
 import qs.config
 
 // A slider drawn as a row of dots, lit up to the value: "Sound ••••••••······ 62".
-// Drag along it, click anywhere on it, or scroll over it.
+// Drag along it, click anywhere on it, or scroll over it. Dragging and clicking cover 0–100; with
+// a maxValue past 100 only the wheel goes further (so a click never boosts by accident), and the
+// part past 100 laps over the full row in Theme.boost.
 Rectangle {
     id: root
 
     property string label
     // 0–100
     property real value: 0
+    property real maxValue: 100
+    // Off for now (muted): the dots fade and the number gives way to this
+    property bool dimmed: false
+    property string dimmedText: "Off"
+    // The label can be clicked (e.g. to mute); it shows a hover state then
+    property bool labelClickable: false
 
     signal moved(real value)
+    signal labelClicked()
 
     readonly property real dotSize: 4.5
     readonly property real dotGap: 8
     readonly property int dotCount: Math.max(1, Math.floor((dots.width + dotGap) / (dotSize + dotGap)))
-    readonly property int lit: Math.round(value / 100 * dotCount)
+    readonly property int lit: Math.round(Math.min(100, value) / 100 * dotCount)
+    readonly property int boosted: Math.round(Math.max(0, Math.min(100, value - 100)) / 100 * dotCount)
 
     implicitHeight: 34
     radius: height / 2
@@ -61,7 +71,9 @@ Rectangle {
                 width: root.dotSize
                 height: root.dotSize
                 radius: width / 2
-                color: index < root.lit ? Theme.text : Qt.alpha(Theme.text, 0.16)
+                color: index < root.boosted ? Qt.alpha(Theme.boost, root.dimmed ? 0.35 : 1)
+                    : index < root.lit ? Qt.alpha(Theme.text, root.dimmed ? 0.35 : 1)
+                    : Qt.alpha(Theme.text, 0.16)
                 Behavior on color { ColorAnimation { duration: 90 } }
             }
         }
@@ -72,10 +84,10 @@ Rectangle {
         anchors.right: parent.right
         anchors.rightMargin: 14
         anchors.verticalCenter: parent.verticalCenter
-        width: 22
+        width: 28
         horizontalAlignment: Text.AlignRight
-        text: Math.round(root.value)
-        color: Theme.text
+        text: root.dimmed ? root.dimmedText : Math.round(root.value)
+        color: root.dimmed ? Theme.textDim : root.boosted > 0 ? Theme.boost : Theme.text
         font.pixelSize: 13
         font.family: Theme.monoFamily
     }
@@ -87,7 +99,17 @@ Rectangle {
         onPositionChanged: mouse => { if (pressed) root.setFromX(mouse.x); }
     }
 
+    // Above the slider's own mouse area, so a click on the label is not a jump to 0
+    MouseArea {
+        anchors.fill: name
+        anchors.margins: -6
+        enabled: root.labelClickable
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onClicked: root.labelClicked()
+    }
+
     WheelHandler {
-        onWheel: event => root.moved(Math.max(0, Math.min(100, root.value + (event.angleDelta.y > 0 ? 5 : -5))))
+        onWheel: event => root.moved(Math.max(0, Math.min(root.maxValue, root.value + (event.angleDelta.y > 0 ? 5 : -5))))
     }
 }

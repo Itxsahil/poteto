@@ -2,13 +2,21 @@ import QtQuick
 import qs.config
 import qs.services
 
-// What the OSD shows: an icon, a level bar and the value, "󰃠 ━━━━━━━━──── 72%". No surface of its
+// What the OSD shows: an icon, a level bar and the value, "󰕾 ━━━━━━━━──── 72%". Volume past 100%
+// fills the bar and laps over it in Theme.boost; muted fades it and says so. No surface of its
 // own; the pill grows around it, and the bar puts it where the time is.
 Item {
     id: root
 
-    readonly property real level: Osd.kind === "brightness" ? Brightness.percent / 100 : 0
-    readonly property string glyph: Osd.kind === "brightness" ? "󰃠" : ""
+    readonly property bool isVolume: Osd.kind === "volume"
+    readonly property real percent: isVolume ? Audio.percent : Brightness.percent
+    readonly property bool dimmed: isVolume && Audio.muted
+    readonly property real boost: Math.max(0, Math.min(100, percent - 100)) / 100
+    readonly property string glyph: !isVolume ? "󰃠"
+        : Audio.muted || percent === 0 ? "󰝟"
+        : percent < 34 ? "󰕿"
+        : percent < 67 ? "󰖀"
+        : "󰕾"
 
     implicitWidth: 220
     implicitHeight: 22
@@ -20,7 +28,7 @@ Item {
         width: 18
         horizontalAlignment: Text.AlignHCenter
         text: root.glyph
-        color: Theme.text
+        color: root.dimmed ? Theme.textDim : Theme.text
         font.pixelSize: 15
         font.family: Theme.monoFamily
     }
@@ -29,10 +37,10 @@ Item {
         id: value
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
-        width: 36
+        width: 40
         horizontalAlignment: Text.AlignRight
-        text: Math.round(root.level * 100) + "%"
-        color: Theme.text
+        text: root.dimmed ? "Mute" : Math.round(root.percent) + "%"
+        color: root.dimmed ? Theme.textDim : root.boost > 0 ? Theme.boost : Theme.text
         font.pixelSize: 12
         font.weight: Font.DemiBold
         font.family: Theme.monoFamily
@@ -52,9 +60,23 @@ Item {
             anchors.left: parent.left
             anchors.top: parent.top
             anchors.bottom: parent.bottom
-            width: parent.width * Math.max(0, Math.min(1, root.level))
+            width: parent.width * Math.max(0, Math.min(1, root.percent / 100))
             radius: parent.radius
             color: Theme.text
+            opacity: root.dimmed ? 0.4 : 1
+            Behavior on width { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+        }
+
+        // The second lap, past 100%
+        Rectangle {
+            anchors.left: parent.left
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            width: parent.width * root.boost
+            visible: root.boost > 0
+            radius: parent.radius
+            color: Theme.boost
+            opacity: root.dimmed ? 0.4 : 1
             Behavior on width { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
         }
     }

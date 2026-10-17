@@ -30,6 +30,15 @@ Singleton {
     readonly property color accent: c("accent", "#0a84ff")
     readonly property color onAccent: c("onAccent", "#ffffff")
     readonly property color danger: c("danger", "#ff453a")
+    // Volume past 100%: the second lap drawn over a full bar. The theme's caution color, unless
+    // it is too close to the text color the bar is drawn in (monochrome themes like Solitude):
+    // then danger.
+    readonly property color boost: {
+        const caution = c("caution", "#ff9f0a");
+        const t = text;
+        const distance = Math.abs(caution.r - t.r) + Math.abs(caution.g - t.g) + Math.abs(caution.b - t.b);
+        return distance >= 0.5 ? caution : danger;
+    }
     readonly property color controlHover: c("controlHover", "#3a3a3c")
     // A solid button, e.g. the selected mode in the screenshot toolbar, and what is drawn on it
     readonly property color fill: c("fill", "#ffffff")

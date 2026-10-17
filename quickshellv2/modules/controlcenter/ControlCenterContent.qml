@@ -8,9 +8,10 @@ import qs.services
 //
 // Mostly a design for now: Wi-Fi (services/Wifi.qml; its label or a right click opens the Wi-Fi
 // menu, WifiPage.qml), Dark (the desktop's light/dark mode, Config.mode), Night (night light,
-// services/NightLight.qml), the Screen slider (services/Brightness.qml) and the settings button
-// (opens Poteto) are real. Every other toggle, slider and button changes only what is drawn
-// here; none of it reaches Bluetooth, audio, the player or the session yet.
+// services/NightLight.qml), the Sound slider (services/Audio.qml; click "Sound" to mute), the
+// Screen slider (services/Brightness.qml) and the settings button (opens Poteto) are real. Every
+// other toggle and button changes only what is drawn here; none of it reaches Bluetooth, the
+// player or the session yet.
 Item {
     id: root
 
@@ -19,7 +20,6 @@ Item {
 
     // Stand-in state, so the controls can be tried
     property var toggles: ({ bluetooth: false, quiet: false, awake: false, airplane: false })
-    property real sound: 62
     property bool playing: true
 
     signal closeRequested()
@@ -164,8 +164,13 @@ Item {
         DotSlider {
             width: parent.width
             label: "Sound"
-            value: root.sound
-            onMoved: v => root.sound = v
+            visible: Audio.available
+            value: Audio.percent
+            maxValue: Audio.maxPercent
+            dimmed: Audio.muted
+            labelClickable: true
+            onMoved: v => Audio.setPercent(v)
+            onLabelClicked: Audio.toggleMute()
         }
 
         DotSlider {
