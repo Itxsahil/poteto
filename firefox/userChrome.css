@@ -1,23 +1,30 @@
 /* poteto — clean, minimal Firefox
  *
- * Neutral dark chrome that sits quietly next to the desktop: compact, rounded, no borders,
- * and only the buttons that earn their place. Pairs with user.js (dark mode, compact density,
- * bookmarks bar on the new tab page only).
+ * Neutral chrome that sits quietly next to the desktop: compact, rounded, no borders, and
+ * only the buttons that earn their place. The page floats as a rounded card under the toolbars.
+ * Dark or light with the system (the shell's light/dark mode), live; focus and selection use
+ * the desktop's accent color (AccentColor comes from GTK, which the shell's accent setting
+ * writes). Pairs with user.js (compact density, bookmarks bar on the new tab page only).
  */
 
 :root {
-    --poteto-bg: #181818;
-    --poteto-surface: #222222;
-    --poteto-raised: #2c2c2c;
+    --poteto-bg: #161616;
+    --poteto-surface: #232323;
+    --poteto-raised: #2d2d2d;
     --poteto-hover: #333333;
-    --poteto-text: #e0e0e0;
-    --poteto-dim: #8c8c8c;
+    --poteto-text: #e4e4e4;
+    --poteto-dim: #8e8e8e;
+    --poteto-line: #3a3a3a;
+    --poteto-shadow: rgba(0, 0, 0, 0.45);
     --poteto-radius: 10px;
+    /* fields (the address bar and what is inside it): square, barely rounded */
+    --poteto-field-radius: 4px;
+    --poteto-gap: 6px;
 
     --toolbar-bgcolor: var(--poteto-bg) !important;
     --toolbar-color: var(--poteto-text) !important;
     --toolbar-field-background-color: var(--poteto-surface) !important;
-    --toolbar-field-focus-background-color: var(--poteto-raised) !important;
+    --toolbar-field-focus-background-color: var(--poteto-surface) !important;
     --toolbar-field-color: var(--poteto-text) !important;
     --toolbar-field-focus-color: var(--poteto-text) !important;
     --toolbar-field-border-color: transparent !important;
@@ -27,38 +34,97 @@
     --lwt-accent-color: var(--poteto-bg) !important;
     --lwt-text-color: var(--poteto-text) !important;
     --chrome-content-separator-color: transparent !important;
-    --focus-outline-color: #555555 !important;
+    --focus-outline-color: AccentColor !important;
+    --urlbar-min-height: 34px !important;
+    --urlbar-border-radius: var(--poteto-field-radius) !important;
+    --toolbarbutton-border-radius: var(--poteto-field-radius) !important;
+    /* the chips inside the address bar (search engine, site info): no grey button */
+    --urlbar-box-background-color: transparent !important;
+    --urlbar-box-background-color-focus: transparent !important;
+    --urlbar-box-background-color-hover: var(--poteto-hover) !important;
+    --urlbar-box-background-color-active: var(--poteto-hover) !important;
+    --tab-min-height: 32px !important;
 }
 
-/* one flat surface: no lines between tabs, toolbar and page */
+/* the same, light, when the system is in light mode */
+@media (prefers-color-scheme: light) {
+    :root {
+        --poteto-bg: #ececec;
+        --poteto-surface: #ffffff;
+        --poteto-raised: #ffffff;
+        --poteto-hover: #dedede;
+        --poteto-text: #1d1d1d;
+        --poteto-dim: #6b6b6b;
+        --poteto-line: #d4d4d4;
+        --poteto-shadow: rgba(0, 0, 0, 0.12);
+        --toolbar-field-background-color: #e0e0e0 !important;
+    }
+}
+
+/* ---- one flat surface: no lines between tabs, toolbar and page ---- */
+
 #navigator-toolbox {
     background: var(--poteto-bg) !important;
     border-bottom: none !important;
+    padding-inline: var(--poteto-gap) !important;
 }
 
 #nav-bar,
 #PersonalToolbar,
 #TabsToolbar {
-    background: var(--poteto-bg) !important;
+    background: transparent !important;
     border: none !important;
     box-shadow: none !important;
+}
+
+/* the page as a rounded card, inset from the window edges */
+#browser {
+    background: var(--poteto-bg) !important;
+}
+
+#tabbrowser-tabbox {
+    margin: 0 var(--poteto-gap) var(--poteto-gap) !important;
+    border-radius: var(--poteto-radius) !important;
+    overflow: hidden !important;
+    box-shadow: 0 1px 4px var(--poteto-shadow) !important;
 }
 
 /* ---- tabs ---- */
 
+#TabsToolbar {
+    padding-top: 4px !important;
+}
+
+.tabbrowser-tab {
+    padding-inline: 2px !important;
+}
+
 .tab-background {
     border-radius: var(--poteto-radius) !important;
-    margin-block: 4px !important;
+    margin-block: 3px !important;
     box-shadow: none !important;
     border: none !important;
+    outline: none !important;
+}
+
+.tabbrowser-tab[selected] .tab-background {
+    box-shadow: 0 1px 3px var(--poteto-shadow) !important;
 }
 
 .tabbrowser-tab:not([selected]):hover .tab-background {
-    background: var(--poteto-surface) !important;
+    background: var(--poteto-hover) !important;
+}
+
+.tab-content {
+    padding-inline: 10px !important;
 }
 
 .tabbrowser-tab:not([selected]) .tab-label {
     color: var(--poteto-dim) !important;
+}
+
+.tab-label {
+    font-size: 12.5px !important;
 }
 
 /* close buttons only where you are about to use them */
@@ -66,26 +132,114 @@
     display: none !important;
 }
 
+.tab-close-button {
+    border-radius: 6px !important;
+}
+
 .tabbrowser-tab::after,
 .tabbrowser-tab::before {
     border: none !important;
 }
 
+#tabs-newtab-button > .toolbarbutton-icon,
+#new-tab-button > .toolbarbutton-icon {
+    border-radius: 8px !important;
+}
+
 /* ---- address bar ---- */
 
-#urlbar-background {
-    border-radius: var(--poteto-radius) !important;
+#nav-bar {
+    padding-block: 2px 4px !important;
+}
+
+#urlbar,
+#urlbar-background,
+#searchbar {
+    border-radius: var(--poteto-field-radius) !important;
     border: none !important;
     box-shadow: none !important;
 }
 
 #urlbar[focused] #urlbar-background {
-    outline: 1px solid #3a3a3a !important;
+    background: var(--poteto-surface) !important;
+    outline: 2px solid AccentColor !important;
+    outline-offset: -1px !important;
+}
+
+/* the dropdown under it */
+#urlbar[open] #urlbar-background {
+    box-shadow: 0 4px 16px var(--poteto-shadow) !important;
+}
+
+.urlbarView-row[selected] .urlbarView-row-inner,
+.urlbarView-row:hover .urlbarView-row-inner {
+    border-radius: 8px !important;
+}
+
+.urlbarView-row[selected] .urlbarView-row-inner {
+    background: AccentColor !important;
+    color: AccentColorText !important;
+}
+
+.urlbarView-row[selected] .urlbarView-url,
+.urlbarView-row[selected] .urlbarView-action,
+.urlbarView-row[selected] .urlbarView-title-separator {
+    color: AccentColorText !important;
+    opacity: 0.85 !important;
 }
 
 #urlbar-input::placeholder {
     color: var(--poteto-dim) !important;
     opacity: 1 !important;
+}
+
+/* the site / search engine chip at the start: just its icon, no grey button */
+#identity-box,
+#identity-icon-box,
+#identity-permission-box,
+.searchmode-switcher,
+#urlbar-searchmode-switcher {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+.searchmode-switcher {
+    --button-background-color: transparent !important;
+    --button-background-color-hover: var(--poteto-hover) !important;
+}
+
+.searchmode-switcher::part(button) {
+    background-color: transparent !important;
+    border-radius: var(--poteto-field-radius) !important;
+}
+
+#identity-box,
+#identity-icon-box,
+#identity-permission-box,
+#urlbar .urlbar-icon,
+#urlbar-go-button {
+    border-radius: var(--poteto-field-radius) !important;
+}
+
+/* whatever the switcher is called in this Firefox, and whatever paints its pill */
+#urlbar [id*="searchmode-switcher"],
+#urlbar [class*="searchmode-switcher"],
+#urlbar [id*="searchmode-switcher"]::part(button),
+#urlbar [class*="searchmode-switcher"]::part(button) {
+    background: transparent !important;
+    background-color: transparent !important;
+    border-radius: var(--poteto-field-radius) !important;
+}
+
+.searchmode-switcher:hover::part(button) {
+    background-color: var(--poteto-hover) !important;
+}
+
+.searchmode-switcher-dropmarker,
+#searchmode-switcher-dropmarker,
+#identity-icon-label {
+    display: none !important;
 }
 
 /* ---- clutter ---- */
@@ -94,7 +248,6 @@
 #sidebar-button,                      /* sidebar toggle (Ctrl+B still opens bookmarks) */
 #alltabs-button,                      /* tab list dropdown */
 #fxa-toolbar-menu-button,             /* account */
-#urlbar-searchmode-switcher,          /* search engine picker inside the address bar */
 #import-button,                       /* "Import bookmarks..." */
 .titlebar-buttonbox-container,        /* window close: Hyprland manages windows */
 .titlebar-spacer,
@@ -104,22 +257,56 @@
     display: none !important;
 }
 
-/* toolbar buttons: flat, rounded, no background until hovered */
+/* ---- toolbar buttons: flat, rounded, no background until hovered ---- */
+
 toolbarbutton .toolbarbutton-icon,
 toolbarbutton .toolbarbutton-badge-stack {
     border-radius: 8px !important;
 }
 
 #nav-bar toolbarbutton:not([disabled]):hover > .toolbarbutton-icon,
-#nav-bar toolbarbutton:not([disabled]):hover > .toolbarbutton-badge-stack {
+#nav-bar toolbarbutton:not([disabled]):hover > .toolbarbutton-badge-stack,
+#TabsToolbar toolbarbutton:not([disabled]):hover > .toolbarbutton-icon {
     background: var(--poteto-hover) !important;
 }
 
-/* bookmarks bar: dim labels, no chunky folders */
+/* ---- bookmarks bar: airy, dim labels, a rounded hover ---- */
+
+#PersonalToolbar {
+    padding: 0 2px 4px !important;
+}
+
+#PersonalToolbar toolbarbutton.bookmark-item {
+    padding: 3px 8px !important;
+    margin-inline: 1px !important;
+    border-radius: 8px !important;
+}
+
+#PersonalToolbar toolbarbutton.bookmark-item:hover {
+    background: var(--poteto-hover) !important;
+}
+
 #PersonalToolbar .toolbarbutton-text {
     color: var(--poteto-dim) !important;
+    font-size: 12px !important;
 }
 
 #PersonalToolbar toolbarbutton:hover .toolbarbutton-text {
     color: var(--poteto-text) !important;
+}
+
+/* ---- menus and popups: rounded, accent hover ---- */
+
+menupopup,
+panel {
+    --panel-border-radius: var(--poteto-radius) !important;
+}
+
+menupopup > menuitem:hover,
+menupopup > menu:hover,
+menupopup > menu[_moz-menuactive],
+menupopup > menuitem[_moz-menuactive] {
+    background-color: AccentColor !important;
+    color: AccentColorText !important;
+    border-radius: 6px !important;
 }

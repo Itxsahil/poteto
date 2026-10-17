@@ -1,0 +1,22 @@
+/* poteto — Firefox's own pages (new tab, home): square fields to match userChrome.css */
+
+@-moz-document url("about:newtab"), url("about:home"), url("about:privatebrowsing") {
+    /* the search box in the middle of the page */
+    .search-wrapper .search-handoff-button,
+    .search-wrapper .search-inner-wrapper,
+    .search-wrapper input,
+    .search-handoff-button,
+    .fake-editable,
+    content-search-handoff-ui,
+    .search-inner-wrapper {
+        border-radius: 4px !important;
+    }
+
+    /* shortcuts and widgets: a little rounded, not bubbly */
+    .top-site-outer .tile,
+    .top-site-outer .top-site-icon,
+    .card-outer,
+    .ds-card {
+        border-radius: 6px !important;
+    }
+}

@@ -6,9 +6,13 @@
 // load chrome/userChrome.css
 user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);
 
-// dark chrome and dark web content, whatever the GTK theme says
-user_pref("ui.systemUsesDarkTheme", 1);
-user_pref("layout.css.prefers-color-scheme.content-override", 0);
+// websites follow Firefox, and Firefox follows the system's light/dark mode, live
+// (0 = always dark, 1 = always light, 2 = follow)
+user_pref("layout.css.prefers-color-scheme.content-override", 2);
+
+// AccentColor (focus rings, selections, and userChrome.css) from the GTK theme, which carries
+// the shell's accent color, instead of Firefox's own blue
+user_pref("widget.non-native-theme.use-theme-accent", true);
 
 // compact density
 user_pref("browser.compactmode.show", true);
