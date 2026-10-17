@@ -7,5 +7,5 @@ Exec=poteto-settings
 Icon=dev.poteto.Settings
 Terminal=false
 Categories=Settings;
-Keywords=poteto;quickshell;shell;settings;bar;pill;layout;config;dark;light;mode;theme;
+Keywords=poteto;quickshell;shell;settings;bar;pill;layout;config;dark;light;mode;theme;night;nightlight;warmth;
 StartupWMClass=dev.poteto.Settings

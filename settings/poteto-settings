@@ -20,6 +20,10 @@ APP_ID = "dev.poteto.Settings"
 CONFIG = Path(GLib.get_user_config_dir()) / "poteto" / "shell.json"
 STYLES = ("pill", "bar")
 MODES = ("dark", "light")
+# Night light warmth in kelvin: the range the shell accepts, the slider's, and the default
+NIGHT_MIN, NIGHT_MAX = 1000, 6500
+SLIDER_MIN = 2000
+NIGHT_DEFAULT = 4000
 
 
 def load():
@@ -46,10 +50,17 @@ def current_mode(data):
     return data.get("mode") if data.get("mode") in MODES else "dark"
 
 
+def current_temperature(data):
+    value = data.get("nightTemperature")
+    if not isinstance(value, (int, float)) or isinstance(value, bool):
+        return NIGHT_DEFAULT
+    return max(NIGHT_MIN, min(NIGHT_MAX, round(value)))
+
+
 class SettingsWindow(Adw.ApplicationWindow):
     def __init__(self, app):
         super().__init__(application=app, title="Poteto")
-        self.set_default_size(560, 420)
+        self.set_default_size(560, 480)
         # True while the window itself is updating a control, so that does not write back
         self._syncing = False
 
@@ -82,6 +93,32 @@ class SettingsWindow(Adw.ApplicationWindow):
         row.add_suffix(self.mode_toggle)
         appearance.add(row)
 
+        night = Adw.PreferencesGroup(title="Night Light")
+        page.add(night)
+
+        self.night_switch = Adw.SwitchRow(
+            title="Night Light",
+            subtitle="Warmer colors, easier on the eyes at night",
+        )
+        self.night_switch.connect("notify::active", self._on_night_changed)
+        night.add(self.night_switch)
+
+        # Right is warmer, which means fewer kelvin. The scale itself runs forwards, so it fills
+        # from the left as it warms, and its position is turned into kelvin (see _warmth)
+        self.warmth = Gtk.Scale.new_with_range(Gtk.Orientation.HORIZONTAL, SLIDER_MIN, NIGHT_MAX, 100)
+        self.warmth.set_draw_value(False)
+        self.warmth.set_hexpand(True)
+        self.warmth.set_size_request(220, -1)
+        self.warmth.set_valign(Gtk.Align.CENTER)
+        self.warmth.connect("value-changed", self._on_warmth_changed)
+
+        self.warmth_row = Adw.ActionRow(title="Warmth")
+        self.warmth_row.add_prefix(Gtk.Image(icon_name="weather-clear-symbolic"))
+        self.warmth_row.add_suffix(self.warmth)
+        night.add(self.warmth_row)
+        # Dragging writes the file once it pauses, not on every step
+        self._warmth_write = 0
+
         toolbar = Adw.ToolbarView()
         toolbar.add_top_bar(Adw.HeaderBar())
         toolbar.set_content(page)
@@ -98,17 +135,52 @@ class SettingsWindow(Adw.ApplicationWindow):
         for toggle, value in ((self.style_toggle, current_style(data)), (self.mode_toggle, current_mode(data))):
             if toggle.get_active_name() != value:
                 toggle.set_active_name(value)
+        night = data.get("nightLight") is True
+        if self.night_switch.get_active() != night:
+            self.night_switch.set_active(night)
+        # Not while a drag is still waiting to be written, or the slider would jump back
+        if not self._warmth_write:
+            temperature = current_temperature(data)
+            if self._warmth() != temperature:
+                self.warmth.set_value(NIGHT_MAX + SLIDER_MIN - temperature)
+            self._show_warmth(temperature)
         self._syncing = False
 
-    def _on_changed(self, toggle, _pspec, key):
-        if self._syncing:
-            return
-        value = toggle.get_active_name()
+    def _set(self, key, value):
         data = load()
         if data.get(key) == value:
             return
         data[key] = value
         save(data)
+
+    def _on_changed(self, toggle, _pspec, key):
+        if not self._syncing:
+            self._set(key, toggle.get_active_name())
+
+    def _on_night_changed(self, row, _pspec):
+        if not self._syncing:
+            self._set("nightLight", row.get_active())
+
+    def _show_warmth(self, temperature):
+        self.warmth_row.set_subtitle(f"{temperature} K, lower is warmer")
+
+    def _warmth(self):
+        """The slider's position in kelvin: left is NIGHT_MAX, right is SLIDER_MIN. A drag lands
+        anywhere, so this keeps to steps of 100 K."""
+        return round((NIGHT_MAX + SLIDER_MIN - self.warmth.get_value()) / 100) * 100
+
+    def _on_warmth_changed(self, scale):
+        self._show_warmth(self._warmth())
+        if self._syncing:
+            return
+        if self._warmth_write:
+            GLib.source_remove(self._warmth_write)
+        self._warmth_write = GLib.timeout_add(150, self._write_warmth)
+
+    def _write_warmth(self):
+        self._warmth_write = 0
+        self._set("nightTemperature", self._warmth())
+        return GLib.SOURCE_REMOVE
 
     def _on_file_changed(self, _monitor, _file, _other, event):
         if event in (Gio.FileMonitorEvent.CHANGES_DONE_HINT, Gio.FileMonitorEvent.CREATED,

@@ -216,7 +216,7 @@ hl.window_rule({
         class = "dev.poteto.Settings",
     },
     float = true,
-    size = "560 420",
+    size = "560 480",
 })
 
 -- Gesture settings

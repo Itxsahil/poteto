@@ -22,6 +22,11 @@ Singleton {
     // The themes/<id>/ whose colors the shell uses in light mode; dark mode keeps the active theme
     readonly property string lightTheme: typeof data.lightTheme === "string" ? data.lightTheme : "catppuccin-latte"
 
+    // Night light (services/NightLight.qml): on or off, and how warm, in kelvin
+    readonly property bool nightLight: data.nightLight === true
+    readonly property int nightTemperature: typeof data.nightTemperature === "number"
+        ? Math.max(1000, Math.min(6500, Math.round(data.nightTemperature))) : 4000
+
     function set(key, value) {
         const updated = Object.assign({}, data);
         updated[key] = value;
@@ -45,6 +50,10 @@ Singleton {
 
     function toggleMode() {
         setMode(mode === "dark" ? "light" : "dark");
+    }
+
+    function setNightLight(on) {
+        set("nightLight", !!on);
     }
 
     // setText does not create the folder

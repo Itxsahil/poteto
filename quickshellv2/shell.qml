@@ -8,9 +8,12 @@ import qs.modules.bar
 import qs.modules.screenshot
 
 ShellRoot {
-    // Singletons start when first used; Appearance has no UI, so start it here (it applies the
-    // saved mode once, then follows changes)
-    Component.onCompleted: Appearance.apply()
+    // Singletons start when first used. These have no UI, so start them here: each one applies
+    // its saved setting once (light/dark mode, night light), then follows changes.
+    Component.onCompleted: {
+        Appearance.apply();
+        NightLight.apply();
+    }
 
     // qs ipc call layout toggle|pill|bar|status
     IpcHandler {
@@ -28,6 +31,15 @@ ShellRoot {
         function dark(): string { Config.setMode("dark"); return Config.mode; }
         function light(): string { Config.setMode("light"); return Config.mode; }
         function status(): string { return Config.mode; }
+    }
+
+    // qs ipc call nightlight toggle|on|off|status
+    IpcHandler {
+        target: "nightlight"
+        function toggle(): bool { NightLight.toggle(); return Config.nightLight; }
+        function on(): bool { Config.setNightLight(true); return true; }
+        function off(): bool { Config.setNightLight(false); return false; }
+        function status(): bool { return Config.nightLight; }
     }
 
     // qs ipc call launcher toggle|open|close (Alt + Space in hypr/bindings.lua)

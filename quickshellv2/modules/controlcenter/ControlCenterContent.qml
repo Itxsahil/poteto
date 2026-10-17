@@ -6,9 +6,9 @@ import qs.services
 // panel drops down from the bar in bar mode.
 //
 // Mostly a design for now: Wi-Fi (services/Wifi.qml; its label or a right click opens the Wi-Fi
-// menu, WifiPage.qml) and Dark (the desktop's light/dark mode, Config.mode) are real. Every other
-// toggle, slider and button changes only what is drawn here; none of it reaches Bluetooth, audio,
-// brightness, the player or the session yet.
+// menu, WifiPage.qml), Dark (the desktop's light/dark mode, Config.mode) and Night (night light,
+// services/NightLight.qml) are real. Every other toggle, slider and button changes only what is
+// drawn here; none of it reaches Bluetooth, audio, brightness, the player or the session yet.
 Item {
     id: root
 
@@ -16,7 +16,7 @@ Item {
     readonly property string page: ShellState.page
 
     // Stand-in state, so the controls can be tried
-    property var toggles: ({ wifi: true, bluetooth: false, quiet: false, night: true, awake: false, airplane: false })
+    property var toggles: ({ bluetooth: false, quiet: false, awake: false, airplane: false })
     property real sound: 62
     property real screen: 80
     property bool playing: true
@@ -96,6 +96,7 @@ Item {
                     readonly property bool isWifi: modelData.id === "wifi"
                     readonly property bool isOn: isWifi ? Wifi.enabled
                         : modelData.id === "dark" ? Config.mode === "dark"
+                        : modelData.id === "night" ? NightLight.enabled
                         : root.toggles[modelData.id] ?? false
 
                     width: toggleRow.width / toggleRow.items.length
@@ -107,6 +108,7 @@ Item {
                         on: toggle.isOn
                         onClicked: toggle.isWifi ? Wifi.setEnabled(!Wifi.enabled)
                             : toggle.modelData.id === "dark" ? Config.toggleMode()
+                            : toggle.modelData.id === "night" ? NightLight.toggle()
                             : root.flip(toggle.modelData.id)
                         onSecondaryClicked: {
                             if (toggle.isWifi)
