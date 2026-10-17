@@ -68,8 +68,10 @@ Singleton {
         let c = Qt.color(color);
         const darker = luminance(Qt.color(bg)) > 0.5;
         let l = c.hslLightness;
-        while (contrast(c, bg) < target && l > 0.02 && l < 0.98) {
-            l += darker ? -0.01 : 0.01;
+        // Bounded only at the end it moves toward: black on a dark background has to be able to
+        // lighten from 0, and white on a light one to darken from 1
+        while (contrast(c, bg) < target && (darker ? l > 0 : l < 1)) {
+            l = Math.max(0, Math.min(1, l + (darker ? -0.01 : 0.01)));
             // (a gray has no hue: -1)
             c = Qt.hsla(Math.max(0, c.hslHue), c.hslSaturation, l, 1);
         }

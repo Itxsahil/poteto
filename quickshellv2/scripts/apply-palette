@@ -69,8 +69,10 @@ def readable(color, bg, target):
     """color, its lightness moved away from bg's until the two have `target` contrast."""
     h, l, s = colorsys.rgb_to_hls(*rgb(color))
     step = -0.01 if lum(bg) > 0.5 else 0.01
-    while contrast(color, bg) < target and 0.02 < l < 0.98:
-        l += step
+    # Bounded only at the end it moves toward: black on a dark background has to be able to
+    # lighten from 0, and white on a light one to darken from 1
+    while contrast(color, bg) < target and (l > 0 if step < 0 else l < 1):
+        l = max(0.0, min(1.0, l + step))
         color = hexc(colorsys.hls_to_rgb(h, l, s))
     return color
 
