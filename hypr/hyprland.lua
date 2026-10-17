@@ -192,6 +192,14 @@ hl.config({
 })
 
 -- Environment variables
+-- ~/.local/bin on PATH for everything started from Hyprland and the shell (the launcher, keybinds,
+-- poteto-settings); a login through a display manager does not add it. Only once, so a reload
+-- does not keep prepending it.
+local local_bin = os.getenv("HOME") .. "/.local/bin"
+local path = os.getenv("PATH") or "/usr/local/bin:/usr/bin"
+if not (":" .. path .. ":"):find(":" .. local_bin .. ":", 1, true) then
+    hl.env("PATH", local_bin .. ":" .. path)
+end
 hl.env("__GL_GSYNC_ALLOWED", "0")
 hl.env("__GL_VRR_ALLOWED", "0")
 -- Qt apps take light or dark from the desktop portal, live, like GTK apps do
