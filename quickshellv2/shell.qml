@@ -71,6 +71,14 @@ ShellRoot {
         function notifications(): void { ShellState.openPage("notifications"); }
     }
 
+    // qs ipc call keybinds toggle|open|close (Alt + / in hypr/bindings.lua)
+    IpcHandler {
+        target: "keybinds"
+        function toggle(): void { ShellState.toggle("keybinds"); }
+        function open(): void { ShellState.open("keybinds"); }
+        function close(): void { ShellState.close("keybinds"); }
+    }
+
     // qs ipc call clipboard toggle|open|close (Super + V in hypr/bindings.lua)
     IpcHandler {
         target: "clipboard"
