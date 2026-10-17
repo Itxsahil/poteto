@@ -8,8 +8,9 @@ import Quickshell
 Singleton {
     id: root
 
-    // "" (nothing), "launcher", "controlcenter" or "wallpaper", opened from the keyboard: stays
-    // until closed
+    // "" (nothing), or what is open, from the keyboard or an app: "launcher", "controlcenter",
+    // "wallpaper", "logintheme", "loginvideo" or "polkit" (modules/bar/Views.qml). Stays until
+    // closed.
     property string view: ""
 
     // The control center opened by hovering the pill or the bar's clock: closes again shortly
@@ -20,8 +21,6 @@ Singleton {
     // control center has faded out (ControlCenterContent.qml)
     property string page: "main"
 
-    readonly property bool launcherOpen: view === "launcher"
-    readonly property bool wallpaperOpen: view === "wallpaper"
     readonly property bool controlCenterOpen: view === "controlcenter" || (peek && view === "")
 
     function toggle(name) {

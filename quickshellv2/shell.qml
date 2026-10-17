@@ -15,6 +15,8 @@ ShellRoot {
         Appearance.apply();
         NightLight.apply();
         Osd.shown;
+        // The polkit agent has to be registered before anything asks, not on first use
+        Polkit.registered;
     }
 
     // qs ipc call layout toggle|pill|bar|status
@@ -68,6 +70,26 @@ ShellRoot {
         function open(): void { ShellState.open("wallpaper"); }
         function close(): void { ShellState.close("wallpaper"); }
         function random(): void { Wallpaper.applyRandom(); }
+    }
+
+    // qs ipc call logintheme toggle|open|close|apply <id>|current|list (Alt + Shift + T)
+    IpcHandler {
+        target: "logintheme"
+        function toggle(): void { ShellState.toggle("logintheme"); }
+        function open(): void { ShellState.open("logintheme"); }
+        function close(): void { ShellState.close("logintheme"); }
+        function apply(id: string): void { LoginTheme.apply(id); }
+        function current(): string { return LoginTheme.active; }
+        function list(): string { return LoginTheme.themes.map(t => t.id).join("\n"); }
+    }
+
+    // qs ipc call loginvideo toggle|open|close|current (Alt + Shift + W)
+    IpcHandler {
+        target: "loginvideo"
+        function toggle(): void { ShellState.toggle("loginvideo"); }
+        function open(): void { ShellState.open("loginvideo"); }
+        function close(): void { ShellState.close("loginvideo"); }
+        function current(): string { return LoginVideo.current; }
     }
 
     // qs ipc call screenshot region|window|screen|cancel (Super + Shift + 4 / 3 in hypr/bindings.lua)

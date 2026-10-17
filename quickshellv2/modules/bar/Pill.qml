@@ -4,14 +4,11 @@ import Quickshell.Wayland
 import Quickshell.Hyprland
 import qs.config
 import qs.services
-import qs.modules.launcher
-import qs.modules.controlcenter
 import qs.modules.osd
-import qs.modules.wallpaper
 
 // The floating layout: the time in a rounded pill at the top center of the screen. The same pill
-// grows into whatever is opened — the launcher (Alt + Space), the control center (hover it, or
-// Super + C) or the wallpaper picker (Alt + W) — and shrinks back when it closes.
+// grows into whatever is opened (Views.qml: the launcher, the control center, the pickers, the
+// password prompt) and shrinks back when it closes.
 PanelWindow {
     id: window
 
@@ -22,10 +19,12 @@ PanelWindow {
     readonly property int pillHeight: 30
 
     readonly property bool focusedScreen: Hyprland.focusedMonitor?.name === targetScreen.name
-    readonly property bool showLauncher: ShellState.launcherOpen && focusedScreen
-    readonly property bool showControlCenter: ShellState.controlCenterOpen && focusedScreen && !showLauncher
-    readonly property bool showWallpaper: ShellState.wallpaperOpen && focusedScreen
-    readonly property bool expanded: showLauncher || showControlCenter || showWallpaper
+    // The view this pill shows: whatever is open, on the focused screen only
+    readonly property string current: !focusedScreen ? ""
+        : ShellState.view !== "" ? ShellState.view
+        : ShellState.controlCenterOpen ? "controlcenter"
+        : ""
+    readonly property bool expanded: views.item !== null
     // A change from outside, e.g. the brightness keys: the pill widens into a level bar for a
     // moment. Only on the focused screen, and never over something that is open.
     readonly property bool showOsd: Osd.shown && focusedScreen && !expanded
@@ -36,9 +35,8 @@ PanelWindow {
     anchors.top: true
     // Room for the pill at its largest. Only the pill itself takes input, and only its resting
     // height is reserved, so windows never move when it grows.
-    implicitWidth: Math.max(launcher.implicitWidth, controlCenter.implicitWidth, wallpaper.implicitWidth) + 60
-    implicitHeight: gapTop + Math.max(launcher.maxRows * launcher.rowHeight + 120, controlCenter.implicitHeight + 60,
-        wallpaper.implicitHeight + 60)
+    implicitWidth: views.maxWidth + 40
+    implicitHeight: gapTop + views.maxHeight + 40
     exclusiveZone: gapTop + pillHeight
     color: "transparent"
 
@@ -81,15 +79,10 @@ PanelWindow {
 
         anchors.horizontalCenter: parent.horizontalCenter
         y: window.gapTop
-        width: window.showLauncher ? launcher.implicitWidth + 20
-            : window.showWallpaper ? wallpaper.implicitWidth + 20
-            : window.showControlCenter ? controlCenter.implicitWidth + 28
+        width: window.expanded ? views.wantedWidth
             : window.showOsd ? osd.implicitWidth + 28
             : time.implicitWidth + 80
-        height: window.showLauncher ? launcher.implicitHeight + 12
-            : window.showWallpaper ? wallpaper.implicitHeight + 20
-            : window.showControlCenter ? controlCenter.implicitHeight + 28
-            : window.pillHeight
+        height: window.expanded ? views.wantedHeight : window.pillHeight
         radius: window.expanded ? 24 : window.pillHeight / 2
         color: Theme.background
         border.color: Theme.border
@@ -123,50 +116,11 @@ PanelWindow {
             Behavior on opacity { NumberAnimation { duration: window.showOsd ? 220 : 120 } }
         }
 
-        // Each one comes in once the pill has mostly grown, and leaves before it shrinks
-        LauncherContent {
-            id: launcher
-            x: 10
-            y: 4
-            width: implicitWidth
-            height: implicitHeight
-            active: window.showLauncher
-            opacity: window.showLauncher ? 1 : 0
-            visible: opacity > 0
-            Behavior on opacity {
-                NumberAnimation { duration: window.showLauncher ? 260 : 120; easing.type: Easing.InOutQuad }
-            }
-            onCloseRequested: ShellState.close("launcher")
-        }
-
-        WallpaperContent {
-            id: wallpaper
-            x: 10
-            y: 10
-            width: implicitWidth
-            height: implicitHeight
-            active: window.showWallpaper
-            opacity: window.showWallpaper ? 1 : 0
-            visible: opacity > 0
-            Behavior on opacity {
-                NumberAnimation { duration: window.showWallpaper ? 260 : 120; easing.type: Easing.InOutQuad }
-            }
-            onCloseRequested: ShellState.close("wallpaper")
-        }
-
-        ControlCenterContent {
-            id: controlCenter
-            x: 14
-            y: 14
-            width: implicitWidth
-            height: implicitHeight
-            active: window.showControlCenter && window.pinned
-            opacity: window.showControlCenter ? 1 : 0
-            visible: opacity > 0
-            Behavior on opacity {
-                NumberAnimation { duration: window.showControlCenter ? 260 : 120; easing.type: Easing.InOutQuad }
-            }
-            onCloseRequested: ShellState.close("controlcenter")
+        Views {
+            id: views
+            anchors.fill: parent
+            current: window.current
+            pinned: window.pinned
         }
     }
 }

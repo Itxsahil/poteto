@@ -49,7 +49,7 @@ PanelWindow {
 
     // A change from outside, e.g. the brightness keys, shows here for a moment instead of the time
     readonly property bool showOsd: Osd.shown && Hyprland.focusedMonitor?.name === targetScreen.name
-        && !ShellState.controlCenterOpen && !ShellState.launcherOpen
+        && !ShellState.controlCenterOpen && ShellState.view === ""
 
     OsdContent {
         anchors.centerIn: parent

@@ -4,13 +4,10 @@ import Quickshell.Wayland
 import Quickshell.Hyprland
 import qs.config
 import qs.services
-import qs.modules.launcher
-import qs.modules.controlcenter
-import qs.modules.wallpaper
 
 // Bar mode's stand-in for the pill growing: a panel that drops down from under the bar, holding
-// the launcher (Alt + Space), the control center (hover the bar's clock, or Super + C) or the
-// wallpaper picker (Alt + W).
+// whatever is open (Views.qml: the launcher, the control center, the pickers, the password
+// prompt).
 PanelWindow {
     id: window
 
@@ -18,10 +15,12 @@ PanelWindow {
 
     readonly property int barHeight: 30
     readonly property bool focusedScreen: Hyprland.focusedMonitor?.name === targetScreen.name
-    readonly property bool showLauncher: ShellState.launcherOpen && focusedScreen
-    readonly property bool showControlCenter: ShellState.controlCenterOpen && focusedScreen && !showLauncher
-    readonly property bool showWallpaper: ShellState.wallpaperOpen && focusedScreen
-    readonly property bool expanded: showLauncher || showControlCenter || showWallpaper
+    // The view this panel shows: whatever is open, on the focused screen only
+    readonly property string current: !focusedScreen ? ""
+        : ShellState.view !== "" ? ShellState.view
+        : ShellState.controlCenterOpen ? "controlcenter"
+        : ""
+    readonly property bool expanded: views.item !== null
     // Opened from the keyboard, as opposed to a hover peek: takes the keyboard, closes on click-away
     readonly property bool pinned: ShellState.view !== "" && focusedScreen
 
@@ -29,9 +28,8 @@ PanelWindow {
     anchors.top: true
     margins.top: barHeight
     // Room for the panel at its largest; only the panel takes input
-    implicitWidth: Math.max(launcher.implicitWidth, controlCenter.implicitWidth, wallpaper.implicitWidth) + 60
-    implicitHeight: Math.max(launcher.maxRows * launcher.rowHeight + 120, controlCenter.implicitHeight + 60,
-        wallpaper.implicitHeight + 60)
+    implicitWidth: views.maxWidth + 40
+    implicitHeight: views.maxHeight + 40
     exclusionMode: ExclusionMode.Ignore
     color: "transparent"
 
@@ -67,8 +65,8 @@ PanelWindow {
         id: panel
 
         // The size it is growing towards, kept while it shrinks away so the content does not jump
-        property real targetWidth: launcher.implicitWidth + 20
-        property real targetHeight: launcher.implicitHeight + 12
+        property real targetWidth: 0
+        property real targetHeight: 0
 
         anchors.horizontalCenter: parent.horizontalCenter
         y: 8
@@ -84,16 +82,12 @@ PanelWindow {
         Binding on targetWidth {
             when: window.expanded
             restoreMode: Binding.RestoreNone
-            value: window.showLauncher ? launcher.implicitWidth + 20
-                : window.showWallpaper ? wallpaper.implicitWidth + 20
-                : controlCenter.implicitWidth + 28
+            value: views.wantedWidth
         }
         Binding on targetHeight {
             when: window.expanded
             restoreMode: Binding.RestoreNone
-            value: window.showLauncher ? launcher.implicitHeight + 12
-                : window.showWallpaper ? wallpaper.implicitHeight + 20
-                : controlCenter.implicitHeight + 28
+            value: views.wantedHeight
         }
 
         Behavior on width { NumberAnimation { duration: 420; easing.type: Easing.OutBack; easing.overshoot: 1.1 } }
@@ -104,49 +98,11 @@ PanelWindow {
             onHoveredChanged: hovered ? ShellState.hoverEnter() : ShellState.hoverExit()
         }
 
-        LauncherContent {
-            id: launcher
-            x: 10
-            y: 4
-            width: implicitWidth
-            height: implicitHeight
-            active: window.showLauncher
-            opacity: window.showLauncher ? 1 : 0
-            visible: opacity > 0
-            Behavior on opacity {
-                NumberAnimation { duration: window.showLauncher ? 260 : 120; easing.type: Easing.InOutQuad }
-            }
-            onCloseRequested: ShellState.close("launcher")
-        }
-
-        WallpaperContent {
-            id: wallpaper
-            x: 10
-            y: 10
-            width: implicitWidth
-            height: implicitHeight
-            active: window.showWallpaper
-            opacity: window.showWallpaper ? 1 : 0
-            visible: opacity > 0
-            Behavior on opacity {
-                NumberAnimation { duration: window.showWallpaper ? 260 : 120; easing.type: Easing.InOutQuad }
-            }
-            onCloseRequested: ShellState.close("wallpaper")
-        }
-
-        ControlCenterContent {
-            id: controlCenter
-            x: 14
-            y: 14
-            width: implicitWidth
-            height: implicitHeight
-            active: window.showControlCenter && window.pinned
-            opacity: window.showControlCenter ? 1 : 0
-            visible: opacity > 0
-            Behavior on opacity {
-                NumberAnimation { duration: window.showControlCenter ? 260 : 120; easing.type: Easing.InOutQuad }
-            }
-            onCloseRequested: ShellState.close("controlcenter")
+        Views {
+            id: views
+            anchors.fill: parent
+            current: window.current
+            pinned: window.pinned
         }
     }
 }
