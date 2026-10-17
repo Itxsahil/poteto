@@ -1,4 +1,26 @@
-/* poteto — Firefox's own pages (new tab, home): square fields to match userChrome.css */
+/* poteto — Firefox's own pages (new tab, home, settings): square fields to match userChrome.css,
+ * and the shell's accent for their buttons and links (poteto-accent.css, written by
+ * quickshellv2/scripts/apply-accent; without it, Firefox's own) */
+
+@import url("poteto-accent.css");
+
+@-moz-document url-prefix("about:") {
+    :root,
+    body {
+        --poteto-accent: var(--poteto-accent-color, AccentColor);
+        --poteto-accent-text: var(--poteto-accent-color-text, AccentColorText);
+        --color-accent-primary: var(--poteto-accent) !important;
+        --color-accent-primary-hover: color-mix(in srgb, var(--poteto-accent) 85%, white) !important;
+        --color-accent-primary-active: color-mix(in srgb, var(--poteto-accent) 72%, white) !important;
+        --button-text-color-primary: var(--poteto-accent-text) !important;
+        /* the new tab page's own names for it */
+        --newtab-primary-action-background: var(--poteto-accent) !important;
+        --newtab-primary-action-background-dimmed: color-mix(in srgb, var(--poteto-accent) 25%, transparent) !important;
+        --newtab-primary-element-hover-color: color-mix(in srgb, var(--poteto-accent) 85%, white) !important;
+        --newtab-primary-element-active-color: color-mix(in srgb, var(--poteto-accent) 72%, white) !important;
+        --newtab-primary-element-text-color: var(--poteto-accent-text) !important;
+    }
+}
 
 @-moz-document url("about:newtab"), url("about:home"), url("about:privatebrowsing") {
     /* the search box in the middle of the page */

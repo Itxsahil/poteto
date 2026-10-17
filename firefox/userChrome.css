@@ -2,10 +2,14 @@
  *
  * Neutral chrome that sits quietly next to the desktop: compact, rounded, no borders, and
  * only the buttons that earn their place. The page floats as a rounded card under the toolbars.
- * Dark or light with the system (the shell's light/dark mode), live; focus and selection use
- * the desktop's accent color (AccentColor comes from GTK, which the shell's accent setting
- * writes). Pairs with user.js (compact density, bookmarks bar on the new tab page only).
+ * Dark or light with the system (the shell's light/dark mode), live. Focus, selection and menu
+ * hover use the shell's accent color, from poteto-accent.css next to this file (written by
+ * quickshellv2/scripts/apply-accent; without it, Firefox's own accent). Pairs with user.js
+ * (compact density, bookmarks bar on the new tab page only).
  */
+
+/* The accent: two variables, or nothing when the accent is the theme's own. Imports come first. */
+@import url("poteto-accent.css");
 
 :root {
     --poteto-bg: #161616;
@@ -34,7 +38,14 @@
     --lwt-accent-color: var(--poteto-bg) !important;
     --lwt-text-color: var(--poteto-text) !important;
     --chrome-content-separator-color: transparent !important;
-    --focus-outline-color: AccentColor !important;
+    --poteto-accent: var(--poteto-accent-color, AccentColor);
+    --poteto-accent-text: var(--poteto-accent-color-text, AccentColorText);
+    --focus-outline-color: var(--poteto-accent) !important;
+    /* Firefox's own accent, for its buttons, checkboxes, links and toggles */
+    --color-accent-primary: var(--poteto-accent) !important;
+    --color-accent-primary-hover: color-mix(in srgb, var(--poteto-accent) 85%, white) !important;
+    --color-accent-primary-active: color-mix(in srgb, var(--poteto-accent) 72%, white) !important;
+    --button-text-color-primary: var(--poteto-accent-text) !important;
     --urlbar-min-height: 34px !important;
     --urlbar-border-radius: var(--poteto-field-radius) !important;
     --toolbarbutton-border-radius: var(--poteto-field-radius) !important;
@@ -162,7 +173,7 @@
 
 #urlbar[focused] #urlbar-background {
     background: var(--poteto-surface) !important;
-    outline: 2px solid AccentColor !important;
+    outline: 2px solid var(--poteto-accent) !important;
     outline-offset: -1px !important;
 }
 
@@ -177,14 +188,14 @@
 }
 
 .urlbarView-row[selected] .urlbarView-row-inner {
-    background: AccentColor !important;
-    color: AccentColorText !important;
+    background: var(--poteto-accent) !important;
+    color: var(--poteto-accent-text) !important;
 }
 
 .urlbarView-row[selected] .urlbarView-url,
 .urlbarView-row[selected] .urlbarView-action,
 .urlbarView-row[selected] .urlbarView-title-separator {
-    color: AccentColorText !important;
+    color: var(--poteto-accent-text) !important;
     opacity: 0.85 !important;
 }
 
@@ -306,7 +317,7 @@ menupopup > menuitem:hover,
 menupopup > menu:hover,
 menupopup > menu[_moz-menuactive],
 menupopup > menuitem[_moz-menuactive] {
-    background-color: AccentColor !important;
-    color: AccentColorText !important;
+    background-color: var(--poteto-accent) !important;
+    color: var(--poteto-accent-text) !important;
     border-radius: 6px !important;
 }

@@ -13,6 +13,9 @@ selections, focus rings and buttons, everywhere that can take one.
   ~/.config/gtk-4.0 and ~/.config/gtk-3.0. Apps read that file when they start.
 - VS Code gets it through workbench.colorCustomizations, which it applies live. What was
   there before is kept aside and put back when the accent goes back to the default.
+- Firefox gets it through poteto-accent.css in the chrome/ folder of each profile that uses
+  this repo's firefox/userChrome.css, which imports it (Firefox reads it when it starts; it
+  ignores the GTK accent). Without the file, Firefox keeps its own accent.
 
 Only a marked block of each gtk.css is ever touched, so anything else in them stays.
 """
@@ -28,6 +31,9 @@ GTK3 = HOME / ".config/gtk-3.0/gtk.css"
 GTK4 = HOME / ".config/gtk-4.0/gtk.css"
 VSCODE = HOME / ".config/Code/User/settings.json"
 VSCODE_BACKUP = HOME / ".cache/quickshell/accent-vscode-backup.json"
+FIREFOX_ROOTS = (HOME / ".config/mozilla/firefox", HOME / ".mozilla/firefox")
+# This repo's Firefox stylesheet, which a profile has to link to for the accent file to matter
+FIREFOX_CHROME = Path(__file__).resolve().parent.parent.parent / "firefox" / "userChrome.css"
 
 BEGIN = "/* poteto accent: written by quickshellv2/scripts/apply-accent, edits here are replaced */"
 END = "/* poteto accent end */"
@@ -180,6 +186,29 @@ def vscode(accent):
     VSCODE.write_text(json.dumps(settings, indent=indent.group(1) if indent else 4, ensure_ascii=False) + "\n")
 
 
+def firefox(accent):
+    """Write the accent for every Firefox profile that uses this repo's userChrome.css."""
+    for root in FIREFOX_ROOTS:
+        if not root.is_dir():
+            continue
+        for chrome in root.glob("*/chrome"):
+            style = chrome / "userChrome.css"
+            try:
+                if not style.exists() or style.resolve() != FIREFOX_CHROME:
+                    continue
+            except OSError:
+                continue
+            target = chrome / "poteto-accent.css"
+            if accent:
+                text = ("/* written by quickshellv2/scripts/apply-accent */\n"
+                        f":root {{ --poteto-accent-color: {accent}; "
+                        f"--poteto-accent-color-text: {foreground(accent)}; }}\n")
+                if not target.exists() or target.read_text() != text:
+                    target.write_text(text)
+            elif target.exists():
+                target.unlink()
+
+
 def main():
     if len(sys.argv) != 2 or (sys.argv[1] and not re.fullmatch(r"#[0-9a-fA-F]{6}", sys.argv[1])):
         print('usage: apply-accent <#rrggbb | "">', file=sys.stderr)
@@ -199,6 +228,7 @@ def main():
         write_block(GTK4, None)
         write_block(GTK3, None)
     vscode(accent)
+    firefox(accent)
     return 0
 
 
