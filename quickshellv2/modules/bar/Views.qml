@@ -13,14 +13,16 @@ import qs.modules.notifications
 import qs.modules.power
 import qs.modules.recorder
 import qs.modules.keybinds
+import qs.modules.perf
 import qs.modules.camera
 import qs.modules.calendar
 import qs.modules.media
 
 // Everything the pill grows into (or the bar's panel holds), in one place for both: the
-// launcher, the control center, the media view, the calendar, the keybind cheatsheet, clipboard
-// history, the emoji picker, the video browser, the camera, the wallpaper picker, the login theme
-// and video pickers, the power menu, naming a recording, the password prompt, and notifications.
+// launcher, the control center, the media view, the calendar, the keybind cheatsheet, the
+// performance monitor, clipboard history, the emoji picker, the video browser, the camera, the
+// wallpaper picker, the login theme and video pickers, the power menu, naming a recording, the
+// password prompt, and notifications.
 // The host fills its surface with this, sizes the surface to wantedWidth × wantedHeight, and
 // makes room for maxWidth × maxHeight.
 //
@@ -37,7 +39,7 @@ Item {
     readonly property Item item: views.find(v => v.name === current) ?? null
     readonly property real wantedWidth: item ? item.implicitWidth + item.padX * 2 : 0
     readonly property real wantedHeight: item ? item.implicitHeight + item.padTop + item.padBottom : 0
-    readonly property var views: [launcher, controlCenter, media, calendar, keybinds, clipboard, emoji, videos, camera, wallpaper, loginTheme, loginVideo, power, recordName, polkit, notification]
+    readonly property var views: [launcher, controlCenter, media, calendar, keybinds, performance, clipboard, emoji, videos, camera, wallpaper, loginTheme, loginVideo, power, recordName, polkit, notification]
     readonly property real maxWidth: Math.max(...views.map(v => v.implicitWidth + v.padX * 2))
     // The launcher grows with its results, so its room is its tallest, not what it is now
     readonly property real maxHeight: Math.max(launcher.maxRows * launcher.rowHeight + 120,
@@ -108,6 +110,23 @@ Item {
         readonly property string name: "calendar"
         readonly property int padX: 18
         readonly property int padTop: 16
+        readonly property int padBottom: 14
+        x: padX
+        y: padTop
+        width: implicitWidth
+        height: implicitHeight
+        active: root.current === name
+        opacity: active ? 1 : 0
+        visible: opacity > 0
+        Fade on opacity {}
+        onCloseRequested: ShellState.close(name)
+    }
+
+    PerformanceView {
+        id: performance
+        readonly property string name: "performance"
+        readonly property int padX: 14
+        readonly property int padTop: 14
         readonly property int padBottom: 14
         x: padX
         y: padTop

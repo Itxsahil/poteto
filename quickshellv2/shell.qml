@@ -101,6 +101,14 @@ ShellRoot {
     }
 
     // qs ipc call keybinds toggle|open|close (Alt + / in hypr/bindings.lua)
+    // qs ipc call performance toggle|open|close (Super + M in hypr/bindings.lua)
+    IpcHandler {
+        target: "performance"
+        function toggle(): void { ShellState.toggle("performance"); }
+        function open(): void { ShellState.open("performance"); }
+        function close(): void { ShellState.close("performance"); }
+    }
+
     IpcHandler {
         target: "keybinds"
         function toggle(): void { ShellState.toggle("keybinds"); }
