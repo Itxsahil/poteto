@@ -35,6 +35,9 @@ GTK3 = HOME / ".config/gtk-3.0/gtk.css"
 GTK4 = HOME / ".config/gtk-4.0/gtk.css"
 VSCODE = HOME / ".config/Code/User/settings.json"
 VSCODE_BACKUP = HOME / ".cache/quickshell/accent-vscode-backup.json"
+# The system accent as it was before this script first set one, so the default can put it back.
+# Its existence is what says this script owns the current value.
+SYSTEM_BACKUP = HOME / ".cache/quickshell/accent-system-backup.json"
 FIREFOX_ROOTS = (HOME / ".config/mozilla/firefox", HOME / ".mozilla/firefox")
 # This repo's Firefox stylesheet, which a profile has to link to for the accent file to matter
 FIREFOX_CHROME = Path(__file__).resolve().parent.parent.parent / "firefox" / "userChrome.css"
@@ -167,13 +170,17 @@ def vscode(accent):
         for key, kind in VSCODE_KEYS.items():
             custom[key] = values[kind]
     else:
+        # The backup is the record that these colors are ours. Without it, this script never
+        # changed anything (or it has already been undone), so whatever is there is the user's
+        # own and stays: the shell runs this at every start.
+        if not VSCODE_BACKUP.exists():
+            return
         backup = {}
-        if VSCODE_BACKUP.exists():
-            try:
-                backup = json.loads(VSCODE_BACKUP.read_text())
-            except ValueError:
-                pass
-            VSCODE_BACKUP.unlink()
+        try:
+            backup = json.loads(VSCODE_BACKUP.read_text())
+        except ValueError:
+            pass
+        VSCODE_BACKUP.unlink()
         for key in VSCODE_KEYS:
             custom.pop(key, None)
         custom.update(backup)
@@ -188,6 +195,75 @@ def vscode(accent):
         return
     indent = re.search(r"\n([ \t]+)\"", raw)
     VSCODE.write_text(json.dumps(settings, indent=indent.group(1) if indent else 4, ensure_ascii=False) + "\n")
+
+
+def gsettings_accent():
+    out = subprocess.run(["gsettings", "get", "org.gnome.desktop.interface", "accent-color"],
+                         capture_output=True, text=True)
+    return out.stdout.strip().strip("'") if out.returncode == 0 else ""
+
+
+def default_accent():
+    """The schema's own default for accent-color (what a reset gives), or "" if unknown."""
+    try:
+        import gi
+        gi.require_version("Gio", "2.0")
+        from gi.repository import Gio
+        source = Gio.SettingsSchemaSource.get_default()
+        schema = source.lookup("org.gnome.desktop.interface", True) if source else None
+        if schema and schema.has_key("accent-color"):
+            return schema.get_key("accent-color").get_default_value().get_string()
+    except (ImportError, ValueError):
+        pass
+    return ""
+
+
+def run_gsettings(*args):
+    """Run gsettings; say why on stderr and return False if it failed."""
+    out = subprocess.run(["gsettings", *args], capture_output=True, text=True)
+    if out.returncode != 0:
+        print(f"apply-accent: gsettings {' '.join(args)} failed: {out.stderr.strip()}", file=sys.stderr)
+    return out.returncode == 0
+
+
+def system_accent(accent):
+    """The named system accent: set the closest one, or put back what was there before.
+    Returns False if gsettings failed (the record of the old value is then kept for next time)."""
+    if accent:
+        # Remember the value from before the first time, not from before every change
+        if not SYSTEM_BACKUP.exists():
+            SYSTEM_BACKUP.parent.mkdir(parents=True, exist_ok=True)
+            SYSTEM_BACKUP.write_text(json.dumps({"accent-color": gsettings_accent()}))
+        name = closest_named(accent)
+        if gsettings_accent() != name:
+            return run_gsettings("set", "org.gnome.desktop.interface", "accent-color", name)
+        return True
+    # Not ours (never set, or already put back): a value chosen elsewhere stays
+    if not SYSTEM_BACKUP.exists():
+        return True
+    try:
+        previous = json.loads(SYSTEM_BACKUP.read_text()).get("accent-color", "")
+    except ValueError:
+        previous = ""
+    if previous in NAMED:
+        expected = previous
+        ok = run_gsettings("set", "org.gnome.desktop.interface", "accent-color", previous)
+    else:
+        expected = default_accent()
+        ok = run_gsettings("reset", "org.gnome.desktop.interface", "accent-color")
+    # gsettings can exit 0 without saving anything (no session bus, say), so read the value
+    # back from a fresh process before trusting it. Only forget the old value once it is really
+    # back; otherwise keep it, and the next run tries again.
+    if ok:
+        actual = gsettings_accent()
+        if not expected or actual != expected:
+            print(f"apply-accent: accent-color is '{actual}' after restoring, expected "
+                  f"'{expected or 'the default'}'; keeping the backup to try again",
+                  file=sys.stderr)
+            ok = False
+    if ok:
+        SYSTEM_BACKUP.unlink()
+    return ok
 
 
 def firefox(accent):
@@ -221,20 +297,17 @@ def main():
 
     if accent:
         fg = foreground(accent)
-        subprocess.run(["gsettings", "set", "org.gnome.desktop.interface", "accent-color", closest_named(accent)])
         # Named colors reach libadwaita live through the portal; only a custom one is pinned here
         write_block(GTK4, None if accent in NAMED.values() else gtk4_block(accent, fg))
         write_block(GTK3, gtk3_block(accent, fg))
     else:
-        # Only undo the named accent if this script set one; it runs at every start, and a
-        # value set by hand should survive that
-        if GTK4.exists() and BEGIN in GTK4.read_text():
-            subprocess.run(["gsettings", "reset", "org.gnome.desktop.interface", "accent-color"])
         write_block(GTK4, None)
         write_block(GTK3, None)
+    system_ok = system_accent(accent)
     vscode(accent)
     firefox(accent)
-    return 0
+    # Everything else is applied either way; a non-zero exit gets the failure into the shell's log
+    return 0 if system_ok else 1
 
 
 if __name__ == "__main__":
