@@ -230,9 +230,18 @@ Singleton {
             fi
 
             trap 'kill -TERM $vpid $apid 2>/dev/null' TERM INT
-            while kill -0 $vpid 2>/dev/null || { [ -n "$apid" ] && kill -0 $apid 2>/dev/null; }; do
-                wait 2>/dev/null
+            # The recording lasts as long as the video does: when wf-recorder exits (stopped, or on
+            # its own because it failed), audio capture, which would otherwise run until told to,
+            # is stopped too and waited for, so its file is complete
+            while kill -0 $vpid 2>/dev/null; do
+                wait $vpid 2>/dev/null
             done
+            if [ -n "$apid" ]; then
+                kill -TERM $apid 2>/dev/null
+                while kill -0 $apid 2>/dev/null; do
+                    wait $apid 2>/dev/null
+                done
+            fi
 
             if [ ! -s "$video" ]; then
                 echo "__FAILED__$(tail -n 3 "$tmp/video.log" | tr '\\n' ' ')"
@@ -242,11 +251,22 @@ Singleton {
 
             if [ -n "$apid" ] && [ -s "$audio" ]; then
                 ffmpeg -hide_banner -loglevel error -nostdin -i "$video" -i "$audio" -map 0:v:0 -map 1:a:0 \\
-                    -c:v copy -c:a aac -b:a 192k -shortest -movflags +faststart -y "$out"
+                    -c:v copy -c:a aac -b:a 192k -shortest -movflags +faststart -y "$out" 2>"$tmp/mux.log"
             else
-                ffmpeg -hide_banner -loglevel error -nostdin -i "$video" -c copy -movflags +faststart -y "$out"
+                ffmpeg -hide_banner -loglevel error -nostdin -i "$video" -c copy -movflags +faststart -y "$out" 2>"$tmp/mux.log"
             fi
-            [ -s "$out" ] || { echo "__FAILED__could not write $out"; rm -rf "$tmp"; exit 1; }
+            status=$?
+            # FFmpeg can fail after writing part of the file (a full disk): the exit status says
+            # so, not the file. Then the broken file goes, and the original video and audio stay:
+            # moved next to where the recording would have been, or left where they are
+            if [ "$status" -ne 0 ] || [ ! -s "$out" ]; then
+                err=$(tail -n 2 "$tmp/mux.log" 2>/dev/null | tr '\\n' ' ')
+                rm -f -- "$out"
+                keep="$outdir/$stamp-unsaved"
+                if mv -- "$tmp" "$keep" 2>/dev/null; then where="$keep"; else where="$tmp"; fi
+                echo "__FAILED__Could not save the recording ($err). The original video and audio are in $where"
+                exit 1
+            fi
 
             thumb="$tmp/thumb.png"
             ffmpeg -hide_banner -loglevel error -nostdin -ss 0.5 -i "$out" -frames:v 1 -vf scale=256:-1 -y "$thumb" 2>/dev/null
