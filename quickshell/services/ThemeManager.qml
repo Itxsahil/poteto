@@ -145,6 +145,9 @@ Singleton {
             for wall in "$theme"/wallpaper/wall.*; do
                 [ -f "$wall" ] && { echo "$wall"; break; }
             done
+            # The wallpaper is optional: without one, the test above is the last command run, and
+            # its failure must not count as the theme failing to apply
+            exit 0
         `, "sh", root.themesDir, themeId, root.linkDir, root.vscodeSettings]
         stdout: StdioCollector { id: applyOut }
         stderr: StdioCollector { id: applyErr }
