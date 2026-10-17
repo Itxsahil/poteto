@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import qs.config
 import qs.services
 
@@ -7,9 +8,9 @@ import qs.services
 //
 // Mostly a design for now: Wi-Fi (services/Wifi.qml; its label or a right click opens the Wi-Fi
 // menu, WifiPage.qml), Dark (the desktop's light/dark mode, Config.mode), Night (night light,
-// services/NightLight.qml) and the Screen slider (services/Brightness.qml) are real. Every other
-// toggle, slider and button changes only what is drawn here; none of it reaches Bluetooth, audio,
-// the player or the session yet.
+// services/NightLight.qml), the Screen slider (services/Brightness.qml) and the settings button
+// (opens Poteto) are real. Every other toggle, slider and button changes only what is drawn
+// here; none of it reaches Bluetooth, audio, the player or the session yet.
 Item {
     id: root
 
@@ -278,6 +279,18 @@ Item {
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 4
+
+                // Settings: opens Poteto (settings/poteto-settings), and gets out of its way
+                RoundButton {
+                    implicitWidth: 32
+                    implicitHeight: 32
+                    glyph: "󰒓"
+                    glyphSize: 14
+                    onClicked: {
+                        Quickshell.execDetached(["poteto-settings"]);
+                        root.closeRequested();
+                    }
+                }
 
                 RoundButton {
                     implicitWidth: 32
