@@ -142,6 +142,12 @@ hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("brightnessctl set 5%-"), {
     locked = true,
 })
 
+-- Screen off / on (Fn + F6). Bound by key code: it sends XF86ScreenSaver, but a bind on that
+-- name never fires
+hl.bind("code:160", hl.dsp.dpms({ action = "toggle" }), {
+    locked = true,
+})
+
 -- Media player controls
 hl.bind("XF86AudioPlay", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
 hl.bind("XF86AudioPause", hl.dsp.exec_cmd("playerctl pause"), { locked = true })

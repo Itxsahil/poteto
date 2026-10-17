@@ -1,8 +1,10 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Hyprland
 import qs.config
 import qs.services
+import qs.modules.osd
 
 // The flat layout: one strip across the full width of the top of the screen, workspaces on the
 // left and the time in the middle. Hovering the time drops the control center down under it
@@ -45,8 +47,22 @@ PanelWindow {
         screen: window.targetScreen
     }
 
+    // A change from outside, e.g. the brightness keys, shows here for a moment instead of the time
+    readonly property bool showOsd: Osd.shown && Hyprland.focusedMonitor?.name === targetScreen.name
+        && !ShellState.controlCenterOpen && !ShellState.launcherOpen
+
+    OsdContent {
+        anchors.centerIn: parent
+        opacity: window.showOsd ? 1 : 0
+        visible: opacity > 0
+        Behavior on opacity { NumberAnimation { duration: window.showOsd ? 220 : 120 } }
+    }
+
     Rectangle {
         anchors.centerIn: parent
+        opacity: window.showOsd ? 0 : 1
+        visible: opacity > 0
+        Behavior on opacity { NumberAnimation { duration: window.showOsd ? 120 : 220 } }
         width: time.implicitWidth + 24
         height: window.implicitHeight - 6
         radius: 6

@@ -6,9 +6,10 @@ import qs.services
 // panel drops down from the bar in bar mode.
 //
 // Mostly a design for now: Wi-Fi (services/Wifi.qml; its label or a right click opens the Wi-Fi
-// menu, WifiPage.qml), Dark (the desktop's light/dark mode, Config.mode) and Night (night light,
-// services/NightLight.qml) are real. Every other toggle, slider and button changes only what is
-// drawn here; none of it reaches Bluetooth, audio, brightness, the player or the session yet.
+// menu, WifiPage.qml), Dark (the desktop's light/dark mode, Config.mode), Night (night light,
+// services/NightLight.qml) and the Screen slider (services/Brightness.qml) are real. Every other
+// toggle, slider and button changes only what is drawn here; none of it reaches Bluetooth, audio,
+// the player or the session yet.
 Item {
     id: root
 
@@ -18,7 +19,6 @@ Item {
     // Stand-in state, so the controls can be tried
     property var toggles: ({ bluetooth: false, quiet: false, awake: false, airplane: false })
     property real sound: 62
-    property real screen: 80
     property bool playing: true
 
     signal closeRequested()
@@ -170,8 +170,9 @@ Item {
         DotSlider {
             width: parent.width
             label: "Screen"
-            value: root.screen
-            onMoved: v => root.screen = v
+            visible: Brightness.available
+            value: Brightness.percent
+            onMoved: v => Brightness.set(v)
         }
 
         // Now playing, then the session

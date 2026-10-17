@@ -6,6 +6,7 @@ import qs.config
 import qs.services
 import qs.modules.launcher
 import qs.modules.controlcenter
+import qs.modules.osd
 
 // The floating layout: the time in a rounded pill at the top center of the screen. The same pill
 // grows into whatever is opened — the launcher (Alt + Space) or the control center (hover it, or
@@ -23,6 +24,9 @@ PanelWindow {
     readonly property bool showLauncher: ShellState.launcherOpen && focusedScreen
     readonly property bool showControlCenter: ShellState.controlCenterOpen && focusedScreen && !showLauncher
     readonly property bool expanded: showLauncher || showControlCenter
+    // A change from outside, e.g. the brightness keys: the pill widens into a level bar for a
+    // moment. Only on the focused screen, and never over something that is open.
+    readonly property bool showOsd: Osd.shown && focusedScreen && !expanded
     // Opened from the keyboard, as opposed to a hover peek: takes the keyboard, closes on click-away
     readonly property bool pinned: ShellState.view !== "" && focusedScreen
 
@@ -76,6 +80,7 @@ PanelWindow {
         y: window.gapTop
         width: window.showLauncher ? launcher.implicitWidth + 20
             : window.showControlCenter ? controlCenter.implicitWidth + 28
+            : window.showOsd ? osd.implicitWidth + 28
             : time.implicitWidth + 80
         height: window.showLauncher ? launcher.implicitHeight + 12
             : window.showControlCenter ? controlCenter.implicitHeight + 28
@@ -99,10 +104,18 @@ PanelWindow {
             id: time
             anchors.centerIn: parent
             date: clock.date
-            opacity: window.expanded ? 0 : 1
-            scale: window.expanded ? 0.8 : 1
+            opacity: window.expanded || window.showOsd ? 0 : 1
+            scale: window.expanded || window.showOsd ? 0.8 : 1
             Behavior on opacity { NumberAnimation { duration: 140 } }
             Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+        }
+
+        OsdContent {
+            id: osd
+            anchors.centerIn: parent
+            opacity: window.showOsd ? 1 : 0
+            visible: opacity > 0
+            Behavior on opacity { NumberAnimation { duration: window.showOsd ? 220 : 120 } }
         }
 
         // Each one comes in once the pill has mostly grown, and leaves before it shrinks

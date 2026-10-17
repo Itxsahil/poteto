@@ -9,10 +9,12 @@ import qs.modules.screenshot
 
 ShellRoot {
     // Singletons start when first used. These have no UI, so start them here: each one applies
-    // its saved setting once (light/dark mode, night light), then follows changes.
+    // its saved setting once (light/dark mode, night light), then follows changes; Osd starts
+    // listening for changes made outside the shell.
     Component.onCompleted: {
         Appearance.apply();
         NightLight.apply();
+        Osd.shown;
     }
 
     // qs ipc call layout toggle|pill|bar|status
