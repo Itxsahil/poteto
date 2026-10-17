@@ -27,8 +27,17 @@ Singleton {
     readonly property color tile: c("tile", "#1c1c1e")
     readonly property color tileHover: c("tileHover", "#242426")
     readonly property color control: c("control", "#2c2c2e")
-    readonly property color accent: c("accent", "#0a84ff")
-    readonly property color onAccent: c("onAccent", "#ffffff")
+    // The accent picked in Poteto (Config.accent) wins over the theme's
+    readonly property color accent: Config.accent || c("accent", "#0a84ff")
+    // Text on the accent: the theme's for its own accent, otherwise dark on light colors and
+    // white on the rest (the same rule scripts/apply-accent uses for apps)
+    readonly property color onAccent: Config.accent ? (luminance(accent) > 0.45 ? "#1a1a1a" : "#ffffff")
+        : c("onAccent", "#ffffff")
+
+    function luminance(color) {
+        const lin = v => v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+        return 0.2126 * lin(color.r) + 0.7152 * lin(color.g) + 0.0722 * lin(color.b);
+    }
     readonly property color danger: c("danger", "#ff453a")
     // Volume past 100%: the second lap drawn over a full bar. The theme's caution color, unless
     // it is too close to the text color the bar is drawn in (monochrome themes like Solitude):

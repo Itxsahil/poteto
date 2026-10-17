@@ -22,6 +22,11 @@ Singleton {
     // The themes/<id>/ whose colors the shell uses in light mode; dark mode keeps the active theme
     readonly property string lightTheme: typeof data.lightTheme === "string" ? data.lightTheme : "catppuccin-latte"
 
+    // The accent color for the shell and every app that can take one (services/Appearance.qml),
+    // as #rrggbb; "" keeps the theme's own
+    readonly property string accent: typeof data.accent === "string" && /^#[0-9a-fA-F]{6}$/.test(data.accent)
+        ? data.accent.toLowerCase() : ""
+
     // Night light (services/NightLight.qml): on or off, and how warm, in kelvin
     readonly property bool nightLight: data.nightLight === true
     readonly property int nightTemperature: typeof data.nightTemperature === "number"

@@ -5,13 +5,29 @@ import Quickshell
 import Quickshell.Io
 import qs.config
 
-// Keeps the desktop's light/dark preference in Config.mode: runs scripts/apply-mode at start and
-// whenever the mode changes. The shell's own colors follow Config.mode in Theme.qml.
+// Keeps the desktop in line with the settings: the light/dark preference (Config.mode, through
+// scripts/apply-mode) and the accent color (Config.accent, through scripts/apply-accent), at
+// start and whenever either changes. The shell's own colors follow both in Theme.qml.
 Singleton {
     id: root
 
     readonly property string script: Quickshell.shellDir + "/scripts/apply-mode"
     property bool queued: false
+
+    readonly property string accentScript: Quickshell.shellDir + "/scripts/apply-accent"
+    property bool accentQueued: false
+
+    function applyAccent() {
+        if (accentProc.running) {
+            accentQueued = true;
+            return;
+        }
+        accentProc.command = [accentScript, Config.accent];
+        accentProc.running = true;
+    }
+
+    readonly property string accent: Config.accent
+    onAccentChanged: applyAccent()
 
     function apply() {
         if (proc.running) {
@@ -24,6 +40,19 @@ Singleton {
 
     readonly property string mode: Config.mode
     onModeChanged: apply()
+
+    Process {
+        id: accentProc
+        stderr: StdioCollector { id: accentErr }
+        onExited: code => {
+            if (code !== 0 || accentErr.text.trim())
+                console.warn("Appearance: apply-accent", Config.accent, accentErr.text.trim());
+            if (root.accentQueued) {
+                root.accentQueued = false;
+                root.applyAccent();
+            }
+        }
+    }
 
     Process {
         id: proc

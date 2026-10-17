@@ -7,6 +7,7 @@ too, so a change made elsewhere (qs ipc call layout toggle, a hand edit) shows u
 """
 
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -14,7 +15,7 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Adw, Gio, GLib, Gtk  # noqa: E402
+from gi.repository import Adw, Gdk, Gio, GLib, Gtk  # noqa: E402
 
 APP_ID = "dev.poteto.Settings"
 CONFIG = Path(GLib.get_user_config_dir()) / "poteto" / "shell.json"
@@ -24,6 +25,13 @@ MODES = ("dark", "light")
 NIGHT_MIN, NIGHT_MAX = 1000, 6500
 SLIDER_MIN = 2000
 NIGHT_DEFAULT = 4000
+# Accent swatches: GNOME's named accent colors, the ones apps that follow the system can match
+# exactly. Any other color comes from the Custom picker.
+SWATCHES = (
+    ("blue", "#3584e4"), ("teal", "#2190a4"), ("green", "#3a944a"), ("yellow", "#c88800"),
+    ("orange", "#ed5b00"), ("red", "#e62d42"), ("pink", "#d56199"), ("purple", "#9141ac"),
+    ("slate", "#6f8396"),
+)
 
 
 def load():
@@ -50,6 +58,16 @@ def current_mode(data):
     return data.get("mode") if data.get("mode") in MODES else "dark"
 
 
+def current_accent(data):
+    """The accent as #rrggbb, or "" for the theme's own."""
+    value = data.get("accent")
+    return value.lower() if isinstance(value, str) and re.fullmatch(r"#[0-9a-fA-F]{6}", value) else ""
+
+
+def hex_of(rgba):
+    return "#%02x%02x%02x" % tuple(round(c * 255) for c in (rgba.red, rgba.green, rgba.blue))
+
+
 def current_temperature(data):
     value = data.get("nightTemperature")
     if not isinstance(value, (int, float)) or isinstance(value, bool):
@@ -60,7 +78,7 @@ def current_temperature(data):
 class SettingsWindow(Adw.ApplicationWindow):
     def __init__(self, app):
         super().__init__(application=app, title="Poteto")
-        self.set_default_size(560, 480)
+        self.set_default_size(560, 600)
         # True while the window itself is updating a control, so that does not write back
         self._syncing = False
 
@@ -92,6 +110,39 @@ class SettingsWindow(Adw.ApplicationWindow):
         )
         row.add_suffix(self.mode_toggle)
         appearance.add(row)
+
+        # Accent: a swatch for the theme's own, one per named color, and Custom for any other
+        self.swatches = {}
+        swatch_box = Gtk.Box(spacing=8, valign=Gtk.Align.CENTER, margin_top=6, margin_bottom=6)
+        for name, color in (("default", ""),) + SWATCHES:
+            button = Gtk.ToggleButton(tooltip_text="Theme default" if name == "default" else name.title())
+            button.add_css_class("accent-swatch")
+            button.add_css_class(f"swatch-{name}")
+            button.set_child(Gtk.Image(icon_name="object-select-symbolic"))
+            button.connect("toggled", self._on_swatch_toggled, color)
+            if self.swatches:
+                button.set_group(next(iter(self.swatches.values())))
+            self.swatches[color] = button
+            swatch_box.append(button)
+
+        self.accent_picker = Gtk.ColorDialogButton(
+            dialog=Gtk.ColorDialog(title="Accent Color", with_alpha=False),
+            valign=Gtk.Align.CENTER,
+            tooltip_text="Any color",
+        )
+        self.accent_picker.connect("notify::rgba", self._on_accent_picked)
+
+        row = Adw.ActionRow(
+            title="Accent Color",
+            subtitle="Menus, selections and buttons in the shell, GTK, Qt and VS Code",
+        )
+        row.add_suffix(self.accent_picker)
+        appearance.add(row)
+
+        swatch_row = Adw.PreferencesRow(activatable=False)
+        swatch_row.set_child(swatch_box)
+        swatch_box.set_halign(Gtk.Align.CENTER)
+        appearance.add(swatch_row)
 
         night = Adw.PreferencesGroup(title="Night Light")
         page.add(night)
@@ -135,6 +186,14 @@ class SettingsWindow(Adw.ApplicationWindow):
         for toggle, value in ((self.style_toggle, current_style(data)), (self.mode_toggle, current_mode(data))):
             if toggle.get_active_name() != value:
                 toggle.set_active_name(value)
+        accent = current_accent(data)
+        # A named color or the default lights its swatch; a custom one lights none
+        for color, button in self.swatches.items():
+            button.set_active(color == accent)
+        if accent and hex_of(self.accent_picker.get_rgba()) != accent:
+            rgba = Gdk.RGBA()
+            rgba.parse(accent)
+            self.accent_picker.set_rgba(rgba)
         night = data.get("nightLight") is True
         if self.night_switch.get_active() != night:
             self.night_switch.set_active(night)
@@ -156,6 +215,14 @@ class SettingsWindow(Adw.ApplicationWindow):
     def _on_changed(self, toggle, _pspec, key):
         if not self._syncing:
             self._set(key, toggle.get_active_name())
+
+    def _on_swatch_toggled(self, button, color):
+        if not self._syncing and button.get_active():
+            self._set("accent", color)
+
+    def _on_accent_picked(self, picker, _pspec):
+        if not self._syncing:
+            self._set("accent", hex_of(picker.get_rgba()))
 
     def _on_night_changed(self, row, _pspec):
         if not self._syncing:
@@ -196,6 +263,20 @@ class SettingsApp(Adw.Application):
         Adw.Application.do_startup(self)
         # The icon from settings/dev.poteto.Settings.svg, installed into the user icon theme
         Gtk.Window.set_default_icon_name(APP_ID)
+
+        # Round swatches in their own colors; the check only shows on the chosen one
+        css = """
+        .accent-swatch { min-width: 26px; min-height: 26px; padding: 0; border-radius: 999px;
+                         box-shadow: inset 0 0 0 1px alpha(black, 0.15); }
+        .accent-swatch image { opacity: 0; color: white; }
+        .accent-swatch:checked image { opacity: 1; }
+        .accent-swatch:checked { outline: 2px solid alpha(currentColor, 0.6); outline-offset: 2px; }
+        .swatch-default { background: linear-gradient(135deg, #8a8f98 50%, #d8dade 50%); }
+        """ + "".join(f".swatch-{name} {{ background: {color}; }}\n" for name, color in SWATCHES)
+        provider = Gtk.CssProvider()
+        provider.load_from_string(css)
+        Gtk.StyleContext.add_provider_for_display(
+            Gdk.Display.get_default(), provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
     def do_activate(self):
         window = self.get_active_window() or SettingsWindow(self)

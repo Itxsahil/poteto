@@ -1,0 +1,206 @@
+#!/usr/bin/env python3
+"""Set the desktop's accent color, the way macOS does it: one color for menu hovers,
+selections, focus rings and buttons, everywhere that can take one.
+
+    apply-accent <#rrggbb>    use this color
+    apply-accent ""           back to each app's and theme's own
+
+- The system preference (org.gnome.desktop.interface accent-color): only nine named colors
+  exist there, so it gets the closest one. Apps reading the desktop portal (libadwaita, Qt
+  through QT_QPA_PLATFORMTHEME=xdgdesktopportal) follow it live, once the portal passes it on
+  (xdg-desktop-portal-gnome does; -gtk does not).
+- GTK 4 / libadwaita and GTK 3 (Firefox's menus too) get the exact color through gtk.css in
+  ~/.config/gtk-4.0 and ~/.config/gtk-3.0. Apps read that file when they start.
+- VS Code gets it through workbench.colorCustomizations, which it applies live. What was
+  there before is kept aside and put back when the accent goes back to the default.
+
+Only a marked block of each gtk.css is ever touched, so anything else in them stays.
+"""
+
+import json
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+HOME = Path.home()
+GTK3 = HOME / ".config/gtk-3.0/gtk.css"
+GTK4 = HOME / ".config/gtk-4.0/gtk.css"
+VSCODE = HOME / ".config/Code/User/settings.json"
+VSCODE_BACKUP = HOME / ".cache/quickshell/accent-vscode-backup.json"
+
+BEGIN = "/* poteto accent: written by quickshellv2/scripts/apply-accent, edits here are replaced */"
+END = "/* poteto accent end */"
+
+# GNOME's named accent colors, as libadwaita draws them
+NAMED = {
+    "blue": "#3584e4", "teal": "#2190a4", "green": "#3a944a", "yellow": "#c88800",
+    "orange": "#ed5b00", "red": "#e62d42", "pink": "#d56199", "purple": "#9141ac",
+    "slate": "#6f8396",
+}
+
+# The VS Code colors that carry the accent: menu hover, selection, focus, buttons, badges
+VSCODE_KEYS = {
+    # Menu hover: recent VS Code (1.142) draws it with the list hover colors, which also color
+    # hovering rows in the explorer and other lists; older ones used menu.selection*
+    "list.hoverBackground": "accent",
+    "list.hoverForeground": "fg",
+    "menu.selectionBackground": "accent",
+    "menu.selectionForeground": "fg",
+    "list.activeSelectionBackground": "accent",
+    "list.activeSelectionForeground": "fg",
+    "quickInputList.focusBackground": "accent",
+    "quickInputList.focusForeground": "fg",
+    "focusBorder": "accent",
+    "button.background": "accent",
+    "button.foreground": "fg",
+    "button.hoverBackground": "hover",
+    "progressBar.background": "accent",
+    "textLink.foreground": "accent",
+    "activityBar.activeBorder": "accent",
+    "activityBarBadge.background": "accent",
+    "activityBarBadge.foreground": "fg",
+    "tab.activeBorderTop": "accent",
+    "inputOption.activeBorder": "accent",
+    "checkbox.background": "accent",
+    "checkbox.foreground": "fg",
+}
+
+
+def rgb(hex_color):
+    h = hex_color.lstrip("#")
+    return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
+
+
+def hexify(r, g, b):
+    return "#%02x%02x%02x" % tuple(max(0, min(255, round(v))) for v in (r, g, b))
+
+
+def foreground(hex_color):
+    """Text drawn on the accent: dark on light colors, white on the rest."""
+    def lin(c):
+        c /= 255
+        return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+    r, g, b = (lin(c) for c in rgb(hex_color))
+    return "#1a1a1a" if 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.45 else "#ffffff"
+
+
+def hover(hex_color):
+    """A touch lighter, for hovering a button already drawn in the accent."""
+    return hexify(*(c + (255 - c) * 0.15 for c in rgb(hex_color)))
+
+
+def closest_named(hex_color):
+    r, g, b = rgb(hex_color)
+    return min(NAMED, key=lambda n: sum((a - c) ** 2 for a, c in zip((r, g, b), rgb(NAMED[n]))))
+
+
+def write_block(path, block):
+    """Put block between the markers in path (or remove it when block is None)."""
+    old = path.read_text() if path.exists() else ""
+    text = old
+    pattern = re.compile(re.escape(BEGIN) + r".*?" + re.escape(END) + r"\n?", re.S)
+    text = pattern.sub("", text).rstrip("\n")
+    if block:
+        text = (text + "\n\n" if text else "") + BEGIN + "\n" + block.strip("\n") + "\n" + END
+    new = text + "\n" if text else ""
+    if new != old and (new or path.exists()):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(new)
+
+
+def gtk4_block(accent, fg):
+    return f"""
+@define-color accent_color {accent};
+@define-color accent_bg_color {accent};
+@define-color accent_fg_color {fg};
+:root {{
+    --accent-color: {accent};
+    --accent-bg-color: {accent};
+    --accent-fg-color: {fg};
+}}
+"""
+
+
+def gtk3_block(accent, fg):
+    return f"""
+@define-color accent_color {accent};
+@define-color accent_bg_color {accent};
+@define-color accent_fg_color {fg};
+@define-color theme_selected_bg_color {accent};
+@define-color theme_selected_fg_color {fg};
+selection, *:selected, row:selected, treeview.view:selected,
+menu menuitem:hover, .menu menuitem:hover, menubar > menuitem:hover, popover modelbutton:hover {{
+    background-color: {accent};
+    color: {fg};
+}}
+"""
+
+
+def vscode(accent):
+    if not VSCODE.exists():
+        return
+    try:
+        raw = VSCODE.read_text()
+        settings = json.loads(raw)
+    except (OSError, ValueError):
+        # Comments or trailing commas: not plain JSON, so leave it alone rather than mangle it
+        print("apply-accent: VS Code settings.json is not plain JSON, skipped", file=sys.stderr)
+        return
+    custom = dict(settings.get("workbench.colorCustomizations") or {})
+
+    if accent:
+        if not VSCODE_BACKUP.exists():
+            VSCODE_BACKUP.parent.mkdir(parents=True, exist_ok=True)
+            VSCODE_BACKUP.write_text(json.dumps({k: custom[k] for k in VSCODE_KEYS if k in custom}))
+        values = {"accent": accent, "fg": foreground(accent), "hover": hover(accent)}
+        for key, kind in VSCODE_KEYS.items():
+            custom[key] = values[kind]
+    else:
+        backup = {}
+        if VSCODE_BACKUP.exists():
+            try:
+                backup = json.loads(VSCODE_BACKUP.read_text())
+            except ValueError:
+                pass
+            VSCODE_BACKUP.unlink()
+        for key in VSCODE_KEYS:
+            custom.pop(key, None)
+        custom.update(backup)
+
+    before = json.dumps(settings, sort_keys=True)
+    if custom:
+        settings["workbench.colorCustomizations"] = custom
+    else:
+        settings.pop("workbench.colorCustomizations", None)
+    # The shell runs this at every start: leave the file be when nothing changes
+    if json.dumps(settings, sort_keys=True) == before:
+        return
+    indent = re.search(r"\n([ \t]+)\"", raw)
+    VSCODE.write_text(json.dumps(settings, indent=indent.group(1) if indent else 4, ensure_ascii=False) + "\n")
+
+
+def main():
+    if len(sys.argv) != 2 or (sys.argv[1] and not re.fullmatch(r"#[0-9a-fA-F]{6}", sys.argv[1])):
+        print('usage: apply-accent <#rrggbb | "">', file=sys.stderr)
+        return 2
+    accent = sys.argv[1].lower()
+
+    if accent:
+        fg = foreground(accent)
+        subprocess.run(["gsettings", "set", "org.gnome.desktop.interface", "accent-color", closest_named(accent)])
+        write_block(GTK4, gtk4_block(accent, fg))
+        write_block(GTK3, gtk3_block(accent, fg))
+    else:
+        # Only undo the named accent if this script set one; it runs at every start, and a
+        # value set by hand should survive that
+        if GTK4.exists() and BEGIN in GTK4.read_text():
+            subprocess.run(["gsettings", "reset", "org.gnome.desktop.interface", "accent-color"])
+        write_block(GTK4, None)
+        write_block(GTK3, None)
+    vscode(accent)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
