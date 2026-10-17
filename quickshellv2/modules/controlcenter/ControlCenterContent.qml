@@ -1,16 +1,19 @@
 import QtQuick
 import qs.config
+import qs.services
 
 // The control center, with no surface of its own: the pill grows into it in pill mode, and a
 // panel drops down from the bar in bar mode.
 //
-// Mostly a design for now: apart from Dark (the desktop's light/dark mode, Config.mode), every
-// toggle, slider and button changes only what is drawn here. None of it reaches Wi-Fi, Bluetooth,
-// audio, brightness, the player or the session yet.
+// Mostly a design for now: Wi-Fi (services/Wifi.qml; its label or a right click opens the Wi-Fi
+// menu, WifiPage.qml) and Dark (the desktop's light/dark mode, Config.mode) are real. Every other
+// toggle, slider and button changes only what is drawn here; none of it reaches Bluetooth, audio,
+// brightness, the player or the session yet.
 Item {
     id: root
 
     property bool active: false
+    readonly property string page: ShellState.page
 
     // Stand-in state, so the controls can be tried
     property var toggles: ({ wifi: true, bluetooth: false, quiet: false, night: true, awake: false, airplane: false })
@@ -27,54 +30,21 @@ Item {
     }
 
     onActiveChanged: {
-        if (active)
+        if (active && page === "main")
+            keys.forceActiveFocus();
+    }
+    // Always opens on the main page
+    onVisibleChanged: {
+        if (!visible)
+            ShellState.page = "main";
+    }
+    onPageChanged: {
+        if (page === "main" && active)
             keys.forceActiveFocus();
     }
 
     implicitWidth: 448
-    implicitHeight: column.implicitHeight
-
-    readonly property string iconFont: "JetBrainsMono Nerd Font"
-
-    // A round icon button: a quick toggle at the top, a session button at the bottom
-    component RoundButton: Rectangle {
-        id: button
-
-        property string glyph
-        property int glyphSize: 15
-        property bool on: false
-        // No background until hovered, for the skip buttons beside play/pause
-        property bool flat: false
-        property color onColor: Theme.accent
-        property color onGlyph: Theme.onAccent
-        signal clicked()
-
-        implicitWidth: 42
-        implicitHeight: 42
-        radius: width / 2
-        color: on ? (mouse.containsMouse ? Qt.lighter(onColor, 1.12) : onColor)
-            : flat ? (mouse.containsMouse ? Theme.tile : "transparent")
-            : mouse.containsMouse ? Theme.tileHover : Theme.tile
-        scale: mouse.pressed ? 0.92 : 1
-        Behavior on color { ColorAnimation { duration: 140 } }
-        Behavior on scale { NumberAnimation { duration: 90 } }
-
-        Text {
-            anchors.centerIn: parent
-            text: button.glyph
-            color: button.on ? button.onGlyph : Theme.text
-            font.pixelSize: button.glyphSize
-            font.family: root.iconFont
-        }
-
-        MouseArea {
-            id: mouse
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: button.clicked()
-        }
-    }
+    implicitHeight: page === "wifi" ? wifi.implicitHeight : column.implicitHeight
 
     Item {
         id: keys
@@ -82,10 +52,23 @@ Item {
         Keys.onEscapePressed: root.closeRequested()
     }
 
+    WifiPage {
+        id: wifi
+        width: parent.width
+        active: root.active && root.page === "wifi"
+        opacity: root.page === "wifi" ? 1 : 0
+        visible: opacity > 0
+        Behavior on opacity { NumberAnimation { duration: 180; easing.type: Easing.InOutQuad } }
+        onBackRequested: ShellState.page = "main"
+    }
+
     Column {
         id: column
         width: parent.width
         spacing: 12
+        opacity: root.page === "main" ? 1 : 0
+        visible: opacity > 0
+        Behavior on opacity { NumberAnimation { duration: 180; easing.type: Easing.InOutQuad } }
 
         // Quick toggles
         Row {
@@ -110,7 +93,9 @@ Item {
                     id: toggle
 
                     required property var modelData
-                    readonly property bool isOn: modelData.id === "dark" ? Config.mode === "dark"
+                    readonly property bool isWifi: modelData.id === "wifi"
+                    readonly property bool isOn: isWifi ? Wifi.enabled
+                        : modelData.id === "dark" ? Config.mode === "dark"
                         : root.toggles[modelData.id] ?? false
 
                     width: toggleRow.width / toggleRow.items.length
@@ -120,16 +105,54 @@ Item {
                         anchors.horizontalCenter: parent.horizontalCenter
                         glyph: toggle.modelData.glyph
                         on: toggle.isOn
-                        onClicked: toggle.modelData.id === "dark" ? Config.toggleMode() : root.flip(toggle.modelData.id)
+                        onClicked: toggle.isWifi ? Wifi.setEnabled(!Wifi.enabled)
+                            : toggle.modelData.id === "dark" ? Config.toggleMode()
+                            : root.flip(toggle.modelData.id)
+                        onSecondaryClicked: {
+                            if (toggle.isWifi)
+                                ShellState.openPage("wifi");
+                        }
                     }
 
-                    Text {
+                    // Wi-Fi's label names the network and opens the Wi-Fi menu
+                    Item {
                         anchors.horizontalCenter: parent.horizontalCenter
-                        text: toggle.modelData.label
-                        color: toggle.isOn ? Theme.text : Theme.textDim
-                        font.pixelSize: 11
-                        font.family: Theme.fontFamily
-                        Behavior on color { ColorAnimation { duration: 140 } }
+                        width: name.width + (chevron.visible ? chevron.implicitWidth + 2 : 0)
+                        height: name.implicitHeight
+
+                        Text {
+                            id: name
+                            // A long network name is cut short, with room left for the chevron
+                            width: toggle.isWifi ? Math.min(implicitWidth, toggle.width - 12) : implicitWidth
+                            elide: Text.ElideRight
+                            text: toggle.isWifi && Wifi.enabled && Wifi.active ? Wifi.active.ssid : toggle.modelData.label
+                            color: toggle.isOn || labelMouse.containsMouse ? Theme.text : Theme.textDim
+                            font.pixelSize: 11
+                            font.family: Theme.fontFamily
+                            Behavior on color { ColorAnimation { duration: 140 } }
+                        }
+
+                        Text {
+                            id: chevron
+                            visible: toggle.isWifi
+                            anchors.left: name.right
+                            anchors.leftMargin: 2
+                            anchors.verticalCenter: name.verticalCenter
+                            text: "󰅂"
+                            color: labelMouse.containsMouse ? Theme.text : Theme.textDim
+                            font.pixelSize: 10
+                            font.family: Theme.monoFamily
+                        }
+
+                        MouseArea {
+                            id: labelMouse
+                            anchors.fill: parent
+                            anchors.margins: -4
+                            enabled: toggle.isWifi
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: ShellState.openPage("wifi")
+                        }
                     }
                 }
             }

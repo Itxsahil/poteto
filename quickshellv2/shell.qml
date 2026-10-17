@@ -37,12 +37,13 @@ ShellRoot {
         function close(): void { ShellState.close("launcher"); }
     }
 
-    // qs ipc call controlcenter toggle|open|close (Super + C in hypr/bindings.lua)
+    // qs ipc call controlcenter toggle|open|close|wifi (Super + C in hypr/bindings.lua)
     IpcHandler {
         target: "controlcenter"
         function toggle(): void { ShellState.toggle("controlcenter"); }
         function open(): void { ShellState.open("controlcenter"); }
         function close(): void { ShellState.close("controlcenter"); }
+        function wifi(): void { ShellState.openPage("wifi"); }
     }
 
     Variants {
