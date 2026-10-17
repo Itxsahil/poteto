@@ -419,7 +419,9 @@ Item {
                     glyph: "󰒓"
                     glyphSize: 14
                     onClicked: {
-                        Quickshell.execDetached(["poteto-settings"]);
+                        // From the repo itself, next to the shell, so it does not depend on
+                        // ~/.local/bin being on PATH
+                        Quickshell.execDetached([Quickshell.shellDir + "/../settings/poteto-settings"]);
                         root.closeRequested();
                     }
                 }
