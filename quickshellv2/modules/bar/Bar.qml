@@ -23,7 +23,9 @@ PanelWindow {
     exclusiveZone: implicitHeight
     color: Theme.background
 
-    WlrLayershell.layer: WlrLayer.Top
+    // Above fullscreen windows (Alt + F) while it shows the volume or brightness OSD, which
+    // Hyprland would otherwise draw over; the bar alone stays below them
+    WlrLayershell.layer: showOsd ? WlrLayer.Overlay : WlrLayer.Top
     WlrLayershell.namespace: "bar"
 
     SystemClock {

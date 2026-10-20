@@ -46,7 +46,9 @@ PanelWindow {
     // In bar mode this reserves the bar's height on the bar's behalf — see SimpleBar.qml
     exclusiveZone: Layout.bar ? Layout.barHeight : 44 + gapTop
 
-    WlrLayershell.layer: WlrLayer.Top
+    // Above fullscreen windows (Alt + F) while something is open in it (a view, the control center, the OSD), which Hyprland draws over
+    // the Top layer; idle, it stays below them, out of the way of a fullscreen video or game
+    WlrLayershell.layer: pill.viewOpen || pill.showPanel || pill.showOsd ? WlrLayer.Overlay : WlrLayer.Top
     WlrLayershell.namespace: "dynamic-island"
     WlrLayershell.keyboardFocus: pill.viewOpen || pill.showPanel ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 

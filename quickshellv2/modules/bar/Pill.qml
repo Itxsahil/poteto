@@ -43,7 +43,9 @@ PanelWindow {
     exclusiveZone: gapTop + pillHeight
     color: "transparent"
 
-    WlrLayershell.layer: WlrLayer.Top
+    // Above fullscreen windows (Alt + F) while something is open in it, which Hyprland draws over
+    // the Top layer; idle, it stays below them, out of the way of a fullscreen video or game
+    WlrLayershell.layer: expanded || showOsd ? WlrLayer.Overlay : WlrLayer.Top
     WlrLayershell.namespace: "pill"
     WlrLayershell.keyboardFocus: pinned ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
