@@ -27,9 +27,12 @@ PanelWindow {
     required property ShellScreen targetScreen
 
     // The pill holds its own 8px gap from the top of the screen instead of the window doing it,
-    // so its shadow has somewhere to fall above it. The exclusive zone covers both, leaving the
-    // same 52px reserved for windows as before.
+    // so its shadow has somewhere to fall above it. The exclusive zone covers both and no more, so
+    // windows start Hyprland's gaps_out below the pill.
     readonly property int gapTop: 8
+    // At rest it is sized like quickshell v2's pill: 30px tall, the time with 40px either side
+    readonly property int pillHeight: 30
+    readonly property int idlePadding: 80
 
     // In bar mode the strip across the top reserves the space and shows the idle status, so this
     // window reserves nothing and only appears when something is opened in it.
@@ -44,7 +47,7 @@ PanelWindow {
     implicitHeight: topGap + Math.max(680, controlCenter.implicitHeight + 56)
     color: "transparent"
     // In bar mode this reserves the bar's height on the bar's behalf — see SimpleBar.qml
-    exclusiveZone: Layout.bar ? Layout.barHeight : 44 + gapTop
+    exclusiveZone: Layout.bar ? Layout.barHeight : pillHeight + gapTop
 
     // Above fullscreen windows (Alt + F) while something is open in it (a view, the control center, the OSD), which Hyprland draws over
     // the Top layer; idle, it stays below them, out of the way of a fullscreen video or game
@@ -154,10 +157,10 @@ PanelWindow {
         width: viewItem ? viewItem.implicitWidth + 24
             : showPanel ? controlCenter.implicitWidth + 40
             : showOsd ? osd.implicitWidth + 40
-            : idle.implicitWidth + 36
+            : idle.implicitWidth + root.idlePadding
         height: viewItem ? viewItem.implicitHeight + 24
             : showPanel ? controlCenter.implicitHeight + 40
-            : 36
+            : root.pillHeight
         radius: viewOpen ? 30 : showPanel ? 32 : height / 2
         color: Theme.islandBg
         border.color: Theme.islandBorder
@@ -233,6 +236,7 @@ PanelWindow {
             id: idle
             anchors.centerIn: parent
             date: clock.date
+            clockOnly: true
             opacity: pill.showPanel || pill.showOsd || pill.viewOpen ? 0 : 1
             visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: 150 } }

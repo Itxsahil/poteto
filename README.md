@@ -20,7 +20,7 @@ poteto/
 | | |
 |---|---|
 | **Simple bar mode** | `mod + Shift + B` swaps the floating pills for one flat bar across the top — workspaces, the playing track and status in a single strip that reserves its own space. Everything the island opens still opens; click the right of the bar for the control center. The choice is remembered |
-| **Island (idle)** | Wi-Fi strength · 12-hour clock · battery, colored by level · red mic icon while the mic is muted |
+| **Island (idle)** | The 12-hour clock, plus a red mic icon while the mic is muted and a pulsing dot while recording. Wi-Fi, battery and unread notifications are in the control center (and in bar mode, on the bar) |
 | **Control center** (rest the pointer on the island, or click it to keep it open) | A compact bento grid: clock (click it for the calendar), battery with health, Wi-Fi, Bluetooth, Notifications and Night Light tiles (Night Light opens a warmth slider), and brightness, volume and microphone sliders (click the mic icon or right click to mute). The button beside volume and mic opens the Sound page, which lists every output and input, with unplugged ones greyed out |
 | **Performance monitor** (`Super + M`, both shells) | Its own island view, like the control center: CPU with a one-minute graph, every thread's load and each core's temperature; memory and swap; the NVIDIA GPU (usage, VRAM, temperature, power; left asleep when it is, rather than woken to ask) and the Intel GPU's clock; disk space, SSD temperature and read/write speed; network speed; load, fan and battery draw; the busiest processes, with End (asked twice) for your own, never for the session's own (Hyprland, the shell, audio). It samples only while open (`scripts/sysstats` in each shell) |
 | **Audio devices** | The button beside the volume and mic sliders opens the Sound page: every output and input as a row with an icon, the one in use checked, unplugged ones greyed out |
@@ -28,9 +28,9 @@ poteto/
 | **Bluetooth page** | Scan, pair + connect, disconnect, forget, device battery |
 | **OSD** | Volume, brightness and mic changes (including the Fn mic-mute key) briefly turn the island into a level bar |
 | **Notifications** | Popups under the island with icons, images, actions and markup; history page and Do Not Disturb in the control center; unread dot in the island |
-| **Workspaces** | Separate pill top-left: click to switch, scroll to cycle |
+| **Workspaces** | Separate pill top-left: click to switch, scroll to cycle. Poteto → Workspaces turns it off (the same switch as in quickshell v2) |
 | **Music pill** | Small pill left of the center island: circular MPD album art (music icon when unavailable), four live visualizer bars while playing; click for media controls, right click for play/pause, Esc or click outside to close. Shown in island mode |
-| **Status pill** | Top-right: MPD track with a live cava visualizer (click play/pause, right click next, middle click previous) and the date |
+| **Status pill** | Top-right: MPD track with a live cava visualizer (click play/pause, right click next, middle click previous) and the date. Poteto → Music & date turns it off; while recording, the stop button stays |
 | **Media panel** (hover the status pill) | Album art, track, seek bar, play/pause, next/previous, shuffle, repeat (all / one) and MPD volume |
 | **Launcher** | Fuzzy app search, terminal apps open in kitty, built-in calculator, and a **Keybindings** card when you type `key` |
 | **Keybindings** | Searchable cheatsheet parsed live from `hypr/bindings.lua` plus the shell's own keys; flags combos bound twice |

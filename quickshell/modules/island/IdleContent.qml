@@ -10,6 +10,10 @@ Row {
     property date date: new Date()
     // The bar puts the time in the center of the screen, so its status cluster leaves it out
     property bool showClock: true
+    // Only the clock (and the recording and muted-mic marks, which show only while they apply):
+    // the island leaves Wi-Fi, the battery and the unread count to the control center. The bar
+    // keeps them, being the only place they show in bar mode
+    property bool clockOnly: false
 
     readonly property int wifiSignal: Wifi.active?.signal ?? 0
     // Color only when it needs attention: a weak signal, or none. A good connection is plain text,
@@ -45,6 +49,7 @@ Row {
 
     WifiIcon {
         anchors.verticalCenter: parent.verticalCenter
+        visible: !root.clockOnly
         width: 17
         height: 13
         strength: root.wifiSignal
@@ -67,7 +72,7 @@ Row {
         anchors.verticalCenter: parent.verticalCenter
         width: 24
         height: 12.7
-        visible: Battery.present
+        visible: Battery.present && !root.clockOnly
         level: Battery.level
         fillColor: root.batteryColor
         outlineColor: Qt.alpha(Theme.textPrimary, 0.6)
@@ -95,7 +100,7 @@ Row {
         height: 16
         radius: height / 2
         color: Theme.accent
-        visible: Notifications.unread > 0 && !Notifications.dnd
+        visible: Notifications.unread > 0 && !Notifications.dnd && !root.clockOnly
 
         Text {
             id: unreadText
