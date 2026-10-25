@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import qs.components
+import qs.config
 import qs.services
 
 PanelWindow {
@@ -16,8 +17,9 @@ PanelWindow {
     readonly property int shadowRoom: 24
 
     screen: targetScreen
-    // the simple bar carries all of this when it is on
-    visible: !Layout.bar
+    // the simple bar carries all of this when it is on; and it can be turned off (Poteto →
+    // Workspaces, shared with quickshell v2)
+    visible: !Layout.bar && Settings.showWorkspaces
     anchors.top: true
     anchors.left: true
     implicitWidth: workspaces.implicitWidth + gapLeft + shadowRoom

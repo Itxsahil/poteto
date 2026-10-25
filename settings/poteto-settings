@@ -124,6 +124,16 @@ class SettingsWindow(Adw.ApplicationWindow):
         self.workspaces_switch.connect("notify::active", self._on_workspaces_changed)
         appearance.add(self.workspaces_switch)
 
+        # Only the old shell (quickshell/) has this pill; v2 ignores the setting
+        # (plain text: rows take markup, where a bare "&" makes the title vanish)
+        self.music_switch = Adw.SwitchRow(
+            use_markup=False,
+            title="Music & date",
+            subtitle="Old shell: show the pill with the playing track and the date (the bar always shows them)",
+        )
+        self.music_switch.connect("notify::active", self._on_music_changed)
+        appearance.add(self.music_switch)
+
         self.battery_switch = Adw.SwitchRow(
             title="Battery",
             subtitle="Show the battery next to the pill (the bar always shows it)",
@@ -275,6 +285,9 @@ class SettingsWindow(Adw.ApplicationWindow):
         workspaces = data.get("showWorkspaces") is not False
         if self.workspaces_switch.get_active() != workspaces:
             self.workspaces_switch.set_active(workspaces)
+        music = data.get("showMusic") is not False
+        if self.music_switch.get_active() != music:
+            self.music_switch.set_active(music)
         calendar = data.get("showCalendar") is not False
         if self.calendar_switch.get_active() != calendar:
             self.calendar_switch.set_active(calendar)
@@ -320,6 +333,10 @@ class SettingsWindow(Adw.ApplicationWindow):
     def _on_workspaces_changed(self, row, _pspec):
         if not self._syncing:
             self._set("showWorkspaces", row.get_active())
+
+    def _on_music_changed(self, row, _pspec):
+        if not self._syncing:
+            self._set("showMusic", row.get_active())
 
     def _on_calendar_changed(self, row, _pspec):
         if not self._syncing:

@@ -16,8 +16,9 @@ PanelWindow {
     readonly property int gapRight: 12
 
     screen: targetScreen
-    // the simple bar carries all of this when it is on
-    visible: !Layout.bar
+    // the simple bar carries all of this when it is on. The music and date pill can be turned
+    // off (Poteto → Music & date); the window stays while recording, for the stop button
+    visible: !Layout.bar && (Settings.showMusic || recordingWidget.shown)
     anchors.top: true
     anchors.right: true
     // Room for the media panel to grow into, plus the recorder pill beside it, plus the shadows.
@@ -31,12 +32,19 @@ PanelWindow {
     WlrLayershell.namespace: "statusbar"
 
     mask: Region {
-        item: pill
+        item: Settings.showMusic ? pill : noPill
 
         Region {
             item: recPill
             intersection: Intersection.Combine
         }
+    }
+
+    // What the mask holds in place of the pill while it is turned off
+    Item {
+        id: noPill
+        width: 0
+        height: 0
     }
 
     SystemClock {
@@ -59,8 +67,9 @@ PanelWindow {
     // the media panel on hover, which would hide the stop button mid-recording.
     Rectangle {
         id: recPill
-        anchors.right: pill.left
-        anchors.rightMargin: recordingWidget.shown ? 8 : 0
+        // Beside the pill, or where it would be when it is turned off
+        anchors.right: Settings.showMusic ? pill.left : parent.right
+        anchors.rightMargin: !Settings.showMusic ? root.gapRight : recordingWidget.shown ? 8 : 0
         anchors.top: parent.top
         anchors.topMargin: root.gapTop
         // zero width when idle, so the input mask has no invisible strip beside the pill
@@ -90,6 +99,7 @@ PanelWindow {
         // Hovering the pill opens the media controls, as long as something is playing
         property bool expanded: false
         readonly property bool showMedia: expanded && Mpd.active
+        visible: Settings.showMusic
 
         anchors.right: parent.right
         anchors.rightMargin: root.gapRight
