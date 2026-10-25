@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Hyprland
 import qs.config
+import qs.services
 
 Rectangle {
     id: root
@@ -26,7 +27,7 @@ Rectangle {
     property bool flat: false
 
     implicitWidth: row.implicitWidth + (flat ? 0 : 8)
-    implicitHeight: 36
+    implicitHeight: Layout.pillHeight
     radius: flat ? 0 : height / 2
     color: Theme.islandBg
     border.color: Theme.islandBorder
@@ -62,9 +63,10 @@ Rectangle {
                 readonly property bool occupied: (workspace?.toplevels?.values?.length ?? 0) > 0
                 readonly property bool urgent: workspace?.urgent ?? false
 
-                width: root.flat ? 34 : isActive ? 44 : 28
-                height: root.flat ? root.height : 28
-                radius: root.flat ? 0 : 14
+                // In the pill, a capsule 3px inside its edge
+                width: root.flat ? 34 : isActive ? 40 : 26
+                height: root.flat ? root.height : root.height - 6
+                radius: root.flat ? 0 : height / 2
                 // Bar mode marks the active workspace by brightness alone — no block behind the
                 // number, which is the one thing the pill is for
                 color: root.flat ? "transparent"

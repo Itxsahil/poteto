@@ -20,6 +20,9 @@ Singleton {
 
     // Height of the bar, and what it reserves from the screen for tiled windows
     readonly property int barHeight: 30
+    // The floating pills' height: the island's, the workspaces' and the music and date pill's
+    // (the same as quickshell v2's pill)
+    readonly property int pillHeight: 30
 
     function toggle() {
         setMode(bar ? "island" : "bar");

@@ -74,7 +74,7 @@ PanelWindow {
         anchors.topMargin: root.gapTop
         // zero width when idle, so the input mask has no invisible strip beside the pill
         width: recordingWidget.shown ? recordingWidget.implicitWidth + 24 : 0
-        height: 36
+        height: Layout.pillHeight
         radius: height / 2
         color: Theme.islandBg
         border.color: Theme.islandBorder
@@ -106,7 +106,7 @@ PanelWindow {
         anchors.top: parent.top
         anchors.topMargin: root.gapTop
         width: showMedia ? media.implicitWidth + 32 : content.implicitWidth + 24
-        height: showMedia ? media.implicitHeight + 28 : 36
+        height: showMedia ? media.implicitHeight + 28 : Layout.pillHeight
         radius: showMedia ? 26 : height / 2
         color: Theme.islandBg
         border.color: Theme.islandBorder
@@ -135,11 +135,11 @@ PanelWindow {
         }
 
         // Held at the top rather than centered, so it stays put while the pill grows into the
-        // media panel; the margin is what centers it in the 36px idle pill
+        // media panel; the margin is what centers it in the idle pill
         Row {
             id: content
             anchors.top: parent.top
-            anchors.topMargin: (36 - height) / 2
+            anchors.topMargin: (Layout.pillHeight - height) / 2
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: 10
             opacity: pill.showMedia ? 0 : 1
