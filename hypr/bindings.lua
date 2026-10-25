@@ -185,6 +185,7 @@ hl.bind("SUPER + SHIFT + R", hl.dsp.exec_cmd("qs ipc call recorder toggle"))
 -- Control center
 hl.bind("SUPER + C", hl.dsp.exec_cmd("qs ipc call controlcenter toggle"))
 hl.bind("SUPER + M", hl.dsp.exec_cmd("qs ipc call performance toggle"))
+hl.bind("SUPER + P", hl.dsp.exec_cmd("qs ipc call media toggle"))
 -- -----------------------------------------------------------------------------
 -- SYSTEM CONTROLS
 -- -----------------------------------------------------------------------------

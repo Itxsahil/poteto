@@ -55,6 +55,15 @@ Scope {
     // Referenced here so the polkit agent registers at startup, not on first use.
     readonly property bool polkitAgent: Polkit.registered
 
+    // qs ipc call media toggle|open|close (Super + P): the music player on its own, the same
+    // target as quickshell v2's
+    IpcHandler {
+        target: "media"
+        function toggle(): void { ShellState.toggle("media"); }
+        function open(): void { ShellState.open("media"); }
+        function close(): void { ShellState.close("media"); }
+    }
+
     // qs ipc call performance toggle|open|close (Super + M)
     IpcHandler {
         target: "performance"
