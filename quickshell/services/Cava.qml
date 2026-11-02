@@ -12,6 +12,9 @@ Singleton {
     readonly property string configFile: Quickshell.env("HOME") + "/.cache/quickshell/cava.conf"
 
     property bool enabled: false
+    // Running for the music pill (enabled, set there) or for the music player while it is open
+    // and playing (Super + P), which has its own visualizer and shows with the pill turned off
+    readonly property bool live: enabled || (ShellState.view === "media" && Mpd.playing)
     property var bars: new Array(barCount).fill(0)
 
     readonly property string config: `[general]
@@ -37,8 +40,8 @@ frame_delimiter = 10
 noise_reduction = 55
 `
 
-    onEnabledChanged: {
-        if (!enabled)
+    onLiveChanged: {
+        if (!live)
             bars = new Array(barCount).fill(0);
     }
 
@@ -56,7 +59,7 @@ noise_reduction = 55
         id: cava
         property bool ready: false
         property bool coolingDown: false
-        running: ready && root.enabled && !coolingDown
+        running: ready && root.live && !coolingDown
         command: ["stdbuf", "-o0", "cava", "-p", root.configFile]
 
         stdout: SplitParser {

@@ -66,7 +66,7 @@ poteto/
 | `mod + Shift + C` | Camera |
 | `mod + /` | Keybinding cheatsheet |
 | `Super + M` | Performance monitor |
-| `Super + P` | Music player on its own (both shells) |
+| `Super + P` | Music player on its own (both shells): Space play/pause, ← → seek, N / P skip |
 | `Super + V` | Clipboard history |
 | `Super + .` | Emoji picker |
 | `Super + Shift + C` | Color picker |
@@ -530,7 +530,7 @@ quickshell/
     ├── loginvideo/            login screen background video picker
     ├── keybinds/              keybinding cheatsheet
     ├── perf/                  performance monitor (services/SystemStats.qml, scripts/sysstats)
-    ├── media/                 the music player as a view of its own (the media panel, open)
+    ├── media/                 the music player on its own (Super + P), ported from quickshell v2
     ├── videos/                video grid with folder chips
     ├── camera/                webcam preview, shutter and self-timer
     ├── player/                video window (QtMultimedia)

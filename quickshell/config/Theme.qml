@@ -90,4 +90,6 @@ Singleton {
     // that, finds nothing, and falls back without a word. Qt falls back on its own if Inter is
     // missing, so the comma bought nothing and cost the font.
     readonly property string fontFamily: "Inter"
+    // Nerd Font glyphs (icons drawn as text) and numbers that should not jump around
+    readonly property string monoFamily: "JetBrainsMono Nerd Font"
 }

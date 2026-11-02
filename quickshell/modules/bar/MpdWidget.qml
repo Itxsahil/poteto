@@ -11,10 +11,12 @@ Item {
     implicitHeight: 28
     visible: shown
 
+    // The visualizer runs only while it can be seen: in the bar, or in the music pill when that is
+    // turned on (both widgets ask the same, so they agree)
     Binding {
         target: Cava
         property: "enabled"
-        value: root.shown && Mpd.playing
+        value: root.shown && Mpd.playing && (Layout.bar || Settings.showMusic)
     }
 
     Row {
