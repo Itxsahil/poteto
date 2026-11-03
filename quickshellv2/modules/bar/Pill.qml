@@ -43,9 +43,14 @@ PanelWindow {
     exclusiveZone: gapTop + pillHeight
     color: "transparent"
 
-    // Above fullscreen windows (Alt + F) while something is open in it, which Hyprland draws over
-    // the Top layer; idle, it stays below them, out of the way of a fullscreen video or game
-    WlrLayershell.layer: expanded || showOsd ? WlrLayer.Overlay : WlrLayer.Top
+    // Always on the Overlay layer, so what opens here shows above a fullscreen window (Alt + F),
+    // which Hyprland draws over the Top layer. Never moved between layers: Hyprland 0.57 ignores a
+    // layer change on a mapped surface (and moving it is a suspect in its crashes). Instead the
+    // window is unmapped while the workspace is fullscreen and nothing is open, so the idle pill
+    // and its capsules stay out of the way of a fullscreen video or game
+    readonly property bool fullscreen: Hyprland.monitorFor(targetScreen)?.activeWorkspace?.hasFullscreen ?? false
+    visible: !fullscreen || expanded || showOsd
+    WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "pill"
     WlrLayershell.keyboardFocus: pinned ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 

@@ -35,9 +35,10 @@ PanelWindow {
     exclusionMode: ExclusionMode.Ignore
     color: "transparent"
 
-    // Above fullscreen windows (Alt + F) while something is open in it, which Hyprland draws over
-    // the Top layer; idle, it stays below them, out of the way of a fullscreen video or game
-    WlrLayershell.layer: expanded ? WlrLayer.Overlay : WlrLayer.Top
+    // Always on the Overlay layer, so a panel opened from the bar shows above a fullscreen window
+    // (Alt + F); never moved between layers, which Hyprland 0.57 ignores on a mapped surface. It
+    // draws nothing until something opens
+    WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "barpanel"
     WlrLayershell.keyboardFocus: pinned ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 

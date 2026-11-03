@@ -51,9 +51,14 @@ PanelWindow {
     // In bar mode this reserves the bar's height on the bar's behalf — see SimpleBar.qml
     exclusiveZone: Layout.bar ? Layout.barHeight : pillHeight + gapTop
 
-    // Above fullscreen windows (Alt + F) while something is open in it (a view, the control center, the OSD), which Hyprland draws over
-    // the Top layer; idle, it stays below them, out of the way of a fullscreen video or game
-    WlrLayershell.layer: pill.viewOpen || pill.showPanel || pill.showOsd ? WlrLayer.Overlay : WlrLayer.Top
+    // Always on the Overlay layer, so what opens here shows above a fullscreen window (Alt + F),
+    // which Hyprland draws over the Top layer. Never moved between layers: Hyprland 0.57 ignores a
+    // layer change on a mapped surface (and moving it is a suspect in its crashes). Instead the
+    // window is unmapped while the workspace is fullscreen and nothing is open, so the idle pill
+    // stays out of the way of a fullscreen video or game
+    readonly property bool fullscreen: Hyprland.monitorFor(targetScreen)?.activeWorkspace?.hasFullscreen ?? false
+    visible: !fullscreen || pill.viewOpen || pill.showPanel || pill.showOsd
+    WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "dynamic-island"
     WlrLayershell.keyboardFocus: pill.viewOpen || pill.showPanel ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 

@@ -23,9 +23,14 @@ PanelWindow {
     exclusiveZone: implicitHeight
     color: Theme.background
 
-    // Above fullscreen windows (Alt + F) while it shows the volume or brightness OSD, which
-    // Hyprland would otherwise draw over; the bar alone stays below them
-    WlrLayershell.layer: showOsd ? WlrLayer.Overlay : WlrLayer.Top
+    // Always on the Overlay layer, so the volume or brightness OSD it shows appears above a
+    // fullscreen window (Alt + F), which Hyprland draws over the Top layer. Never moved between
+    // layers: Hyprland 0.57 ignores a layer change on a mapped surface (and moving it is a suspect
+    // in its crashes). Instead the bar is unmapped while the workspace is fullscreen and no OSD
+    // shows, so it stays out of the way of a fullscreen video or game
+    readonly property bool fullscreen: Hyprland.monitorFor(targetScreen)?.activeWorkspace?.hasFullscreen ?? false
+    visible: !fullscreen || showOsd
+    WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "bar"
 
     SystemClock {
