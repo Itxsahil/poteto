@@ -80,8 +80,9 @@ hl.bind(var_mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
 hl.bind(var_mainMod .. " + mouse_up", hl.dsp.focus({ workspace = "e-1" }))
 
 -- Quick workspace navigation
-hl.bind(var_mainMod .. " + TAB", hl.dsp.focus({ workspace = "e+1" }))
-hl.bind(var_mainMod .. " + SHIFT + TAB", hl.dsp.focus({ workspace = "e-1" }))
+-- The workspace overview: hold Alt, Tab through the workspaces, let go of Alt to go there
+hl.bind(var_mainMod .. " + TAB", hl.dsp.exec_cmd("qs ipc call overview next"))
+hl.bind(var_mainMod .. " + SHIFT + TAB", hl.dsp.exec_cmd("qs ipc call overview prev"))
 
 -- -----------------------------------------------------------------------------
 -- WINDOW GROUPING

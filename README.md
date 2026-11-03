@@ -22,6 +22,7 @@ poteto/
 | **Simple bar mode** | `mod + Shift + B` swaps the floating pills for one flat bar across the top — workspaces, the playing track and status in a single strip that reserves its own space. Everything the island opens still opens; click the right of the bar for the control center. The choice is remembered |
 | **Island (idle)** | The 12-hour clock, plus a red mic icon while the mic is muted and a pulsing dot while recording. Wi-Fi, battery and unread notifications are in the control center (and in bar mode, on the bar) |
 | **Control center** (rest the pointer on the island, or click it to keep it open) | A compact bento grid: clock (click it for the calendar), battery with health, Wi-Fi, Bluetooth, Notifications and Night Light tiles (Night Light opens a warmth slider), and brightness, volume and microphone sliders (click the mic icon or right click to mute). The button beside volume and mic opens the Sound page, which lists every output and input, with unplugged ones greyed out |
+| **Workspace overview** (`mod + Tab`, both shells) | The screen dimmed, with a card per workspace that has windows (and the current one), each showing its windows live where they sit on the wallpaper. Tab / Shift+Tab or arrows move, letting go of Alt goes there |
 | **Performance monitor** (`Super + M`, both shells) | Its own island view, like the control center: CPU with a one-minute graph, every thread's load and each core's temperature; memory and swap; the NVIDIA GPU (usage, VRAM, temperature, power; left asleep when it is, rather than woken to ask) and the Intel GPU's clock; disk space, SSD temperature and read/write speed; network speed; load, fan and battery draw; the busiest processes, with End (asked twice) for your own, never for the session's own (Hyprland, the shell, audio). It samples only while open (`scripts/sysstats` in each shell) |
 | **Audio devices** | The button beside the volume and mic sliders opens the Sound page: every output and input as a row with an icon, the one in use checked, unplugged ones greyed out |
 | **Wi-Fi page** | Scan, connect (with password), disconnect, forget |
@@ -58,6 +59,7 @@ poteto/
 | Keys | Action |
 |---|---|
 | `mod + Space` | App launcher / calculator |
+| `mod + Tab` | Workspace overview (both shells): hold Alt, Tab / Shift+Tab through live previews of every workspace with windows, let go of Alt (or Enter, or click) to go there, Esc to stay |
 | `mod + W` | Wallpaper switcher |
 | `mod + T` | Theme switcher |
 | `mod + Shift + T` | Login screen (SDDM) theme switcher |
@@ -531,6 +533,7 @@ quickshell/
     ├── keybinds/              keybinding cheatsheet
     ├── perf/                  performance monitor (services/SystemStats.qml, scripts/sysstats)
     ├── media/                 the music player on its own (Super + P), ported from quickshell v2
+    ├── overview/              workspace overview with live previews (mod + Tab; services/Overview.qml)
     ├── videos/                video grid with folder chips
     ├── camera/                webcam preview, shutter and self-timer
     ├── player/                video window (QtMultimedia)
@@ -572,6 +575,7 @@ qs ipc call mpd        toggle|next|previous|status
 qs ipc call keybinds   toggle|open|close
 qs ipc call performance toggle|open|close
 qs ipc call media      toggle|open|close           # the music player on its own (Super + P)
+qs ipc call overview   next|prev|commit|cancel     # the workspace overview (mod + Tab)
 qs ipc call videos     toggle|open|close
 qs ipc call camera     toggle|open|close
 qs ipc call bar        toggle|simple|island|status|panel

@@ -5,6 +5,7 @@ import qs.services
 import qs.modules.ipc
 import qs.modules.bar
 import qs.modules.island
+import qs.modules.overview
 import qs.modules.screenshot
 import qs.modules.notifications
 import qs.modules.colorpicker
@@ -39,6 +40,10 @@ ShellRoot {
             }
 
             SimpleBar {
+                targetScreen: screenScope.modelData
+            }
+
+            WorkspaceOverview {
                 targetScreen: screenScope.modelData
             }
 

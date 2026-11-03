@@ -55,6 +55,16 @@ Scope {
     // Referenced here so the polkit agent registers at startup, not on first use.
     readonly property bool polkitAgent: Polkit.registered
 
+    // qs ipc call overview next|prev|commit|cancel (Alt + Tab, Alt + Shift + Tab): the workspace
+    // overview, opened by next or prev and moved through by them while open
+    IpcHandler {
+        target: "overview"
+        function next(): void { Overview.next(); }
+        function prev(): void { Overview.prev(); }
+        function commit(): void { Overview.commit(); }
+        function cancel(): void { Overview.cancel(); }
+    }
+
     // qs ipc call media toggle|open|close (Super + P): the music player on its own, the same
     // target as quickshell v2's
     IpcHandler {

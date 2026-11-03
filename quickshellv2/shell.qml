@@ -9,6 +9,7 @@ import qs.modules.screenshot
 import qs.modules.player
 import qs.modules.colorpicker
 import qs.modules.recorder
+import qs.modules.overview
 
 ShellRoot {
     // Singletons start when first used. These have no UI, so start them here: each one applies
@@ -101,6 +102,16 @@ ShellRoot {
     }
 
     // qs ipc call keybinds toggle|open|close (Alt + / in hypr/bindings.lua)
+    // qs ipc call overview next|prev|commit|cancel (Alt + Tab, Alt + Shift + Tab): the workspace
+    // overview, opened by next or prev and moved through by them while open
+    IpcHandler {
+        target: "overview"
+        function next(): void { Overview.next(); }
+        function prev(): void { Overview.prev(); }
+        function commit(): void { Overview.commit(); }
+        function cancel(): void { Overview.cancel(); }
+    }
+
     // qs ipc call performance toggle|open|close (Super + M in hypr/bindings.lua)
     IpcHandler {
         target: "performance"
@@ -284,6 +295,10 @@ ShellRoot {
             }
 
             RecorderOverlay {
+                targetScreen: screenScope.modelData
+            }
+
+            WorkspaceOverview {
                 targetScreen: screenScope.modelData
             }
 
