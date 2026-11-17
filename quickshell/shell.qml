@@ -1,4 +1,4 @@
-//@ pragma IconTheme breeze-dark
+//@ pragma IconTheme Papirus
 import QtQuick
 import Quickshell
 import qs.services
