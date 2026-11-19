@@ -13,7 +13,7 @@ import qs.config
 // has nothing to show until you open something.
 //
 // The choice is `style` in config/Settings.qml ("pill" or "bar" in shell.json, the names Poteto
-// and quickshell v2 use; "pill" is this shell's "island"), so Poteto's layout switch works here too.
+// uses; "pill" is this shell's "island"), so Poteto's layout switch works here too.
 Singleton {
     id: root
 
@@ -24,7 +24,6 @@ Singleton {
     // Height of the bar, and what it reserves from the screen for tiled windows
     readonly property int barHeight: 30
     // The floating pills' height: the island's, the workspaces' and the music and date pill's
-    // (the same as quickshell v2's pill)
     readonly property int pillHeight: 30
 
     function toggle() {

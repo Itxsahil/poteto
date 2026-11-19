@@ -267,12 +267,12 @@ PHASE 0 — DECIDE (do first; about 1 hour, no code)
       - [done 2026-11-20] Move hyprlock's wallpaper path out of the tracked file: the shell writes
         it to ~/.cache/quickshell/hyprlock-wallpaper.conf and hyprlock.conf uses $wallpaper.
 
-PHASE 1 — MAKE V1 THE ONLY SHELL (about 1 week)
+PHASE 1 — MAKE V1 THE ONLY SHELL (DONE 2026-11-20; v2 kept in the v2-final git tag)
   v1 already has what v2's TODO.md was chasing: the theme switcher (16 themes), the media
   panel, the calendar tile, Do Not Disturb, night light, the bar/pill layout, the
   performance monitor, the player and the overview. Only a few v2-only things are left to
   decide on.
-  1.1 Go through what only v2 has. Port each one or drop it:
+  1.1 [done: all dropped, the accent was never set] Go through what only v2 has. Port each one or drop it:
       - Accent color override (Config.accent + Theme.readable()): an optional accent on
         top of the active theme, kept readable. Worth porting: it's small and fits v1's
         themes.
@@ -293,10 +293,10 @@ PHASE 1 — MAKE V1 THE ONLY SHELL (about 1 week)
   1.3 [done 2026-11-20, in services/Battery.qml] Low-battery warning: a daemons/BatteryMonitor.qml like caelestia's.
       - Configurable levels from Settings; a notification at 15% and 5%.
       - Optionally hibernate at a critical level.
-  1.4 Delete quickshellv2/, switch-shell, dev.poteto.SwitchShell.desktop, and the
+  1.4 [done] Delete quickshellv2/, switch-shell, dev.poteto.SwitchShell.desktop, and the
       ~/.local/bin/poteto-switch-shell link. Make sure ~/.config/quickshell points at
       quickshell/.
-  1.5 Docs:
+  1.5 [done] Docs:
       - README: drop the v2 sections ("Accent color in apps", "Dark and light mode in
         quickshell v2", "both shells").
       - CLAUDE.md is already about v1; add the new rules from Phase 2.

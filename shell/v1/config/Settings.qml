@@ -5,7 +5,7 @@ import Quickshell
 import Quickshell.Io
 
 // The user's settings: ~/.config/poteto/shell.json, the file the Poteto settings app
-// (apps/settings/poteto-settings) and quickshell v2 use too. This is the only place in the shell
+// (apps/settings/poteto-settings) uses too. This is the only place in the shell
 // that reads or writes it: services bind to the properties below and change them with set().
 //
 // The file is followed live, so a change made in Poteto or by hand shows up straight away.

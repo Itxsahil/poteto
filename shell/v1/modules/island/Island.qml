@@ -31,7 +31,7 @@ PanelWindow {
     // so its shadow has somewhere to fall above it. The exclusive zone covers both and no more, so
     // windows start Hyprland's gaps_out below the pill.
     readonly property int gapTop: 8
-    // At rest it is sized like quickshell v2's pill: 30px tall (Layout.pillHeight, the side pills'
+    // At rest it is 30px tall (Layout.pillHeight, the side pills'
     // too), the time with 40px either side
     readonly property int pillHeight: Layout.pillHeight
     readonly property int idlePadding: 80

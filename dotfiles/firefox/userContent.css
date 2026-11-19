@@ -1,6 +1,6 @@
 /* poteto — Firefox's own pages (new tab, home, settings): square fields to match userChrome.css,
- * and the shell's accent for their buttons and links (poteto-accent.css, written by
- * quickshellv2/scripts/apply-accent; without it, Firefox's own) */
+ * and an accent for their buttons and links from poteto-accent.css when there is one (written by
+ * quickshell v2's apply-accent, git tag v2-final), Firefox's own otherwise */
 
 @import url("poteto-accent.css");
 

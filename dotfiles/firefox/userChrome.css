@@ -3,8 +3,8 @@
  * Neutral chrome that sits quietly next to the desktop: compact, rounded, no borders, and
  * only the buttons that earn their place. The page floats as a rounded card under the toolbars.
  * Dark or light with the system (the shell's light/dark mode), live. Focus, selection and menu
- * hover use the shell's accent color, from poteto-accent.css next to this file (written by
- * quickshellv2/scripts/apply-accent; without it, Firefox's own accent). Pairs with user.js
+ * hover use an accent from poteto-accent.css next to this file, when there is one (quickshell v2's
+ * apply-accent wrote it; v2 is gone, git tag v2-final), and Firefox's own accent otherwise. Pairs with user.js
  * (compact density, bookmarks bar on the new tab page only).
  */
 
@@ -12,7 +12,7 @@
 @import url("poteto-accent.css");
 
 :root {
-    /* Poteto's dark palette (quickshellv2/config/palettes.json) */
+    /* Poteto's dark palette (from quickshell v2's config/palettes.json, git tag v2-final) */
     --poteto-bg: #121316;
     --poteto-surface: #1b1c20;
     --poteto-raised: #26282d;

@@ -1,63 +1,43 @@
-# TODO — quickshell v2
+# TODO
 
-What is still left to bring over from the old shell (`shell/v1/`) or to finish in v2
-(`shell/v2/`). Branch: `quickshell-v2`. Last updated 2026-10-17.
+Small open items for the shell (`shell/v1/`). The bigger, phased work is in `docs/plan.txt`.
+Last updated 2026-11-20. quickshell v2 was removed; it is kept in the `v2-final` git tag.
 
-## From the old shell
+## Shell
 
-- [ ] **Theme switcher (Alt + T)** — the bind exists but nothing answers it. Pick one of the 12
-      themes in `themes/` and apply it to the shell, kitty, Hyprland, hyprlock, Neovim, rmpc,
-      VS Code and the wallpaper. Has to fit with light/dark mode (`Config.mode`) and the accent
-      color (`Config.accent`).
-- [ ] **Media panel in the bar** — the MPD song with album art and the audio visualizer (old:
-      `bar/MediaPanel.qml`, `bar/MpdWidget.qml`, `services/AlbumArt.qml`, `services/Cava.qml`).
-- [ ] **`qs ipc call mpd toggle|next|previous|status`** — for MPD keybinds.
-- [ ] **Calendar** — the old control center had calendar and clock tiles; maybe a page opened from
-      the clock.
-
-## Small additions
-
-- [x ] **Low-battery warning** — a notification around 15% and 5% while unplugged (today only the
-      battery icon changes color).
+- [ ] **Keybind cheatsheet** — some labels end in a stray ")" (found early on, never fixed).
+- [ ] **`SimpleBar.qml`** — a MouseArea warning in `qs log` (found early on, never fixed).
+- [ ] **Overview wallpapers** — some `wall.jpg` files under `~/copyrice/larp/themes/` are not real
+      JPEGs ("Unsupported image format" in `qs log`): convert or rename them.
 - [ ] **Fn + F4 (mic mute)** — check it works; if not, find its key with `wev` and bind it the way
       Fn + F6 is (`code:160`).
+- [ ] **Open Poteto from the shell** — a keybind and a settings button in the control center
+      (v2 had one; v1 only has the launcher entry).
 
-## Loose ends
+## Firefox
 
-- [ ] **Firefox: grey search chip** in the address bar — needs the Browser Toolbox to find what
-      paints it (`dotfiles/firefox/userChrome.css`).
-- [ ] **Firefox: accent color** — focus ring, selection and menu hover still use Firefox's own
-      blue, even with `widget.non-native-theme.use-theme-accent`.
-- [ ] **Accent color live in Qt and libadwaita apps** — needs `xdg-desktop-portal-gnome` as the
-      settings portal; until then they take the accent on their next start.
-- [ ] **Docs** — `README.md` and `CLAUDE.md` still describe the old shell, not v2 (features,
-      keybinds, IPC, Poteto, caches and state).
+- [ ] **Grey search chip** in the address bar — needs the Browser Toolbox to find what paints it
+      (`dotfiles/firefox/userChrome.css`).
+- [ ] **Accent color** — nothing writes `poteto-accent.css` since v2 is gone; either have the
+      theme switch write one from the theme's accent, or drop the import.
 
 ## Repo
 
-- [ ] Push `quickshell-v2` (nothing is pushed yet).
-- [ ] Decide on the changes outside the v2 commits: `.gitignore`, `README.md`, `temp`.
-- [x] `dotfiles/hypr/hyprlock.conf` changes with every wallpaper pick — the path now lives in
+- [ ] Choose a license (MIT or GPL-3; GPL-3 allows copying from `refrences/`).
+- [ ] Decide on `temp`, and whether the four ignored light themes get committed.
+- [ ] Push `reformating` (nothing from this round of work is pushed yet).
+
+## Done
+
+- [x] Low-battery warnings at 15% and 5%, shown even in Do Not Disturb (2026-11-20).
+- [x] `dotfiles/hypr/hyprlock.conf` no longer changes with every wallpaper pick — the path lives in
       `~/.cache/quickshell/hyprlock-wallpaper.conf` (2026-11-20).
-- [ ] Old-shell issues found at the start (keybind cheatsheet ")" labels, the `SimpleBar.qml`
-      MouseArea warning, README mismatches) were never fixed — only worth it if the old shell
-      stays.
-- [ ] Decide what happens to the old shell (`shell/v1/`) once v2 covers everything: keep it as
-      a fallback, or remove it (and the symlink note in the README).
+- [x] One settings file: `config/Settings.qml` reads and writes `~/.config/poteto/shell.json`
+      (2026-11-20).
+- [x] v1 is the only shell; v2 and `switch-shell` removed, tagged `v2-final` (2026-11-20).
 
 ## Not tried by hand
 
 Checked with screenshots and `qs ipc` only, since clicks and typing could not be sent from here:
 dragging sliders and regions, typing into fields (launcher, Wi-Fi password, recording name),
 and most button clicks.
-
-## Done in v2
-
-Pill and bar layouts, launcher (with calculator and `?` for the cheatsheet), control center
-(Wi-Fi, Bluetooth, Quiet, Dark, Night, Sound, Mic, Screen, MPD, notifications, lock / restart /
-power, record, and an Audio page for outputs and inputs; Awake and Airplane dropped as not
-needed), light/dark mode, accent color, night light, brightness and volume OSD with mic mute,
-notifications in the pill with history, screenshots, color picker, screen recorder, clipboard,
-emoji, wallpaper picker, video browser and player, camera, login theme and video pickers,
-polkit agent, power menu, keybind cheatsheet, workspaces / battery / Wi-Fi capsules, and the
-Poteto settings app.

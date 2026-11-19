@@ -18,7 +18,7 @@ PanelWindow {
 
     screen: targetScreen
     // the simple bar carries all of this when it is on; and it can be turned off (Poteto →
-    // Workspaces, shared with quickshell v2)
+    // Workspaces)
     visible: !Layout.bar && Settings.showWorkspaces
     anchors.top: true
     anchors.left: true

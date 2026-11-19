@@ -6,7 +6,7 @@ import qs.config
 import qs.services
 
 // The music player on its own (Super + P, qs ipc call media toggle), ported from quickshell v2's
-// modules/media/MediaContent.qml: album art, the track, a live visualizer, a seek bar, transport
+// modules/media/MediaContent.qml (git tag v2-final): album art, the track, a live visualizer, a seek bar, transport
 // with shuffle and repeat, and MPD's own volume. Space plays or pauses, ←/→ seek, N/P skip,
 // Esc closes.
 Item {

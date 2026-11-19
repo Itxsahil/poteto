@@ -70,8 +70,7 @@ Scope {
         function cancel(): void { Overview.cancel(); }
     }
 
-    // qs ipc call media toggle|open|close (Super + P): the music player on its own, the same
-    // target as quickshell v2's
+    // qs ipc call media toggle|open|close (Super + P): the music player on its own
     IpcHandler {
         target: "media"
         function toggle(): void { ShellState.toggle("media"); }
@@ -111,8 +110,8 @@ Scope {
         function panel(): string { ShellState.panel = !ShellState.panel; return ShellState.panel ? "open" : "closed"; }
     }
 
-    // The names quickshell v2 uses, which hypr/bindings.lua calls (Alt + Shift + B, Super + C), so
-    // the keys work in either shell
+    // pill / bar: the names shell.json and Poteto use for the shape; hypr/bindings.lua calls this
+    // target (Alt + Shift + B)
     IpcHandler {
         target: "layout"
         function toggle(): string { Layout.toggle(); return status(); }
@@ -128,7 +127,7 @@ Scope {
         function close(): void { ShellState.panel = false; }
     }
 
-    // qs ipc call nightlight toggle|on|off|status (the same as quickshell v2)
+    // qs ipc call nightlight toggle|on|off|status
     IpcHandler {
         target: "nightlight"
         function toggle(): bool { NightLight.toggle(); return NightLight.enabled; }

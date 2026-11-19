@@ -9,16 +9,14 @@ Everything lives in this repository and is symlinked into `~/.config`.
 ```
 poteto/
 ├── shell/
-│   ├── v1/            the shell (Quickshell / QML)            → ~/.config/quickshell
-│   └── v2/            quickshell v2 (the newer, alternative shell)
+│   └── v1/            the shell (Quickshell / QML)            → ~/.config/quickshell
 ├── dotfiles/
 │   ├── hypr/          Hyprland, keybinds, hyprlock            → ~/.config/hypr
 │   └── firefox/       Firefox chrome and prefs                → your Firefox profile
 ├── themes/            color schemes + default wallpapers (found by the shell, no link)
 ├── login/             SDDM login themes, their setup script and root helper
 ├── apps/
-│   ├── settings/      Poteto, the settings app                → ~/.local/bin/poteto-settings
-│   └── switch-shell/  switch between v1 and v2                → ~/.local/bin/poteto-switch-shell
+│   └── settings/      Poteto, the settings app                → ~/.local/bin/poteto-settings
 ├── tools/             notif-test and other dev helpers
 └── docs/              TODO.md, plan.txt
 ```
@@ -32,15 +30,15 @@ poteto/
 | **Simple bar mode** | `mod + Shift + B` swaps the floating pills for one flat bar across the top — workspaces, the playing track and status in a single strip that reserves its own space. Everything the island opens still opens; click the right of the bar for the control center. The choice is remembered (`style` in `~/.config/poteto/shell.json`, so Poteto's layout switch works too) |
 | **Island (idle)** | The 12-hour clock, plus a red mic icon while the mic is muted and a pulsing dot while recording. Wi-Fi, battery and unread notifications are in the control center (and in bar mode, on the bar) |
 | **Control center** (rest the pointer on the island, or click it to keep it open) | A compact bento grid: clock (click it for the calendar), battery with health, Wi-Fi, Bluetooth, Notifications and Night Light tiles (Night Light opens a warmth slider), and brightness, volume and microphone sliders (click the mic icon or right click to mute). The button beside volume and mic opens the Sound page, which lists every output and input, with unplugged ones greyed out |
-| **Workspace overview** (`mod + Tab`, both shells) | The screen dimmed, with a card per workspace that has windows (and the current one), each showing its windows live where they sit on the wallpaper. Tab / Shift+Tab or arrows move, letting go of Alt goes there |
-| **Performance monitor** (`Super + M`, both shells) | Its own island view, like the control center: CPU with a one-minute graph, every thread's load and each core's temperature; memory and swap; the NVIDIA GPU (usage, VRAM, temperature, power; left asleep when it is, rather than woken to ask) and the Intel GPU's clock; disk space, SSD temperature and read/write speed; network speed; load, fan and battery draw; the busiest processes, with End (asked twice) for your own, never for the session's own (Hyprland, the shell, audio). It samples only while open (`scripts/sysstats` in each shell) |
+| **Workspace overview** (`mod + Tab`) | The screen dimmed, with a card per workspace that has windows (and the current one), each showing its windows live where they sit on the wallpaper. Tab / Shift+Tab or arrows move, letting go of Alt goes there |
+| **Performance monitor** (`Super + M`) | Its own island view, like the control center: CPU with a one-minute graph, every thread's load and each core's temperature; memory and swap; the NVIDIA GPU (usage, VRAM, temperature, power; left asleep when it is, rather than woken to ask) and the Intel GPU's clock; disk space, SSD temperature and read/write speed; network speed; load, fan and battery draw; the busiest processes, with End (asked twice) for your own, never for the session's own (Hyprland, the shell, audio). It samples only while open (`scripts/sysstats`) |
 | **Audio devices** | The button beside the volume and mic sliders opens the Sound page: every output and input as a row with an icon, the one in use checked, unplugged ones greyed out |
 | **Wi-Fi page** | Scan, connect (with password), disconnect, forget |
 | **Bluetooth page** | Scan, pair + connect, disconnect, forget, device battery |
 | **OSD** | Volume, brightness and mic changes (including the Fn mic-mute key) briefly turn the island into a level bar |
 | **Low-battery warnings** | On battery, a notification at 15% and a critical one at 5%, both shown even in Do Not Disturb, once per discharge; plugging in resets them. Levels are `batteryLow` / `batteryCritical` in `shell.json` (0 turns one off) |
 | **Notifications** | Popups under the island with icons, images, actions and markup; history page and Do Not Disturb in the control center (remembered across restarts; Poteto's Quiet switch); unread dot in the island |
-| **Workspaces** | Separate pill top-left: click to switch, scroll to cycle. Poteto → Workspaces turns it off (the same switch as in quickshell v2) |
+| **Workspaces** | Separate pill top-left: click to switch, scroll to cycle. Poteto → Workspaces turns it off |
 | **Music pill** | Small pill left of the center island: circular MPD album art (music icon when unavailable), four live visualizer bars while playing; click for media controls, right click for play/pause, Esc or click outside to close. Shown in island mode |
 | **Status pill** | Top-right: MPD track with a live cava visualizer (click play/pause, right click next, middle click previous) and the date. Poteto → Music & date turns it off; while recording, the stop button stays |
 | **Media panel** (hover the status pill) | Album art, track, seek bar, play/pause, next/previous, shuffle, repeat (all / one) and MPD volume |
@@ -70,7 +68,7 @@ poteto/
 | Keys | Action |
 |---|---|
 | `mod + Space` | App launcher / calculator |
-| `mod + Tab` | Workspace overview (both shells): hold Alt, Tab / Shift+Tab through live previews of every workspace with windows, let go of Alt (or Enter, or click) to go there, Esc to stay |
+| `mod + Tab` | Workspace overview: hold Alt, Tab / Shift+Tab through live previews of every workspace with windows, let go of Alt (or Enter, or click) to go there, Esc to stay |
 | `mod + W` | Wallpaper switcher |
 | `mod + T` | Theme switcher |
 | `mod + Shift + T` | Login screen (SDDM) theme switcher |
@@ -79,7 +77,7 @@ poteto/
 | `mod + Shift + C` | Camera |
 | `mod + /` | Keybinding cheatsheet |
 | `Super + M` | Performance monitor |
-| `Super + P` | Music player on its own (both shells): Space play/pause, ← → seek, N / P skip |
+| `Super + P` | Music player on its own: Space play/pause, ← → seek, N / P skip |
 | `Super + V` | Clipboard history |
 | `Super + .` | Emoji picker |
 | `Super + Shift + C` | Color picker |
@@ -171,19 +169,6 @@ ln -s "$PWD/dotfiles/hypr" ~/.config/hypr
 
 `themes/` and `login/` do **not** need a link. The shell finds them at the repo root, two folders
 up from its own (`shell/v1/../../themes`, `shell/v1/../../login`).
-
-To switch between this shell and quickshell v2 from the launcher ("Switch Shell"), link the
-script and its launcher entry:
-
-```sh
-ln -s "$PWD/apps/switch-shell/switch-shell" ~/.local/bin/poteto-switch-shell
-ln -s "$PWD/apps/switch-shell/dev.poteto.SwitchShell.desktop" ~/.local/share/applications/
-```
-
-It moves `~/.config/quickshell` to the other folder and restarts Quickshell. When switching to
-this shell it also points the theme links back at this shell's last theme. Run
-`poteto-switch-shell v1`, `v2` or `status` from a terminal to pick a shell or see which is
-active.
 
 Poteto, the settings app (`~/.config/poteto/shell.json`), with its launcher entry and icon:
 
@@ -280,8 +265,8 @@ automatically.
 
 `dotfiles/firefox/` is a clean chrome for Firefox: compact tabs, square fields in the address bar, the page
 as a rounded card inset under the toolbars, no lines between them, and only the buttons that earn
-their place. It follows the system's light/dark mode live (the shell's mode toggle), and uses the
-shell's accent color for focus rings, selections, menu hover and Firefox's own buttons.
+their place. It follows the system's light/dark mode live, and uses an accent color for focus rings,
+selections, menu hover and Firefox's own buttons when one is supplied (below).
 `userContent.css` does the same for Firefox's own pages (new tab, settings).
 
 Link the three files into your profile — `about:profiles` shows its path,
@@ -300,73 +285,13 @@ Firefox's light/dark mode, and asks for the theme's accent. Firefox re-applies i
 so those prefs win over `about:preferences`; delete a line to hand it back. Changes land after a
 full restart (`about:profiles` → **Restart normally…**), not a new window.
 
-The accent comes from `chrome/poteto-accent.css`, which quickshell v2 writes into every profile
-whose `userChrome.css` links here, whenever the accent changes (Poteto → Accent Color). Without it,
-Firefox keeps its own accent.
+The accent comes from `chrome/poteto-accent.css` in the profile when that file exists (quickshell
+v2 used to write it; v2 is gone, see the `v2-final` git tag). Without it, Firefox keeps its own
+accent.
 
 If Firefox stays dark in light mode, an older `user.js` forced it: reset `ui.systemUsesDarkTheme`
 in `about:config`. Setting a pref in `user.js` stores it in the profile, so taking the line out of
 `user.js` alone does not undo it.
-
-### Accent color in apps (optional, quickshell v2)
-
-The accent color picked in the **Poteto** settings app reaches most apps on its own: GTK 3 and
-GTK 4 through `gtk.css`, VS Code through its settings, and Firefox through
-`chrome/poteto-accent.css` in the profile. Those apply when each app starts.
-
-To have **libadwaita and Qt apps change it live**, the desktop portal has to pass the accent on.
-`xdg-desktop-portal-gtk` only passes light/dark, so add the GNOME backend for settings only. This
-is a one-time setup outside the repo:
-
-1. Install it:
-
-   ```sh
-   sudo pacman -S xdg-desktop-portal-gnome
-   ```
-
-2. Let it answer settings (color scheme and accent), and leave everything else — screenshots,
-   screen sharing, file pickers — to Hyprland and GTK as before. In
-   `~/.config/xdg-desktop-portal/hyprland-portals.conf`:
-
-   ```ini
-   [preferred]
-   default=hyprland;gtk
-   org.freedesktop.impl.portal.Settings=gnome;gtk
-   ```
-
-3. The packaged service only starts inside a systemd graphical session, which Hyprland started
-   on its own does not have. Override it with the same service minus that requirement, in
-   `~/.config/systemd/user/xdg-desktop-portal-gnome.service`:
-
-   ```ini
-   [Unit]
-   Description=Portal service (GNOME implementation, without a GNOME session)
-
-   [Service]
-   Type=dbus
-   BusName=org.freedesktop.impl.portal.desktop.gnome
-   ExecStart=/usr/lib/xdg-desktop-portal-gnome
-   ```
-
-4. Reload and restart the portal:
-
-   ```sh
-   systemctl --user daemon-reload
-   systemctl --user restart xdg-desktop-portal
-   ```
-
-Check it: this should print three numbers (the accent as red, green, blue) rather than
-`Requested setting not found`.
-
-```sh
-busctl --user call org.freedesktop.portal.Desktop /org/freedesktop/portal/desktop \
-    org.freedesktop.portal.Settings ReadOne ss org.freedesktop.appearance accent-color
-```
-
-Qt apps follow the portal because `dotfiles/hypr/hyprland.lua` sets `QT_QPA_PLATFORMTHEME=xdgdesktopportal`.
-The portal only knows GNOME's nine named accent colors: the swatches in Poteto change live
-everywhere, while a custom color shows as the nearest named one in live apps and exactly in
-`gtk.css` apps once they restart.
 
 ---
 
@@ -433,36 +358,6 @@ one. It is rebuilt when you apply it, and every time the wallpaper changes while
 - **Neovim**: a base46 theme `poteto-dynamic` is written next to it and linked as
   `~/.config/nvim/lua/themes/poteto-dynamic.lua` (once; an existing file there is never replaced).
 - **VS Code**: Default Dark Modern / Default Light Modern, by mode.
-
-### Dark and light mode in quickshell v2
-
-Quickshell v2 has no themes: it has one dark palette and one light one, in
-`shell/v2/config/palettes.json`, and the accent color on top. Both palettes are neutral
-grays, so any accent sits well on them.
-
-- **Mode** is set in Poteto, the control center's Dark button, or `qs ipc call appearance toggle`.
-  It switches the shell, the system's light/dark preference (GTK, Qt, Firefox) and the apps below.
-- **Accent** is set in Poteto. A picked color is made a little lighter in dark mode, or darker
-  in light mode, until it stands out from the background.
-
-`shell/v2/scripts/apply-palette` puts the palettes on the apps:
-
-| App | Dark | Light | How it switches |
-|---|---|---|---|
-| kitty | palette colors | palette colors | `SIGUSR1`, open windows too |
-| Neovim (NvChad) | `vscode_dark`, see-through | `vscode_light`, see-through | every running instance, plus the cache for new ones |
-| VS Code | Dark Modern | Light Modern | `workbench.colorTheme` |
-| rmpc | palette colors | palette colors | `rmpc remote set theme` |
-| Hyprland borders | accent | accent | `hyprctl reload` |
-| hyprlock | palette colors | palette colors | read at lock time |
-
-The script writes both modes' files into `~/.cache/quickshell/theme/dark/` and `light/` at
-start and when the accent changes. Switching the mode only points
-`~/.cache/quickshell/theme/active` at one of them and reloads the apps. kitty must not have a
-`dark-theme.auto.conf` or `light-theme.auto.conf`: open windows ignore reloads while those
-exist, so the script moves them aside as `.bak`. Edit `palettes.json` to change the colors;
-the shell picks it up live, and the apps on the next accent change or shell start. The
-wallpaper is never changed.
 
 ## Login screen (SDDM)
 
@@ -579,7 +474,7 @@ shell/v1/
     ├── loginvideo/            login screen background video picker
     ├── keybinds/              keybinding cheatsheet
     ├── perf/                  performance monitor (services/SystemStats.qml, scripts/sysstats)
-    ├── media/                 the music player on its own (Super + P), ported from quickshell v2
+    ├── media/                 the music player on its own (Super + P)
     ├── overview/              workspace overview with live previews (mod + Tab; services/Overview.qml)
     ├── videos/                video grid with folder chips
     ├── camera/                webcam preview, shutter and self-timer
@@ -627,9 +522,9 @@ qs ipc call overview   next|prev|commit|cancel     # the workspace overview (mod
 qs ipc call videos     toggle|open|close
 qs ipc call camera     toggle|open|close
 qs ipc call bar        toggle|simple|island|status|panel
-qs ipc call layout     toggle|pill|bar|status       # same names as quickshell v2 (Alt + Shift + B)
-qs ipc call controlcenter toggle|open|close        # same names as quickshell v2 (Super + C)
-qs ipc call nightlight toggle|on|off|status        # shared with quickshell v2 and Poteto (shell.json)
+qs ipc call layout     toggle|pill|bar|status       # Alt + Shift + B
+qs ipc call controlcenter toggle|open|close        # Super + C
+qs ipc call nightlight toggle|on|off|status        # shared with Poteto (shell.json)
 qs ipc call battery    status|testLow|testCritical  # level and warning levels; send a sample warning
 qs ipc call player     play <path>|stop|next|previous|loop|status
 qs ipc call player     speed 1        # or -1, steps 0.5×…2×
@@ -671,14 +566,12 @@ The same actions are registered as Hyprland global shortcuts named `quickshell:l
 | `~/.cache/quickshell/hyprlock-wallpaper.conf` | `$wallpaper = <path>`: the lock screen background, sourced by `hyprlock.conf` |
 | `themes/dynamic/` (in the repo, gitignored) | the Dynamic theme, generated from the wallpaper; its `colors.json` remembers the mode and style |
 | `~/.config/nvim/lua/themes/poteto-dynamic.lua` | link to the Dynamic theme's NvChad theme |
-| `~/.cache/quickshell/theme/dark/`, `light/`, `active` | v2: the apps' files for each mode, and the active one (`scripts/apply-palette`) |
-| `~/.cache/quickshell/vscode-settings.lock` | v2: keeps the palette and accent scripts from editing VS Code's settings at once |
 | `~/.cache/quickshell/wallpaper-thumbs/` | wallpaper grid thumbnails |
 | `~/.cache/quickshell/login-thumbs/` | login theme stills |
 | `~/.cache/quickshell/video-thumbs/` | video poster frames and durations |
 | `~/.cache/quickshell/album-art/` | album art extracted from the playing track |
 | `~/.cache/quickshell/border` | `on` / `off` for the focused window's border (`mod + B`) |
-| `~/.config/poteto/shell.json` | settings, shared with Poteto and quickshell v2: `style` (`pill` / `bar`, `mod + Shift + B`), `quiet` (Do Not Disturb), `nightLight`, `nightTemperature`, `showWorkspaces`, `showMusic`, `batteryLow`, `batteryCritical`. Read and written only by `config/Settings.qml`. The older `~/.cache/quickshell/layout` is carried over once and removed |
+| `~/.config/poteto/shell.json` | settings, shared with Poteto: `style` (`pill` / `bar`, `mod + Shift + B`), `quiet` (Do Not Disturb), `nightLight`, `nightTemperature`, `showWorkspaces`, `showMusic`, `batteryLow`, `batteryCritical`. Read and written only by `config/Settings.qml`. The older `~/.cache/quickshell/layout` is carried over once and removed |
 | `~/.cache/quickshell/hypr-layout` | `dwindle` / `scrolling`, Hyprland's window layout (`mod + S`) |
 | `$XDG_RUNTIME_DIR/qs-cliphist/` | decoded clipboard images (private: folder 0700, files 0600, cleared at logout) |
 

@@ -11,14 +11,14 @@ the shell (`Quickshell.shellDir + "/../../themes"`). `README.md` is the user-fac
 The repo is grouped by role. Moving a top-level folder breaks symlinks in `$HOME` and the
 `../../` lookups in the shell, and moving `login/` also needs `login/setup` re-run as root.
 
-- `shell/v1/` — the shell in daily use (QML, Quickshell 0.3+, `import qs.*` modules)
+- `shell/v1/` — the shell (QML, Quickshell 0.3+, `import qs.*` modules). The second shell, quickshell
+  v2, was removed; it is kept in the `v2-final` git tag
   - `shell.qml` — entry point; creates the per-screen windows (bars, island, overlays, popups) and `Ipc`
   - `config/Theme.qml` — every color and font, read from the active theme's `colors.json`
   - `services/` — singletons that talk to the system (nmcli, BlueZ, UPower, MPD, cliphist, polkit, …); no UI
   - `modules/<feature>/` — UI, one folder per feature; `modules/ipc/Ipc.qml` holds every `qs ipc` target and global shortcut
   - `components/` — reusable widgets and `icons/`
   - `utils/Calc.js` — the launcher's safe expression parser
-- `shell/v2/` — quickshell v2, the alternative shell (same module layout; views are `*Content.qml`)
 - `dotfiles/hypr/` — `hyprland.lua` (Hyprland's Lua config), `bindings.lua` (all keybinds), `hyprlock.conf`, `scripts/`
 - `dotfiles/firefox/` — `userChrome.css`, `userContent.css`, `user.js`, linked into the Firefox profile
 - `themes/<id>/` — one folder per color theme: `kitty/<id>.conf`, `hyprland/colors.lua`,
@@ -27,7 +27,6 @@ The repo is grouped by role. Moving a top-level folder breaks symlinks in `$HOME
 - `login/` — SDDM login themes (`metadata.desktop` + `Main.qml` + video), `setup` script, and
   `system/` (root-owned helper `poteto-login-theme` + polkit policy)
 - `apps/settings/` — Poteto, the GTK settings app (`poteto-settings`, `.desktop`, icon)
-- `apps/switch-shell/` — `switch-shell` (v1 ⇄ v2) and its `.desktop` entry
 - `tools/notif-test` — sends test notifications of every shape
 - `docs/` — `TODO.md`, `plan.txt` (the improvement plan)
 - `refrences/` — another person's Quickshell config kept for ideas (gitignored)
@@ -54,7 +53,7 @@ The repo is grouped by role. Moving a top-level folder breaks symlinks in `$HOME
 - Theme colors in `config/Theme.qml` fade (`Behavior` + `Theme.fade`); `Theme.preview` holds the
   theme picker's preview. Read colors through `Theme`, never from `colors.json` directly.
 - User settings live in `~/.config/poteto/shell.json`, read and written only by `config/Settings.qml`
-  (shared with Poteto and v2, so keep their key names). Services bind to `Settings.<key>` and change
+  (shared with Poteto, so keep its key names). Services bind to `Settings.<key>` and change
   it with `Settings.set(key, value)`; never give a setting its own file or `FileView`.
 - Cache/state goes under `~/.cache/quickshell/`; list new paths in the README "Caches and state" table.
 - New user-facing features and keys go in the README tables (Features, Keybinds, IPC, Customizing).
