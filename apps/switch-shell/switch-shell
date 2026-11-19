@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Switch between the old shell (quickshell/) and the new one (quickshellv2/): moves the
+# Switch between the old shell (shell/v1/) and the new one (shell/v2/): moves the
 # ~/.config/quickshell link to the other folder and restarts Quickshell.
 #
 #   switch-shell            to the other one
@@ -10,7 +10,8 @@
 # (dev.poteto.SwitchShell.desktop).
 set -euo pipefail
 
-repo=$(dirname "$(realpath "$0")")
+# This script lives in apps/switch-shell/ of the repo
+repo=$(realpath "$(dirname "$(realpath "$0")")/../..")
 link="$HOME/.config/quickshell"
 cache="$HOME/.cache/quickshell/theme"
 
@@ -30,7 +31,7 @@ if [ -e "$link" ] && [ ! -L "$link" ]; then
 fi
 
 current=v2
-[ "$(readlink -f "$link" 2>/dev/null)" = "$(realpath "$repo/quickshell")" ] && current=v1
+[ "$(readlink -f "$link" 2>/dev/null)" = "$(realpath "$repo/shell/v1")" ] && current=v1
 
 case "${1:-toggle}" in
     status) echo "$current"; exit 0 ;;
@@ -39,7 +40,7 @@ case "${1:-toggle}" in
     *) echo "usage: switch-shell [v1|v2|status]" >&2; exit 2 ;;
 esac
 
-if [ "$target" = v1 ]; then dir="$repo/quickshell"; else dir="$repo/quickshellv2"; fi
+if [ "$target" = v1 ]; then dir="$repo/shell/v1"; else dir="$repo/shell/v2"; fi
 ln -sfn "$dir" "$link"
 
 # The old shell reads its theme through links to one theme folder's files; the new one points

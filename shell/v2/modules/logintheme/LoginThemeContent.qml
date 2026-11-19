@@ -2,9 +2,10 @@ import QtQuick
 import Quickshell.Widgets
 import qs.config
 import qs.components
-import qs.components.icons
 import qs.services
 
+// The login screen (SDDM) theme switcher (Alt + Shift + T): one row of cards with the selected
+// one in the middle. Enter sets it (asking for your password), P previews it in sddm-greeter.
 Item {
     id: root
 
@@ -87,14 +88,14 @@ Item {
         width: parent.width
         height: 48
         radius: 18
-        color: Theme.tileBg
+        color: Theme.tile
 
         Text {
             anchors.left: parent.left
             anchors.leftMargin: 18
             anchors.verticalCenter: parent.verticalCenter
             text: "Login screen"
-            color: Theme.textPrimary
+            color: Theme.text
             font.pixelSize: 16
             font.weight: Font.DemiBold
             font.family: Theme.fontFamily
@@ -120,7 +121,7 @@ Item {
                     : root.themes.length ? `${root.selected + 1}/${root.themes.length}` : ""
                 color: LoginTheme.messageIsError ? Theme.danger
                     : LoginTheme.applying || LoginTheme.message ? Theme.accent
-                    : Theme.textSecondary
+                    : Theme.textDim
                 font.pixelSize: 11
                 font.weight: LoginTheme.applying || LoginTheme.message ? Font.DemiBold : Font.Normal
                 font.family: Theme.fontFamily
@@ -128,7 +129,7 @@ Item {
         }
     }
 
-    // Shown until sddm-themes/setup has installed the root helper.
+    // Shown until login/setup has installed the root helper.
     Rectangle {
         id: setupNote
         anchors.top: header.bottom
@@ -146,7 +147,7 @@ Item {
             anchors.leftMargin: 14
             wrapMode: Text.Wrap
             text: `One-time setup needed. In a terminal run:  ${LoginTheme.themesDir}/setup`
-            color: Theme.textPrimary
+            color: Theme.text
             font.pixelSize: 12
             font.family: Theme.fontFamily
         }
@@ -156,7 +157,7 @@ Item {
         anchors.centerIn: list
         visible: root.themes.length === 0
         text: LoginTheme.themesDir ? "No login themes found" : "Loading…"
-        color: Theme.textSecondary
+        color: Theme.textDim
         font.pixelSize: 13
         font.family: Theme.fontFamily
     }
@@ -212,7 +213,7 @@ Item {
             width: list.cardWidth
             height: list.height
             radius: 16
-            color: Theme.tileBg
+            color: Theme.tile
             border.width: 2
             border.color: isSelected ? Theme.accent : "transparent"
             opacity: isSelected ? 1 : 0.9 - 0.5 * distance
@@ -229,7 +230,7 @@ Item {
                 anchors.margins: 6
                 height: list.imageHeight
                 radius: 10
-                color: Theme.controlBg
+                color: Theme.control
 
                 Image {
                     anchors.fill: parent
@@ -252,11 +253,12 @@ Item {
                     radius: 11
                     color: Theme.accent
 
-                    CheckIcon {
+                    Text {
                         anchors.centerIn: parent
-                        width: 12
-                        height: 9
-                        color: Theme.onAccent
+                        text: "󰄬"
+                        color: Theme.accentText
+                        font.pixelSize: 13
+                        font.family: Theme.monoFamily
                     }
                 }
             }
@@ -274,7 +276,7 @@ Item {
                     width: parent.width
                     elide: Text.ElideRight
                     text: card.modelData.name
-                    color: card.isSelected ? Theme.textPrimary : Theme.textSecondary
+                    color: card.isSelected ? Theme.text : Theme.textDim
                     font.pixelSize: 13
                     font.weight: Font.DemiBold
                     font.family: Theme.fontFamily
@@ -284,7 +286,7 @@ Item {
                     width: parent.width
                     elide: Text.ElideRight
                     text: card.isActive ? "Active" : card.isApplying ? "Switching…" : card.modelData.id
-                    color: card.isActive || card.isApplying ? Theme.accent : Theme.textSecondary
+                    color: card.isActive || card.isApplying ? Theme.accent : Theme.textDim
                     font.pixelSize: 11
                     font.family: Theme.fontFamily
                 }
@@ -316,7 +318,7 @@ Item {
             anchors.leftMargin: 6
             anchors.verticalCenter: parent.verticalCenter
             text: "↵ set as login screen   P preview   ←→ navigate   Esc close"
-            color: Theme.textSecondary
+            color: Theme.textDim
             font.pixelSize: 11
             font.family: Theme.fontFamily
         }

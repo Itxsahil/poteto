@@ -8,7 +8,7 @@ import Quickshell.Io
 //
 // The greeter runs as the sddm user and cannot read a 700 home directory, so the file cannot just
 // be pointed at: it is copied into the live theme by the same root helper that switches themes
-// (sddm-themes/system/poteto-login-theme, installed by sddm-themes/setup). Switching the whole
+// (login/system/poteto-login-theme, installed by login/setup). Switching the whole
 // theme afterwards brings that theme's own video back, which is what you would expect.
 Singleton {
     id: root
@@ -50,7 +50,7 @@ Singleton {
         if (applying || !path)
             return;
         if (!LoginTheme.helperInstalled) {
-            say(`Run ${LoginTheme.themesDir || "sddm-themes"}/setup once first`, true);
+            say(`Run ${LoginTheme.themesDir || "login"}/setup once first`, true);
             return;
         }
         applying = path;

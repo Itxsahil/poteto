@@ -1,0 +1,412 @@
+POTETO vs CAELESTIA (refrences/) — COMPARISON AND IMPROVEMENT PLAN
+=====================================================================
+Written 2026-11-20 on branch `reformating`. Nothing here is done yet; pick what to do and when.
+Folder layout changed on 2026-11-20 (see README "Project structure"). Old names in this
+file map to:  quickshell/ -> shell/v1/   quickshellv2/ -> shell/v2/   hypr/ -> dotfiles/hypr/
+              firefox/ -> dotfiles/firefox/   sddm-themes/ -> login/   settings/ -> apps/settings/
+              switch-shell -> apps/switch-shell/   TODO.md, plan.txt -> docs/
+
+
+Numbers below were measured on the code, not guessed:
+  - poteto v1 (quickshell/) + v2 (quickshellv2/): about 33,500 lines of QML in total
+  - caelestia: about 260 QML files plus a C++ plugin (plugin/src/Caelestia/*)
+
+
+PART A — ASPECT BY ASPECT
+-------------------------
+Each aspect ends with a verdict:
+  [THEM] = caelestia does it better, worth copying
+  [YOU]  = poteto is ahead
+  [EVEN] = different, neither clearly better
+
+1. PROJECT SHAPE: ONE SHELL OR TWO
+   Caelestia: one shell. Optional parts are switched on and off in config
+     (GlobalConfig.utilities.vpn.enabled, launcher.enabled, ...).
+   Poteto: two whole shells (quickshell/ and quickshellv2/) plus switch-shell.
+     - 6 files are byte-identical in both (Webcam, SystemStats, Overview, Calc.js, sysstats,
+       emoji.json).
+     - Most services differ by only 2–20 lines (Clipboard, Emoji, Player, Videos, Wifi,
+       Polkit, Screenshot, ColorPicker, LoginTheme...).
+     - Every recent commit ports the same feature twice ("in both shells").
+   [THEM] This is the biggest cost in poteto today: every feature and every fix is done twice.
+   You use v1 day to day, so v1 is the shell to keep (see Phase 0/1).
+
+2. SETTINGS GUI
+   Caelestia: "Nexus", built into the shell in QML.
+     - PageRegistry (metadata) + PageCompRegistry (components) + per-instance NexusState.
+     - Reusable rows: ToggleRow, SliderRow, StepperRow, SelectRow, TextFieldRow, ListEditor.
+     - Can be embedded in a popout or opened as a FloatingWindow (WindowFactory).
+     - Opened with an IPC call or a global shortcut.
+   Poteto: settings/poteto-settings, a separate Python GTK4/Adwaita app (422 lines).
+     - It writes ~/.config/poteto/shell.json, which v2's Config.qml watches.
+     - Each setting is defined twice: once in Python, once in Config.qml.
+     - It doesn't use the shell's theme.
+     - It needs python-gobject and libadwaita.
+   [THEM] One QML settings window that reuses the shell's own widgets and Theme.
+
+3. CONFIG BACKEND
+   Caelestia (C++):
+     - Typed schema with defaults (CONFIG_PROPERTY).
+     - Per-monitor overrides on top of global settings (Config vs GlobalConfig).
+     - Saves debounced (500 ms) and atomic (QSaveFile); retries a half-written file.
+     - Unknown or invalid keys are "quarantined" (kept, not dropped).
+     - A toast appears when a save fails.
+   Poteto v2 (QML, config/Config.qml):
+     - A var `data` with a hand-written getter per key; a missing or invalid value falls
+       back to its default.
+     - A half-written file keeps the last good settings (good).
+     - setText() writes straight to the file: not atomic, not debounced.
+     - No per-monitor settings, no schema shared with the GUI, no error report.
+   Poteto v1: settings are spread across ~/.cache/quickshell/* files.
+   [THEM] for robustness. Note that Quickshell's own JsonAdapter + FileView gives most of
+     this in pure QML (typed properties = schema, watchChanges, writeAdapter), so poteto
+     doesn't need a C++ plugin to get it.
+
+4. DESIGN TOKENS (spacing, radius, durations, fonts)
+   Caelestia:
+     - Tokens.rounding/spacing/padding/font/anim, user-overridable in shell-tokens.json.
+     - 0 hard-coded radius values in modules/components.
+     - 49 hard-coded durations; the rest go through Anim.Type.
+   Poteto:
+     - v2 has 141 hard-coded `duration: N` and 122 hard-coded `radius: N`.
+     - v1 has 172 and 132.
+     - There is no Tokens/Appearance singleton for sizes.
+   [THEM] Changing the feel (rounder, snappier) today means editing about 260 numbers.
+
+5. COLORS AND THEMING
+   Caelestia:
+     - Material 3 palette generated from the wallpaper (Colours.qml).
+     - Transparency layers and a preview mode.
+     - One palette shape, used everywhere.
+   Poteto:
+     - v1: 16 hand-made themes (themes/<id>/...) that restyle kitty, Hyprland, hyprlock,
+       nvim, rmpc, VS Code and the wallpaper.
+     - v2: dark/light palettes.json plus an accent color, with a contrast check (readable()
+       moves any accent to 3:1 against the background) and accentText picked by contrast.
+     - Theme rule: no hard-coded colors. Mostly kept; 22 hex literals per shell in
+       modules/components remain to check.
+   [YOU] for theming beyond the shell: whole-desktop themes and a contrast-safe accent are
+     stronger than caelestia's.
+   [THEM] for having a single palette shape. v1's Theme and v2's Theme have different
+     property names (islandBg/textPrimary vs background/text), so code can't move between
+     the shells.
+
+6. BASE COMPONENT LIBRARY
+   Caelestia, 55 components:
+     - StyledRect/StyledText with built-in color animation.
+     - Anim/CAnim bound to tokens; StateLayer (hover/press ripple).
+     - Controls: IconButton, TextButton, StyledSwitch, StyledSlider, StyledTextField,
+       SpinBox, Menu, SplitButton, ...
+     - Containers: StyledListView/Flickable with fades and scrollbars.
+     - Effects: Elevation, Colouriser.
+   Poteto:
+     - v2 has 4 components (CircleButton, PillButton, Shadow, Spinner).
+     - v1 has about 14 (with Toggle, Tile, ControlSlider and drawn icons).
+     - Most widgets are built inline in each module, which is why some files run 450–800
+       lines.
+   [THEM] A small shared library would shrink modules and make them consistent.
+
+7. FILE SIZE AND STRUCTURE OF FEATURES
+   Caelestia: features are split into many small files.
+     - e.g. dashboard/performance/{HeroCard,MemoryCard,NetworkCard,...}.
+     - Pages and sub-pages live in folders.
+   Poteto: one big file per view.
+     - PerformanceView 804, PlayerWindow 549, ClipboardContent 499, ControlCenterContent 462,
+       LauncherContent 438 lines (v2).
+   [THEM]
+
+8. WINDOW ARCHITECTURE
+   Caelestia:
+     - One ContentWindow per screen (drawers/) holds bar, dashboard, launcher, OSD, sidebar,
+       utilities and session.
+     - Regions/Interactions decide where clicks and hover go; Exclusions reserve space.
+     - Only 4 files create windows.
+   Poteto:
+     - v1: an island window hosting every view.
+     - v2: Pill/Bar/BarPanel; plus separate PanelWindows for overlays (screenshot, recorder,
+       color picker, overview, player).
+     - About 8–10 window files per shell.
+   [EVEN] The idea is the same (one main window hosts the views). Poteto's separate
+     full-screen overlays make sense. Copy their input-region handling only if click-through
+     bugs show up.
+
+9. LAZY LOADING / MEMORY
+   Caelestia: 139 Loader/AnimLoader uses; pages and views are created only when shown.
+   Poteto: v1 has 1 Loader, v2 has 4. Every view in the island/pill exists all the time,
+     even when hidden (launcher, clipboard, emoji with 1,900 entries, wallpaper grid, camera...).
+   [THEM] Wrapping each view in a Loader (active while open, plus a short linger for the
+     close animation) cuts idle memory and startup time.
+
+10. QML CODE QUALITY RULES
+    Caelestia:
+      - `pragma ComponentBehavior: Bound` in 147 files.
+      - 357 `required property`.
+      - Typed functions: function f(x: int): void.
+      - A lint script enforces Qt's ordering (id → properties → signals → functions →
+        bindings → children).
+      - .qmllint.ini.
+    Poteto:
+      - 0 files with ComponentBehavior: Bound.
+      - 58–66 `required property`.
+      - Few typed signatures; no linter config.
+      - CLAUDE.md says "mistakes only show up at runtime".
+      - qmllint and qmlformat are both installed on this machine (/usr/bin), just unused.
+    [THEM] Easy wins: they catch typos before runtime.
+
+11. TOOLING AND CI
+    Caelestia:
+      - .editorconfig, .qmllint.ini, clang-format/tidy.
+      - GitHub Actions: lint, format check, build, PR-title check, release.
+      - CONTRIBUTING.md, issue templates, Nix flake, .vscode settings.
+    Poteto:
+      - None of that.
+      - Validation is by hand (bash -n, luac -p, json.tool), listed in CLAUDE.md.
+    [THEM] Poteto doesn't need their C++ build, but an editorconfig, qmllint and a small
+      `tools/check` script (plus optional GitHub Action) are cheap.
+
+12. SHORTCUTS AND IPC
+    Caelestia:
+      - CustomShortcut (Hyprland global shortcuts, with descriptions) plus IpcHandler, all
+        in daemons/Shortcuts.qml.
+      - Toaster IPC (qs ipc call toaster info|warn|...).
+    Poteto:
+      - IpcHandler targets (v1: modules/ipc/Ipc.qml; v2: inline in shell.qml, 333 lines),
+        called from hypr/bindings.lua.
+      - The keybind cheatsheet parses bindings.lua live.
+    [EVEN] / [YOU] Poteto's bindings.lua + live cheatsheet is nicer to read. Small fix:
+      move v2's IPC handlers out of shell.qml into modules/ipc/Ipc.qml, as v1 does.
+
+13. DAEMONS (behavior with no UI)
+    Caelestia has a daemons/ folder:
+      - BatteryMonitor: configurable warn levels, auto-hibernate at critical.
+      - GameMode, IdleInhibit, IdleMonitors (dim/lock/suspend timeouts, using Quickshell's
+        IdleMonitor).
+    Poteto:
+      - The low-battery warning is still on TODO.md.
+      - No idle handling in the shell (and no hypridle in hyprland.lua).
+      - No game mode, no idle inhibitor.
+    [THEM]
+
+14. LOCK SCREEN
+    Caelestia: the lock screen is in the shell (WlSessionLock + PAM): clock, media,
+      notifications, weather, resources.
+    Poteto: hyprlock, themed through themes/*/hyprlock/colors.conf.
+      - TODO.md notes hyprlock.conf changes with every wallpaper pick.
+    [EVEN] hyprlock is fine and safer. An in-shell lock is a large project; only worth it
+      if you want the lock to look like the island.
+
+15. TOASTS VS NOTIFICATIONS
+    Caelestia: a separate Toaster for shell messages (save failed, battery low,
+      hibernating), so the user's notification history stays clean.
+    Poteto: shell messages go through notify-send/notifications.
+    [THEM] small win.
+
+16. SEARCH IN LAUNCHER/LISTS
+    Caelestia: Searcher.qml with fzf.js and fuzzysort.js; fuzzy search can be switched on
+      per list (apps, actions, schemes, wallpapers).
+    Poteto: its own fuzzy app search inside the launcher; clipboard/emoji have their own filters.
+    [THEM] One shared Searcher used by launcher, clipboard, emoji, wallpapers and videos.
+
+17. TRANSLATION (i18n)
+    Caelestia: Tr.tr() on every string, with check scripts.
+    Poteto: English only.
+    [EVEN] Skip unless you want other languages; it adds noise to every file.
+
+18. LOGGING
+    Caelestia: LoggingCategory per area (e.g. caelestia.qml.shortcuts).
+    Poteto: 10–14 bare console.* calls per shell.
+    [THEM] small win: categories can be filtered in `qs log`.
+
+19. FEATURES ONLY POTETO HAS
+    - Polkit agent in the island, SDDM login theme and login video pickers (with a strict
+      pkexec helper).
+    - Camera, screen recorder with a name prompt, color picker with magnifier, video
+      browser and player.
+    - MPD + cava, emoji picker, keybind cheatsheet.
+    - Whole-desktop themes (kitty/nvim/rmpc/VS Code/Firefox), the performance monitor,
+      and the workspace overview.
+    [YOU] Poteto's feature set is broader. The gap is in internal structure, not features.
+
+20. FEATURES ONLY CAELESTIA HAS
+    - Weather, lyrics, dashboard tabs, sidebar.
+    - Wallpaper-generated palette, desktop clock and visualizer on the background.
+    - Window info, VPN, app volumes, per-monitor config, plugins page, file dialog.
+    Pick only what you'd use. The wallpaper-generated accent fits v2's accent system well
+    (an "accent from wallpaper" option).
+
+21. DOCUMENTATION
+    Caelestia: README, CONTRIBUTING, issue templates.
+    Poteto: a very detailed README (38 KB) and CLAUDE.md, but both describe v1 only.
+      TODO.md says so.
+    [YOU] on depth, [THEM] on being current.
+
+22. LICENSE (important before copying code)
+    Caelestia is GPL-3.0. Poteto has no LICENSE file.
+    - Copying ideas and patterns: fine.
+    - Copying their files or large chunks: poteto then has to be GPL-3 too.
+    Decide on a license for poteto before any copying.
+
+
+PART B — THE PLAN (HOW AND WHEN)
+--------------------------------
+Phases are in order: each one makes the next cheaper. Times are rough, for evenings and
+weekends. Each step should be its own commit (CLAUDE.md commit style).
+
+PHASE 0 — DECIDE (do first; about 1 hour, no code)
+  0.1 Keep v1 (quickshell/), the shell you use, as the only shell. Freeze v2: no new
+      features, no more ports between the shells.
+      Why first: every other phase is half the work once there's one shell.
+      When to delete v2: once Phase 1 has brought over the few v2-only things you want.
+      Before deleting, tag it (git tag v2-final) so it stays in history to copy from.
+  0.2 Choose a license for poteto (MIT or GPL-3). If GPL-3, you may copy caelestia's
+      code directly; if not, copy patterns only.
+  0.3 Repo hygiene:
+      - Remove the stray `boobs` line from .gitignore.
+      - Decide on `temp` (delete or ignore).
+      - Decide whether the 4 ignored light themes should be committed.
+      - Move hyprlock's wallpaper path out of the tracked file (TODO.md item).
+
+PHASE 1 — MAKE V1 THE ONLY SHELL (about 1 week)
+  v1 already has what v2's TODO.md was chasing: the theme switcher (16 themes), the media
+  panel, the calendar tile, Do Not Disturb, night light, the bar/pill layout, the
+  performance monitor, the player and the overview. Only a few v2-only things are left to
+  decide on.
+  1.1 Go through what only v2 has. Port each one or drop it:
+      - Accent color override (Config.accent + Theme.readable()): an optional accent on
+        top of the active theme, kept readable. Worth porting: it's small and fits v1's
+        themes.
+      - Accent in apps (scripts/apply-accent: GTK/libadwaita/Qt accent; README "Accent
+        color in apps"). Port only if you used it.
+      - Light/dark mode (Appearance.qml, palettes.json, apply-mode/apply-palette). v1's
+        light themes (catppuccin-latte, solarized-light...) already cover this, so drop it,
+        or add "mode" later as "switch to this theme's light sibling".
+      - Battery/Wi-Fi/calendar capsules beside the pill, and notifications shown inside
+        the pill. These are design choices; keep v1's way unless you miss them.
+      - Quiet mode = v1's Do Not Disturb (nothing to port).
+  1.2 One settings file for v1. v1's config/Settings.qml already reads
+      ~/.config/poteto/shell.json, but only showWorkspaces and showMusic, and only reads it.
+      - Move the layout (now in ~/.cache/quickshell/layout) and other user choices into it.
+      - Leave real cache (thumbnails, emoji-recent, album art) in ~/.cache.
+      - Until Phase 4, Poteto (the Python app) keeps working: take out its v2-only rows
+        (mode, accent if not ported, capsules).
+  1.3 Low-battery warning: a daemons/BatteryMonitor.qml like caelestia's.
+      - Configurable levels from Settings; a notification at 15% and 5%.
+      - Optionally hibernate at a critical level.
+  1.4 Delete quickshellv2/, switch-shell, dev.poteto.SwitchShell.desktop, and the
+      ~/.local/bin/poteto-switch-shell link. Make sure ~/.config/quickshell points at
+      quickshell/.
+  1.5 Docs:
+      - README: drop the v2 sections ("Accent color in apps", "Dark and light mode in
+        quickshell v2", "both shells").
+      - CLAUDE.md is already about v1; add the new rules from Phase 2.
+      - Replace TODO.md with what's left from this plan.
+
+PHASE 2 — SAFETY NET (2–3 evenings; do right after Phase 1, before refactors)
+  Why now: Phases 3–5 touch most files, and a linter catches typos that today only
+  show up at runtime.
+  2.1 Add .editorconfig (4 spaces, LF, final newline; 2 spaces for json/lua).
+  2.2 Add .qmllint.ini.
+  2.3 Write tools/check, a script that runs:
+      - qmllint on every *.qml (with the import path Quickshell generates: run `qs -p`
+        once to get .qmllint.ini/.qmlls.ini);
+      - bash -n / shellcheck on scripts;
+      - luac -p on Lua; json.tool on every JSON file.
+  2.4 Optional: a git pre-commit hook or a GitHub Action that runs tools/check.
+  2.5 Adopt a small rule set (write it into CLAUDE.md):
+      - `pragma ComponentBehavior: Bound` in every file that uses delegates;
+      - `required property` for model data;
+      - typed function signatures;
+      - Qt's member order. Caelestia's scripts/qml-lint-conventions.py can enforce this
+        (check the license first; see 0.2).
+      Apply file by file as you touch them, not as one huge commit.
+
+PHASE 3 — DESIGN SYSTEM (about 1 week)
+  3.1 config/Tokens.qml (singleton) with:
+      - rounding: small/medium/large/full
+      - spacing and padding: xs/s/m/l/xl
+      - font sizes: label/body/title
+      - anim: durations (fast/normal/slow) and easing curves (standard/emphasized)
+      Optionally read overrides from ~/.config/poteto/tokens.json.
+  3.2 components/Anim.qml and CAnim.qml (Number/ColorAnimation with a `type` that picks a
+      token).
+  3.3 Replace v1's ~172 duration and ~132 radius literals, one module per commit.
+      Grep for them: `grep -rnE 'duration: *[0-9]+|radius: *[0-9]+' quickshell/`.
+  3.4 Base components, extracted from what modules already draw inline:
+      - StyledRect and StyledText (Theme colors, animated color);
+      - StateLayer (hover/press tint);
+      - IconButton, Toggle/Switch, Slider, TextField;
+      - ListView with fade and scrollbar.
+      Keep them in components/, using Theme and Tokens only.
+  3.5 Check the 22 hex literals in modules/components. Each one moves into Theme or gets a
+      comment saying why it stays (e.g. a recording dot).
+  Done when: no hard-coded radius left, and new modules can be built from components only.
+
+PHASE 4 — CONFIG BACKEND + IN-SHELL SETTINGS (1–2 weeks; after Phase 3, since it reuses the
+  new components)
+  4.1 Rewrite v1's config/Settings.qml (today it only reads, and only 2 keys) on
+      FileView + JsonAdapter, so the shell can write too. Each setting becomes a typed
+      property with its default, in grouped JsonObjects (bar, pill, notifications,
+      nightLight, battery, appearance...):
+      - watchChanges: true, onFileChanged: reload(), onAdapterUpdated: writeAdapter();
+      - keep the "half-written file keeps the last good values" behavior;
+      - debounce writes with a 300–500 ms Timer;
+      - write atomically: write to a .tmp file and rename (a small Process), or rely on
+        FileView's atomic write if your Quickshell version has it.
+  4.2 modules/settings/, modelled on Nexus:
+      - SettingsRegistry.qml: a list of {label, icon, description, category, component};
+        one list instead of their two.
+      - SettingsState.qml: current page plus a sub-page stack, one per window.
+      - common/: ToggleRow, SliderRow, StepperRow, SelectRow, TextFieldRow, SectionHeader
+        (first/last corner grouping), built from Phase 3's components.
+      - pages/: Appearance (mode, accent, theme, wallpaper), Bar & pill (style, which
+        capsules), Notifications (quiet), Night light, Battery (warn levels), About.
+      - WindowFactory: a FloatingWindow created on demand and destroyed on close.
+      - Opened with `qs ipc call settings open`, a bind in hypr/bindings.lua, and a
+        launcher entry.
+  4.3 Remove settings/poteto-settings (the Python app) once the QML version covers its
+      pages; keep dev.poteto.Settings.desktop pointing at `qs ipc call settings open`.
+  4.4 README: Features, Keybinds, IPC, and "Caches and state" (the config path).
+  Done when: there's one definition per setting, and no Python/GTK dependency.
+
+PHASE 5 — STRUCTURE AND PERFORMANCE (ongoing; do each when you next touch the file)
+  5.1 Wrap every view hosted in the pill/bar in a Loader:
+      - active while open, plus a short timer after close so the close animation still
+        plays;
+      - start with the heaviest: emoji, clipboard, wallpaper, videos, camera, perf.
+      - Measure before and after: idle RSS from `ps -o rss -p $(pgrep -x quickshell)`.
+  5.2 Split v1 files over ~400 lines into folders of parts:
+      - PerformanceView 790 → perf/ cards;
+      - WifiPage 617 and BluetoothPage 609 → rows/dialogs;
+      - PlayerWindow 549, Launcher 510, WallpaperView 499, ClipboardView 497,
+        MediaPanel 472, Island 456.
+  5.3 utils/Searcher.qml: one fuzzy search used by launcher, clipboard, emoji, wallpaper and
+      videos (fuzzysort.js is MIT and fine to vendor).
+  5.4 A LoggingCategory per service instead of console.*.
+  5.5 A small Toaster (shell messages in the pill, kept out of notification history):
+      config save failures, battery, theme apply errors.
+
+PHASE 6 — NEW FEATURES (later, pick only what you want)
+  6.1 Idle daemon: dim → lock (hyprlock) → screen off → suspend, with Quickshell's
+      IdleMonitor, timeouts in settings, and an "Awake"/idle-inhibit toggle in the control
+      center.
+  6.2 "Accent from wallpaper": sample the wallpaper's dominant color into Config.accent
+      (v2's readable() already makes any accent safe).
+  6.3 Game mode: turn off animations, blur and gaps while a fullscreen game runs.
+  6.4 Per-monitor settings (bar on one screen, pill on another) — only if you use several
+      screens.
+  6.5 Weather/lyrics/dashboard ideas from caelestia — only if wanted.
+  NOT recommended: an in-shell lock screen (PAM + session lock is a big security-sensitive
+    job; hyprlock already works), and i18n.
+
+
+SUGGESTED TIMELINE
+------------------
+  Week 1     Phase 0, then Phase 1 (port the few v2-only bits, remove v2)
+  Week 2     Phase 2
+  Week 3     Phase 3 (tokens, Anim, base components, literal sweep)
+  Week 4–5   Phase 4 (JsonAdapter config + in-shell settings; drop the Python app)
+  After      Phase 5 a bit at a time; Phase 6 when you feel like a new feature
+
+Order rule: never start a refactor phase (3, 4, 5) while two shells still exist; it
+doubles the work. If you want to keep v2 around for longer, do Phase 2 first, since it helps
+both.

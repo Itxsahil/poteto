@@ -412,7 +412,7 @@ Item {
                     }
                 }
 
-                // Settings: opens Poteto (settings/poteto-settings), and gets out of its way
+                // Settings: opens Poteto (apps/settings/poteto-settings), and gets out of its way
                 RoundButton {
                     implicitWidth: 32
                     implicitHeight: 32
@@ -421,7 +421,7 @@ Item {
                     onClicked: {
                         // From the repo itself, next to the shell, so it does not depend on
                         // ~/.local/bin being on PATH
-                        Quickshell.execDetached([Quickshell.shellDir + "/../settings/poteto-settings"]);
+                        Quickshell.execDetached([Quickshell.shellDir + "/../../apps/settings/poteto-settings"]);
                         root.closeRequested();
                     }
                 }

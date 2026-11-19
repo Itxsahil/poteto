@@ -217,7 +217,7 @@ hl.window_rule({
     move = "monitor_w-window_w-6 monitor_h-window_h-6",
 })
 
--- Shell settings app (settings/poteto-settings): a small floating window, not a tile
+-- Shell settings app (apps/settings/poteto-settings): a small floating window, not a tile
 hl.window_rule({
     name = "poteto-settings",
     match = {

@@ -8,9 +8,19 @@ Everything lives in this repository and is symlinked into `~/.config`.
 
 ```
 poteto/
-├── quickshell/   the shell (Quickshell / QML)          → ~/.config/quickshell
-├── hypr/         Hyprland, keybinds, hyprlock          → ~/.config/hypr
-└── themes/       color schemes + default wallpapers
+├── shell/
+│   ├── v1/            the shell (Quickshell / QML)            → ~/.config/quickshell
+│   └── v2/            quickshell v2 (the newer, alternative shell)
+├── dotfiles/
+│   ├── hypr/          Hyprland, keybinds, hyprlock            → ~/.config/hypr
+│   └── firefox/       Firefox chrome and prefs                → your Firefox profile
+├── themes/            color schemes + default wallpapers (found by the shell, no link)
+├── login/             SDDM login themes, their setup script and root helper
+├── apps/
+│   ├── settings/      Poteto, the settings app                → ~/.local/bin/poteto-settings
+│   └── switch-shell/  switch between v1 and v2                → ~/.local/bin/poteto-switch-shell
+├── tools/             notif-test and other dev helpers
+└── docs/              TODO.md, plan.txt
 ```
 
 ---
@@ -34,7 +44,7 @@ poteto/
 | **Status pill** | Top-right: MPD track with a live cava visualizer (click play/pause, right click next, middle click previous) and the date. Poteto → Music & date turns it off; while recording, the stop button stays |
 | **Media panel** (hover the status pill) | Album art, track, seek bar, play/pause, next/previous, shuffle, repeat (all / one) and MPD volume |
 | **Launcher** | Fuzzy app search, terminal apps open in kitty, built-in calculator, and a **Keybindings** card when you type `key` |
-| **Keybindings** | Searchable cheatsheet parsed live from `hypr/bindings.lua` plus the shell's own keys; flags combos bound twice |
+| **Keybindings** | Searchable cheatsheet parsed live from `dotfiles/hypr/bindings.lua` plus the shell's own keys; flags combos bound twice |
 | **Videos** | Every video under `~/Videos` in one grid with poster frames and durations, filtered by folder chips, like the wallpaper switcher |
 | **Video player** | Qt Multimedia (FFmpeg) in its own window: seek bar, volume, speed, loop (off / one / all), subtitle tracks, the folder as playlist, `O` or the mpv button hands the file to mpv |
 | **Camera** | Webcam in the island: live mirrored preview, shutter, 3s / 10s self-timer, photos to `~/Pictures/Camera`, thumbnail of the last shot; the camera is only powered while the view is open |
@@ -54,7 +64,7 @@ poteto/
 
 ## Keybinds
 
-`mod` is **Alt** (`var_mainMod` in `hypr/bindings.lua`).
+`mod` is **Alt** (`var_mainMod` in `dotfiles/hypr/bindings.lua`).
 
 | Keys | Action |
 |---|---|
@@ -84,7 +94,7 @@ poteto/
 | Click the island | Control center, kept open until you click elsewhere or press Esc |
 
 The table above is the shell's own keys. `mod + /` lists **every** bind, window management
-included, parsed live from `hypr/bindings.lua`, and flags any combo bound twice.
+included, parsed live from `dotfiles/hypr/bindings.lua`, and flags any combo bound twice.
 
 Window management worth knowing, since these moved: groups are `mod + G` (toggle),
 `mod + Shift + G` (move out), `Super + H/J/K/L` (move into) and `Super + Tab` (cycle inside).
@@ -152,18 +162,19 @@ git clone <this repo> ~/Templates/poteto
 cd ~/Templates/poteto
 
 # Link the configs (back up anything that is already there first)
-ln -s "$PWD/quickshell" ~/.config/quickshell
-ln -s "$PWD/hypr"       ~/.config/hypr
+ln -s "$PWD/shell/v1"      ~/.config/quickshell
+ln -s "$PWD/dotfiles/hypr" ~/.config/hypr
 ```
 
-`themes/` does **not** need a link. The shell finds it next to its own folder (`quickshell/../themes`).
+`themes/` and `login/` do **not** need a link. The shell finds them at the repo root, two folders
+up from its own (`shell/v1/../../themes`, `shell/v1/../../login`).
 
 To switch between this shell and quickshell v2 from the launcher ("Switch Shell"), link the
 script and its launcher entry:
 
 ```sh
-ln -s "$PWD/switch-shell" ~/.local/bin/poteto-switch-shell
-ln -s "$PWD/dev.poteto.SwitchShell.desktop" ~/.local/share/applications/
+ln -s "$PWD/apps/switch-shell/switch-shell" ~/.local/bin/poteto-switch-shell
+ln -s "$PWD/apps/switch-shell/dev.poteto.SwitchShell.desktop" ~/.local/share/applications/
 ```
 
 It moves `~/.config/quickshell` to the other folder and restarts Quickshell. When switching to
@@ -171,9 +182,17 @@ this shell it also points the theme links back at this shell's last theme. Run
 `poteto-switch-shell v1`, `v2` or `status` from a terminal to pick a shell or see which is
 active.
 
+Poteto, the settings app (`~/.config/poteto/shell.json`), with its launcher entry and icon:
+
+```sh
+ln -s "$PWD/apps/settings/poteto-settings" ~/.local/bin/poteto-settings
+ln -s "$PWD/apps/settings/dev.poteto.Settings.desktop" ~/.local/share/applications/
+ln -s "$PWD/apps/settings/dev.poteto.Settings.svg" ~/.local/share/icons/hicolor/scalable/apps/
+```
+
 ### Autostart
 
-`hypr/hyprland.lua` already starts everything once Hyprland is up:
+`dotfiles/hypr/hyprland.lua` already starts everything once Hyprland is up:
 
 ```lua
 hl.on("hyprland.start", function()
@@ -207,7 +226,7 @@ include ~/.cache/quickshell/theme/kitty.conf
 ```
 
 The terminal is frosted glass: see-through, with Hyprland blurring whatever is behind it
-(`decoration:blur` in `hypr/hyprland.lua`). That covers everything running in it too — Neovim,
+(`decoration:blur` in `dotfiles/hypr/hyprland.lua`). That covers everything running in it too — Neovim,
 rmpc, btop. Set the opacity here rather than per theme, so every theme gets it; a theme can still
 override it in its own `kitty/<id>.conf`. kitty only reads `dynamic_background_opacity` when a
 window starts, so reopen any open terminals once after adding it:
@@ -239,10 +258,10 @@ ln -s ~/.cache/quickshell/theme/rmpc.ron ~/.config/rmpc/themes/quickshell.ron
 theme: Some("quickshell"),
 ```
 
-**Hyprland borders**: already done. `hypr/hyprland.lua` reads `active_border` and
+**Hyprland borders**: already done. `dotfiles/hypr/hyprland.lua` reads `active_border` and
 `inactive_border` from `~/.cache/quickshell/theme/hyprland.lua`, falling back to fixed colors.
 
-**hyprlock**: already done. `hypr/hyprlock.conf` starts with
+**hyprlock**: already done. `dotfiles/hypr/hyprlock.conf` starts with
 `source = ~/.cache/quickshell/theme/hyprlock.conf` and uses `$accent`, `$surface`, `$text`,
 `$time`, `$date`, `$warning` and `$danger`.
 
@@ -254,7 +273,7 @@ automatically.
 
 ### Firefox (optional)
 
-`firefox/` is a clean chrome for Firefox: compact tabs, square fields in the address bar, the page
+`dotfiles/firefox/` is a clean chrome for Firefox: compact tabs, square fields in the address bar, the page
 as a rounded card inset under the toolbars, no lines between them, and only the buttons that earn
 their place. It follows the system's light/dark mode live (the shell's mode toggle), and uses the
 shell's accent color for focus rings, selections, menu hover and Firefox's own buttons.
@@ -266,9 +285,9 @@ Link the three files into your profile — `about:profiles` shows its path,
 ```sh
 profile=~/.config/mozilla/firefox/xxxxxxxx.default-release
 mkdir -p "$profile/chrome"
-ln -s "$PWD/firefox/userChrome.css"  "$profile/chrome/userChrome.css"
-ln -s "$PWD/firefox/userContent.css" "$profile/chrome/userContent.css"
-ln -s "$PWD/firefox/user.js"         "$profile/user.js"
+ln -s "$PWD/dotfiles/firefox/userChrome.css"  "$profile/chrome/userChrome.css"
+ln -s "$PWD/dotfiles/firefox/userContent.css" "$profile/chrome/userContent.css"
+ln -s "$PWD/dotfiles/firefox/user.js"         "$profile/user.js"
 ```
 
 `user.js` turns on `toolkit.legacyUserProfileCustomizations.stylesheets`, lets websites follow
@@ -339,7 +358,7 @@ busctl --user call org.freedesktop.portal.Desktop /org/freedesktop/portal/deskto
     org.freedesktop.portal.Settings ReadOne ss org.freedesktop.appearance accent-color
 ```
 
-Qt apps follow the portal because `hypr/hyprland.lua` sets `QT_QPA_PLATFORMTHEME=xdgdesktopportal`.
+Qt apps follow the portal because `dotfiles/hypr/hyprland.lua` sets `QT_QPA_PLATFORMTHEME=xdgdesktopportal`.
 The portal only knows GNOME's nine named accent colors: the swatches in Poteto change live
 everywhere, while a custom color shows as the nearest named one in live apps and exactly in
 `gtk.css` apps once they restart.
@@ -390,7 +409,7 @@ Switching a theme (`mod + T`, or `qs ipc call theme apply <id>`):
 ### Dark and light mode in quickshell v2
 
 Quickshell v2 has no themes: it has one dark palette and one light one, in
-`quickshellv2/config/palettes.json`, and the accent color on top. Both palettes are neutral
+`shell/v2/config/palettes.json`, and the accent color on top. Both palettes are neutral
 grays, so any accent sits well on them.
 
 - **Mode** is set in Poteto, the control center's Dark button, or `qs ipc call appearance toggle`.
@@ -398,7 +417,7 @@ grays, so any accent sits well on them.
 - **Accent** is set in Poteto. A picked color is made a little lighter in dark mode, or darker
   in light mode, until it stands out from the background.
 
-`quickshellv2/scripts/apply-palette` puts the palettes on the apps:
+`shell/v2/scripts/apply-palette` puts the palettes on the apps:
 
 | App | Dark | Light | How it switches |
 |---|---|---|---|
@@ -422,7 +441,7 @@ wallpaper is never changed.
 Login themes are standalone: they don't follow the color themes above.
 
 ```
-sddm-themes/
+login/
 ├── setup                       one-time system setup (run as your user; it asks for sudo)
 ├── system/
 │   ├── poteto-login-theme      helper, installed root-owned to /usr/local/bin
@@ -439,19 +458,19 @@ to type, and nothing to misspell.
 **One-time setup:**
 
 ```sh
-sddm-themes/setup rover-in-rain
+login/setup rover-in-rain
 ```
 
 This installs the helper and the polkit action, writes the config, removes copies left by the old
 `install` script, and activates the theme you name. Re-run it after moving the repo or editing
-anything in `sddm-themes/system/`. `sddm-themes/setup --uninstall` removes all of it.
+anything in `login/system/`. `login/setup --uninstall` removes all of it.
 
 **Changing just the video:** `mod + Shift + W` opens a grid of the videos in `~/Videos/Hidamari`
 (including subfolders; MP4, WebM and MKV, up to 1 GiB). Poster frames come from the same scan the
 video browser uses. Picking one copies it over the live theme's `bg.mp4` and asks for your password,
 leaving the rest of the theme alone. Switching themes
 afterwards brings that theme's own video back. The folder is `folder` in `services/LoginVideo.qml`.
-Re-run `sddm-themes/setup <theme>` after updating the helper to enable video switching.
+Re-run `login/setup <theme>` after updating the helper to enable video switching.
 
 **Switching:** `mod + Shift + T`, pick a theme, enter your password in the island. It shows at the
 next login screen. Press `P` in the switcher to preview a theme in a window first.
@@ -467,12 +486,12 @@ polkit asks for the admin password (never cached), and only that helper runs as 
 - builds the new theme next to the live one and swaps them atomically, so the login screen is
   never left half-copied
 
-**Adding a theme:** create a folder in `sddm-themes/` with `metadata.desktop` and `Main.qml`
+**Adding a theme:** create a folder in `login/` with `metadata.desktop` and `Main.qml`
 (folder name in lowercase letters, digits and dashes). The switcher previews `bg.mp4`, or the
 first video or image it finds. Test it without installing anything:
 
 ```sh
-sddm-greeter-qt6 --test-mode --theme sddm-themes/<name>
+sddm-greeter-qt6 --test-mode --theme login/<name>
 ```
 
 ---
@@ -480,7 +499,7 @@ sddm-greeter-qt6 --test-mode --theme sddm-themes/<name>
 ## Project structure
 
 ```
-quickshell/
+shell/v1/
 ├── shell.qml                  entry point: creates the windows for every screen
 ├── config/
 │   └── Theme.qml              all colors (read from the active theme) and fonts
@@ -492,9 +511,9 @@ quickshell/
 │   ├── Brightness.qml         brightnessctl + udev backlight events
 │   ├── Cava.qml               cava on the MPD fifo, only while MPD is playing
 │   ├── Emoji.qml              emoji search and recently used (~/.cache/quickshell/emoji-recent.json)
-│   ├── Keybinds.qml           cheatsheet parsed from hypr/bindings.lua
+│   ├── Keybinds.qml           cheatsheet parsed from dotfiles/hypr/bindings.lua
 │   ├── Layout.qml             island or simple bar, remembered between restarts
-│   ├── LoginTheme.qml         SDDM themes from ../sddm-themes, switched through pkexec
+│   ├── LoginTheme.qml         SDDM themes from ../../login, switched through pkexec
 │   ├── LoginVideo.qml         the login screen's background video, swapped through the same helper
 │   ├── Clipboard.qml          cliphist
 │   ├── ColorPicker.qml        screen freeze, color formats, recent colors (~/.cache/quickshell/color-picker.json)
@@ -596,21 +615,21 @@ The same actions are registered as Hyprland global shortcuts named `quickshell:l
 
 | What | Where |
 |---|---|
-| Wallpaper folders | `folders` in `quickshell/services/Wallpaper.qml` |
-| Videos folder | `rootDir` in `quickshell/services/Videos.qml` (default `~/Videos`) |
-| Terminal for terminal apps | `terminal` in `quickshell/modules/launcher/Launcher.qml` |
-| Always-visible workspaces | `persistentCount` in `quickshell/modules/bar/Workspaces.qml` |
-| Default theme on first run | `defaultTheme` in `quickshell/services/ThemeManager.qml` |
-| VS Code settings path | `vscodeSettings` in `quickshell/services/ThemeManager.qml` |
-| Power menu actions and commands | `actions` / `commands` in `quickshell/services/Session.qml` |
-| Popup timeout, history size, max popups | `defaultTimeout`, `criticalTimeout`, `maxHistory`, `maxPopups` in `quickshell/services/Notifications.qml` |
-| Screenshot folder | `saveDir` in `quickshell/services/Screenshot.qml` (default `~/Pictures/Screenshots`) |
-| Camera photo folder | `saveDir` in `quickshell/services/Webcam.qml` (default `~/Pictures/Camera`) |
-| Login video folder | `folder` in `quickshell/services/LoginVideo.qml` (default `Hidamari`, under `~/Videos`) |
-| Icon theme | first line of `quickshell/shell.qml` (`//@ pragma IconTheme breeze-dark`) |
-| Fonts | `fontFamily` in `quickshell/config/Theme.qml` |
-| Window corners, shadows, blur, gaps, borders | `general` and `decoration` in `hypr/hyprland.lua` |
-| Shadow under the shell's own surfaces | `shadow` in `quickshell/config/Theme.qml`, shape in `quickshell/components/Shadow.qml` |
+| Wallpaper folders | `folders` in `shell/v1/services/Wallpaper.qml` |
+| Videos folder | `rootDir` in `shell/v1/services/Videos.qml` (default `~/Videos`) |
+| Terminal for terminal apps | `terminal` in `shell/v1/modules/launcher/Launcher.qml` |
+| Always-visible workspaces | `persistentCount` in `shell/v1/modules/bar/Workspaces.qml` |
+| Default theme on first run | `defaultTheme` in `shell/v1/services/ThemeManager.qml` |
+| VS Code settings path | `vscodeSettings` in `shell/v1/services/ThemeManager.qml` |
+| Power menu actions and commands | `actions` / `commands` in `shell/v1/services/Session.qml` |
+| Popup timeout, history size, max popups | `defaultTimeout`, `criticalTimeout`, `maxHistory`, `maxPopups` in `shell/v1/services/Notifications.qml` |
+| Screenshot folder | `saveDir` in `shell/v1/services/Screenshot.qml` (default `~/Pictures/Screenshots`) |
+| Camera photo folder | `saveDir` in `shell/v1/services/Webcam.qml` (default `~/Pictures/Camera`) |
+| Login video folder | `folder` in `shell/v1/services/LoginVideo.qml` (default `Hidamari`, under `~/Videos`) |
+| Icon theme | first line of `shell/v1/shell.qml` (`//@ pragma IconTheme breeze-dark`) |
+| Fonts | `fontFamily` in `shell/v1/config/Theme.qml` |
+| Window corners, shadows, blur, gaps, borders | `general` and `decoration` in `dotfiles/hypr/hyprland.lua` |
+| Shadow under the shell's own surfaces | `shadow` in `shell/v1/config/Theme.qml`, shape in `shell/v1/components/Shadow.qml` |
 
 ---
 
@@ -657,7 +676,7 @@ All of them can be deleted safely; they are rebuilt on demand, and `border` fall
   editing the shell). Restart Chrome. Firefox re-checks per notification and is unaffected.
 - **Login screen shows the plain default theme**: SDDM logs why on each boot:
   `journalctl -b -u sddm | grep -i theme`. `grep -r Current= /etc/sddm.conf.d/ /etc/sddm.conf`
-  should print only `Current=poteto`; if not, re-run `sddm-themes/setup`.
+  should print only `Current=poteto`; if not, re-run `login/setup`.
 - **No password prompt appears** (a switch fails with "Not authorized"): another polkit agent may
   own the session. Stop it, then restart Quickshell.
 

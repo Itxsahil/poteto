@@ -40,7 +40,7 @@ Singleton {
 
     Process {
         id: resolveProc
-        command: ["sh", "-c", 'realpath -- "$1/../themes"; basename "$(readlink "$2/current")" 2>/dev/null', "sh", Quickshell.shellDir, root.linkDir]
+        command: ["sh", "-c", 'realpath -- "$1/../../themes"; basename "$(readlink "$2/current")" 2>/dev/null', "sh", Quickshell.shellDir, root.linkDir]
         stdout: StdioCollector {
             onStreamFinished: {
                 const [dir, current] = text.split("\n");

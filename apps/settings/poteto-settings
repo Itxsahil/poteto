@@ -28,7 +28,7 @@ SLIDER_MIN = 2000
 NIGHT_DEFAULT = 4000
 # Sends sample notifications (tools/notif-test in this repo), found through the real path of this
 # script, which ~/.local/bin links to
-NOTIF_TEST = Path(__file__).resolve().parent.parent / "tools" / "notif-test"
+NOTIF_TEST = Path(__file__).resolve().parents[2] / "tools" / "notif-test"
 # Its cases, in the order they are listed: (case, title, what it shows)
 NOTIF_CASES = (
     ("plain", "Plain", "No icon, no buttons, one line"),

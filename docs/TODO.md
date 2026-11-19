@@ -1,7 +1,7 @@
 # TODO — quickshell v2
 
-What is still left to bring over from the old shell (`quickshell/`) or to finish in v2
-(`quickshellv2/`). Branch: `quickshell-v2`. Last updated 2026-10-17.
+What is still left to bring over from the old shell (`shell/v1/`) or to finish in v2
+(`shell/v2/`). Branch: `quickshell-v2`. Last updated 2026-10-17.
 
 ## From the old shell
 
@@ -25,7 +25,7 @@ What is still left to bring over from the old shell (`quickshell/`) or to finish
 ## Loose ends
 
 - [ ] **Firefox: grey search chip** in the address bar — needs the Browser Toolbox to find what
-      paints it (`firefox/userChrome.css`).
+      paints it (`dotfiles/firefox/userChrome.css`).
 - [ ] **Firefox: accent color** — focus ring, selection and menu hover still use Firefox's own
       blue, even with `widget.non-native-theme.use-theme-accent`.
 - [ ] **Accent color live in Qt and libadwaita apps** — needs `xdg-desktop-portal-gnome` as the
@@ -37,12 +37,12 @@ What is still left to bring over from the old shell (`quickshell/`) or to finish
 
 - [ ] Push `quickshell-v2` (nothing is pushed yet).
 - [ ] Decide on the changes outside the v2 commits: `.gitignore`, `README.md`, `temp`.
-- [ ] `hypr/hyprlock.conf` changes with every wallpaper pick (the lock screen follows it) — keep
+- [ ] `dotfiles/hypr/hyprlock.conf` changes with every wallpaper pick (the lock screen follows it) — keep
       it out of git, or move the path somewhere untracked.
 - [ ] Old-shell issues found at the start (keybind cheatsheet ")" labels, the `SimpleBar.qml`
       MouseArea warning, README mismatches) were never fixed — only worth it if the old shell
       stays.
-- [ ] Decide what happens to the old shell (`quickshell/`) once v2 covers everything: keep it as
+- [ ] Decide what happens to the old shell (`shell/v1/`) once v2 covers everything: keep it as
       a fallback, or remove it (and the symlink note in the README).
 
 ## Not tried by hand

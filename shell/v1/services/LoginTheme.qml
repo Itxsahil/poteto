@@ -4,9 +4,9 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// SDDM login themes. Themes live in ../sddm-themes; SDDM always loads the "poteto"
+// SDDM login themes. Themes live in login/ at the repo root (../../login); SDDM always loads the "poteto"
 // theme, and switching copies one of them into it through a root-owned helper
-// (installed by sddm-themes/setup) that pkexec runs after asking for your password.
+// (installed by login/setup) that pkexec runs after asking for your password.
 Singleton {
     id: root
 
@@ -34,7 +34,7 @@ Singleton {
         if (applying || id === active)
             return;
         if (!helperInstalled) {
-            say(`Run ${themesDir || "sddm-themes"}/setup once first`, true);
+            say(`Run ${themesDir || "login"}/setup once first`, true);
             return;
         }
         applying = id;
@@ -58,7 +58,7 @@ Singleton {
 
     Process {
         id: resolveProc
-        command: ["realpath", "--", Quickshell.shellDir + "/../sddm-themes"]
+        command: ["realpath", "--", Quickshell.shellDir + "/../../login"]
         stdout: StdioCollector {
             onStreamFinished: {
                 root.themesDir = text.trim();
