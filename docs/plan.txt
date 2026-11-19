@@ -264,7 +264,8 @@ PHASE 0 — DECIDE (do first; about 1 hour, no code)
       - Remove the stray `boobs` line from .gitignore.
       - Decide on `temp` (delete or ignore).
       - Decide whether the 4 ignored light themes should be committed.
-      - Move hyprlock's wallpaper path out of the tracked file (TODO.md item).
+      - [done 2026-11-20] Move hyprlock's wallpaper path out of the tracked file: the shell writes
+        it to ~/.cache/quickshell/hyprlock-wallpaper.conf and hyprlock.conf uses $wallpaper.
 
 PHASE 1 — MAKE V1 THE ONLY SHELL (about 1 week)
   v1 already has what v2's TODO.md was chasing: the theme switcher (16 themes), the media

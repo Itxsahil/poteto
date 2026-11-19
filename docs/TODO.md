@@ -37,8 +37,8 @@ What is still left to bring over from the old shell (`shell/v1/`) or to finish i
 
 - [ ] Push `quickshell-v2` (nothing is pushed yet).
 - [ ] Decide on the changes outside the v2 commits: `.gitignore`, `README.md`, `temp`.
-- [ ] `dotfiles/hypr/hyprlock.conf` changes with every wallpaper pick (the lock screen follows it) — keep
-      it out of git, or move the path somewhere untracked.
+- [x] `dotfiles/hypr/hyprlock.conf` changes with every wallpaper pick — the path now lives in
+      `~/.cache/quickshell/hyprlock-wallpaper.conf` (2026-11-20).
 - [ ] Old-shell issues found at the start (keybind cheatsheet ")" labels, the `SimpleBar.qml`
       MouseArea warning, README mismatches) were never fixed — only worth it if the old shell
       stays.

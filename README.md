@@ -265,7 +265,9 @@ theme: Some("quickshell"),
 
 **hyprlock**: already done. `dotfiles/hypr/hyprlock.conf` starts with
 `source = ~/.cache/quickshell/theme/hyprlock.conf` and uses `$accent`, `$surface`, `$text`,
-`$time`, `$date`, `$warning` and `$danger`.
+`$time`, `$date`, `$warning` and `$danger`. Its background is `$wallpaper`, from
+`~/.cache/quickshell/hyprlock-wallpaper.conf`, which the shell writes whenever the wallpaper changes
+(and at start), so `hyprlock.conf` itself never changes.
 
 **VS Code**: nothing to set up. `workbench.colorTheme` in `~/.config/Code/User/settings.json` is
 rewritten on every switch. Install the VS Code theme extensions you want (see the table below).
@@ -392,7 +394,7 @@ Switching a theme (`mod + T`, or `qs ipc call theme apply <id>`):
 3. recolors every running Neovim through its socket (theme and transparency), then rebuilds NvChad's
    highlight cache once more headlessly, so Neovims started later get the new theme too
 4. replaces `workbench.colorTheme` in VS Code's `settings.json`
-5. sets the theme wallpaper with awww and updates hyprlock's background path
+5. sets the theme wallpaper with awww, and points the lock screen at it (`hyprlock-wallpaper.conf`)
 
 | Theme | NvChad | VS Code theme (extension) |
 |---|---|---|
@@ -553,7 +555,7 @@ shell/v1/
 │   ├── Session.qml            power actions and logind capabilities, uptime
 │   ├── ShellState.qml         which island view is open
 │   ├── ThemeManager.qml       lists themes and applies them
-│   ├── Wallpaper.qml          awww, wallpaper folders, thumbnails, hyprlock path
+│   ├── Wallpaper.qml          awww, wallpaper folders, thumbnails, lock screen wallpaper
 │   └── Wifi.qml               nmcli
 ├── assets/
 │   └── emoji.json             emoji, names and categories (generated from Unicode emoji-test.txt)
@@ -664,6 +666,7 @@ The same actions are registered as Hyprland global shortcuts named `quickshell:l
 | Path | Contents |
 |---|---|
 | `~/.cache/quickshell/theme/` | symlinks to the active theme's files |
+| `~/.cache/quickshell/hyprlock-wallpaper.conf` | `$wallpaper = <path>`: the lock screen background, sourced by `hyprlock.conf` |
 | `themes/dynamic/` (in the repo, gitignored) | the Dynamic theme, generated from the wallpaper; its `colors.json` remembers the mode and style |
 | `~/.config/nvim/lua/themes/poteto-dynamic.lua` | link to the Dynamic theme's NvChad theme |
 | `~/.cache/quickshell/theme/dark/`, `light/`, `active` | v2: the apps' files for each mode, and the active one (`scripts/apply-palette`) |

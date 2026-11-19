@@ -5,15 +5,17 @@ import Quickshell
 import Quickshell.Io
 
 // Wallpapers: every image in ~/Pictures/wallpapers (that folder only, not below it), with cached
-// thumbnails, and setting one with awww. The lock screen follows: hyprlock's background path is
-// rewritten to match. modules/wallpaper/WallpaperContent.qml is the picker.
+// thumbnails, and setting one with awww. The lock screen follows: hyprlock reads the path from
+// lockWallpaperFile. modules/wallpaper/WallpaperContent.qml is the picker.
 Singleton {
     id: root
 
     readonly property string home: Quickshell.env("HOME")
     readonly property string folder: home + "/Pictures/wallpapers"
     readonly property string thumbDir: home + "/.cache/quickshell/wallpaper-thumbs"
-    readonly property string hyprlockConfig: home + "/.config/hypr/hyprlock.conf"
+    // The lock screen's background: dotfiles/hypr/hyprlock.conf sources this file and uses
+    // $wallpaper, so picking a wallpaper never edits the tracked config
+    readonly property string lockWallpaperFile: home + "/.cache/quickshell/hyprlock-wallpaper.conf"
 
     // { path, thumb, hasThumb, label }
     property var wallpapers: []
@@ -24,6 +26,10 @@ Singleton {
     property int thumbsVersion: 0
     // Paths a thumbnail was already tried for, so one that cannot be made is not retried forever
     property var thumbAttempted: ({})
+
+    // Learn what awww is showing right away (and point the lock screen at it), not only once the
+    // picker opens
+    Component.onCompleted: queryProc.running = true
 
     function refresh() {
         if (listProc.running)
@@ -48,6 +54,30 @@ Singleton {
         const pool = wallpapers.filter(w => w.path !== current);
         if (pool.length)
             apply(pool[Math.floor(Math.random() * pool.length)].path);
+    }
+
+    // Points the lock screen at path: writes `$wallpaper = path` for hyprlock, in one step
+    // ('#' starts a comment in hyprlock's config, so it is doubled)
+    function syncLockScreen(path) {
+        if (!path)
+            return;
+        // One write at a time; the latest path waits for the running one
+        if (lockProc.running) {
+            lockPending = path;
+            return;
+        }
+        lockProc.command = ["sh", "-c", `
+            file="$1"; wall="$2"
+            case "$wall" in *"
+"*) exit 1 ;; esac
+            mkdir -p "$(dirname "$file")"
+            tmp="$file.tmp.$$"
+            {
+                echo "# Written by the shell (services/Wallpaper.qml): the lock screen background"
+                printf '$wallpaper = %s\\n' "$(printf '%s' "$wall" | sed 's/#/##/g')"
+            } > "$tmp" && mv -f "$tmp" "$file"
+        `, "sh", root.lockWallpaperFile, path];
+        lockProc.running = true;
     }
 
     Process {
@@ -112,8 +142,11 @@ Singleton {
         stdout: StdioCollector {
             onStreamFinished: {
                 const m = text.match(/image: (.+)$/m);
-                if (m)
+                if (m) {
                     root.current = m[1].trim();
+                    // Also covers a wallpaper set outside the shell, and the first start
+                    root.syncLockScreen(root.current);
+                }
             }
         }
     }
@@ -127,23 +160,20 @@ Singleton {
                 queryProc.running = true;
                 return;
             }
-            hyprlockProc.command = ["sh", "-c", `
-                conf="$1"; wall="$2"
-                [ -f "$conf" ] || exit 0
-                tmp=$(mktemp) || exit 1
-                WALL="$wall" awk '
-                    /^[[:space:]]*background[[:space:]]*\\{/ { inbg = 1 }
-                    inbg && /^[[:space:]]*path[[:space:]]*=/ { print substr($0, 1, index($0, "=")) " " ENVIRON["WALL"]; next }
-                    inbg && /\\}/ { inbg = 0 }
-                    { print }
-                ' "$conf" > "$tmp" && cat "$tmp" > "$conf"
-                rm -f "$tmp"
-            `, "sh", root.hyprlockConfig, target];
-            hyprlockProc.running = true;
+            root.syncLockScreen(target);
         }
     }
 
+    property string lockPending: ""
+
     Process {
-        id: hyprlockProc
+        id: lockProc
+        onExited: {
+            if (root.lockPending) {
+                const path = root.lockPending;
+                root.lockPending = "";
+                root.syncLockScreen(path);
+            }
+        }
     }
 }
