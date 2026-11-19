@@ -302,7 +302,8 @@ PHASE 1 — MAKE V1 THE ONLY SHELL (DONE 2026-11-20; v2 kept in the v2-final git
       - CLAUDE.md is already about v1; add the new rules from Phase 2.
       - Replace TODO.md with what's left from this plan.
 
-PHASE 2 — SAFETY NET (2–3 evenings; do right after Phase 1, before refactors)
+PHASE 2 — SAFETY NET (DONE 2026-11-20: .editorconfig, shell/v1/.qmllint.ini, tools/check with a
+  qmllint baseline, QML rules in CLAUDE.md; Lua kept at 4 spaces, what the files use)
   Why now: Phases 3–5 touch most files, and a linter catches typos that today only
   show up at runtime.
   2.1 Add .editorconfig (4 spaces, LF, final newline; 2 spaces for json/lua).

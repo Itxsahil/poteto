@@ -17,7 +17,7 @@ poteto/
 ├── login/             SDDM login themes, their setup script and root helper
 ├── apps/
 │   └── settings/      Poteto, the settings app                → ~/.local/bin/poteto-settings
-├── tools/             notif-test and other dev helpers
+├── tools/             check (run before committing), notif-test
 └── docs/              TODO.md, plan.txt
 ```
 
@@ -578,6 +578,18 @@ The same actions are registered as Hyprland global shortcuts named `quickshell:l
 All of them can be deleted safely; they are rebuilt on demand, and `border` falls back to `on`.
 
 ---
+
+## Checking changes
+
+`tools/check` runs every check the repo has in about seven seconds: Qt 6's qmllint on the shell
+(new warnings fail; known false alarms are kept in `tools/qmllint-baseline.txt`), `bash -n` and
+shellcheck on the scripts, `luac -p`, JSON and Python parsing, and that every theme has all its
+files and colors. qmllint needs Quickshell's import paths: with the shell running, run
+`touch shell/v1/.qmlls.ini shell/v1/shell.qml` once. To run it on every commit:
+
+```sh
+ln -s ../../tools/check .git/hooks/pre-commit
+```
 
 ## Troubleshooting
 

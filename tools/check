@@ -1,0 +1,164 @@
+#!/usr/bin/env bash
+# Every check the repo has, in one go. Run it before committing (or as the pre-commit hook:
+# ln -s ../../tools/check .git/hooks/pre-commit).
+#
+#   tools/check                    run everything; exit 1 if anything fails
+#   tools/check --update-baseline  accept the current qmllint warnings as known (after fixing some,
+#                                  or after reviewing new ones that are false alarms)
+#
+# QML: Qt 6's qmllint (/usr/lib/qt6/bin/qmllint; /usr/bin/qmllint is Qt 5's and checks nothing),
+#   with shell/v1/.qmllint.ini. It needs Quickshell's import paths, which Quickshell writes into
+#   shell/v1/.qmlls.ini while the shell runs, once that file exists. Syntax errors always fail.
+#   Other warnings are compared with tools/qmllint-baseline.txt: qmllint cannot see that the
+#   shell's own singletons are singletons (Quickshell builds the qmldir at runtime), so dozens of
+#   false alarms are known and recorded there. Only warnings not in it fail, which still catches a
+#   new typo in a property name the moment it is made.
+# Shell scripts: bash -n, and shellcheck when it is installed.
+# Lua: luac -p. JSON: parsed. Python: parsed.
+# Themes: every themes/<id>/ has the files and colors.json keys a theme needs (CLAUDE.md).
+set -uo pipefail
+# sort and comm must agree on the order, whatever the caller's locale (a git hook may differ)
+export LC_ALL=C
+
+repo=$(cd "$(dirname "$(realpath "$0")")/.." && pwd)
+cd "$repo" || exit 2
+
+update=false
+case "${1:-}" in
+    --update-baseline) update=true ;;
+    "") ;;
+    *) echo "usage: tools/check [--update-baseline]" >&2; exit 2 ;;
+esac
+
+failed=0
+ok() { printf '  ok    %s\n' "$1"; }
+bad() { printf '  FAIL  %s\n' "$1"; failed=1; }
+skip() { printf '  skip  %s\n' "$1"; }
+# Indented detail lines under a result
+detail() { sed 's/^/          /'; }
+
+# Tracked files plus new, not yet added ones (ignored files, like themes/dynamic, are left out;
+# the themes check below covers it)
+files() { { git ls-files -- "$@"; git ls-files --others --exclude-standard -- "$@"; } | sort -u; }
+
+# --- QML ----------------------------------------------------------------------------------------
+qmllint=/usr/lib/qt6/bin/qmllint
+shell=shell/v1
+baseline=tools/qmllint-baseline.txt
+build=$(sed -n 's/^buildDir="\(.*\)"$/\1/p' "$shell/.qmlls.ini" 2>/dev/null)
+if [ ! -x "$qmllint" ]; then
+    skip "QML: $qmllint not found (qt6-declarative)"
+elif [ -z "$build" ] || [ ! -d "$build/qs" ]; then
+    skip "QML: no import paths yet; with the shell running, run once:"
+    echo "          touch $shell/.qmlls.ini $shell/shell.qml"
+else
+    raw=$(cd "$shell" && find . -name '*.qml' -print0 | sort -z | xargs -0 "$qmllint" -I "$build" 2>&1)
+    # One line per warning, without line numbers (they move with every edit), and without the two
+    # messages that are always false here (the runtime-built qmldir has no singleton entries)
+    current=$(printf '%s\n' "$raw" | grep '^Warning: ' \
+        | sed -E 's/^Warning: //; s/^([^:]+):[0-9]*:[0-9]*:/\1:/; s/^([^:]+)::/\1:/' \
+        | grep -vE 'not declared as singleton in qmldir but using pragma Singleton|PostReloadHook was not found' \
+        | sort)
+    syntax=$(printf '%s\n' "$current" | grep '\[syntax\]')
+    if [ -n "$syntax" ]; then
+        bad "QML syntax errors:"
+        printf '%s\n' "$syntax" | detail
+    fi
+    if $update; then
+        printf '%s\n' "$current" | grep -v '\[syntax\]' > "$baseline"
+        ok "QML: baseline updated ($(grep -c . "$baseline") known warnings in $baseline)"
+    elif [ ! -f "$baseline" ]; then
+        bad "QML: no $baseline yet; review the warnings, then run tools/check --update-baseline"
+    else
+        new=$(comm -13 "$baseline" <(printf '%s\n' "$current" | grep -v '\[syntax\]'))
+        gone=$(comm -23 "$baseline" <(printf '%s\n' "$current" | grep -v '\[syntax\]'))
+        if [ -n "$new" ]; then
+            bad "QML: $(printf '%s\n' "$new" | grep -c .) new warning(s) (line numbers: run qmllint on the file):"
+            printf '%s\n' "$new" | detail
+        else
+            ok "QML: no new warnings ($(grep -c . "$baseline") known)"
+        fi
+        if [ -n "$gone" ]; then
+            echo "          $(printf '%s\n' "$gone" | grep -c .) known warning(s) are gone: run tools/check --update-baseline"
+        fi
+    fi
+fi
+
+# --- Shell scripts ------------------------------------------------------------------------------
+mapfile -t scripts < <(files | while IFS= read -r f; do
+    [ -f "$f" ] && head -n1 "$f" 2>/dev/null | grep -qE '^#!.*\b(ba)?sh\b' && echo "$f"
+done)
+errs=""
+for f in "${scripts[@]}"; do
+    out=$(bash -n "$f" 2>&1) || errs+="$f: $out"$'\n'
+done
+if [ -n "$errs" ]; then bad "shell scripts:"; printf '%s' "$errs" | detail; else ok "shell scripts: bash -n (${#scripts[@]})"; fi
+if command -v shellcheck >/dev/null; then
+    if out=$(shellcheck -S warning "${scripts[@]}" 2>&1); then ok "shell scripts: shellcheck"
+    else bad "shell scripts: shellcheck"; printf '%s\n' "$out" | detail; fi
+else
+    skip "shellcheck not installed (pacman -S shellcheck)"
+fi
+
+# --- Lua ----------------------------------------------------------------------------------------
+mapfile -t lua < <(files '*.lua')
+if [ "${#lua[@]}" -eq 0 ]; then
+    skip "Lua: no files"
+elif ! command -v luac >/dev/null; then
+    skip "Lua: luac not installed"
+elif out=$(luac -p "${lua[@]}" 2>&1); then
+    ok "Lua: luac -p (${#lua[@]})"
+else
+    bad "Lua:"; printf '%s\n' "$out" | detail
+fi
+
+# --- JSON ---------------------------------------------------------------------------------------
+mapfile -t json < <(files '*.json')
+errs=""
+for f in "${json[@]}"; do
+    out=$(python3 -I -m json.tool "$f" 2>&1 >/dev/null) || errs+="$f: $out"$'\n'
+done
+if [ -n "$errs" ]; then bad "JSON:"; printf '%s' "$errs" | detail; else ok "JSON (${#json[@]})"; fi
+
+# --- Python -------------------------------------------------------------------------------------
+mapfile -t python < <(files | while IFS= read -r f; do
+    [ -f "$f" ] && { [[ $f == *.py ]] || head -n1 "$f" 2>/dev/null | grep -q '^#!.*python'; } && echo "$f"
+done)
+errs=""
+for f in "${python[@]}"; do
+    out=$(python3 -I -c 'import ast, sys; ast.parse(open(sys.argv[1]).read(), sys.argv[1])' "$f" 2>&1) \
+        || errs+="$out"$'\n'
+done
+if [ -n "$errs" ]; then bad "Python:"; printf '%s' "$errs" | detail; else ok "Python (${#python[@]})"; fi
+
+# --- Themes -------------------------------------------------------------------------------------
+keys="island border tile tileHover control controlHover fill onFill text textDim muted accent onAccent success warning caution danger"
+errs=""
+count=0
+for dir in themes/*/; do
+    id=$(basename "$dir")
+    count=$((count + 1))
+    for need in "kitty/$id.conf" hyprland/colors.lua hyprlock/colors.conf quickshell/colors.json \
+                nvim/theme.lua rmpc/theme.ron vscode/theme; do
+        [ -f "$dir$need" ] || errs+="$id: missing $need"$'\n'
+    done
+    if [ -f "${dir}quickshell/colors.json" ]; then
+        missing=$(python3 -I -c '
+import json, sys
+try:
+    data = json.load(open(sys.argv[1]))
+except ValueError:
+    sys.exit(0)  # reported by the JSON check
+print(" ".join(k for k in sys.argv[2:] if not isinstance(data.get(k), str)))
+' "${dir}quickshell/colors.json" $keys)
+        [ -n "$missing" ] && errs+="$id: colors.json lacks $missing"$'\n'
+    fi
+done
+if [ -n "$errs" ]; then bad "themes:"; printf '%s' "$errs" | detail; else ok "themes: every file and color ($count)"; fi
+
+echo
+if [ "$failed" -ne 0 ]; then
+    echo "tools/check: FAILED"
+    exit 1
+fi
+echo "tools/check: all good"

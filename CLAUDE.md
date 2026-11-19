@@ -27,7 +27,8 @@ The repo is grouped by role. Moving a top-level folder breaks symlinks in `$HOME
 - `login/` — SDDM login themes (`metadata.desktop` + `Main.qml` + video), `setup` script, and
   `system/` (root-owned helper `poteto-login-theme` + polkit policy)
 - `apps/settings/` — Poteto, the GTK settings app (`poteto-settings`, `.desktop`, icon)
-- `tools/notif-test` — sends test notifications of every shape
+- `tools/` — `check` (every check, run before committing), `qmllint-baseline.txt` (its known
+  qmllint false alarms), `notif-test` (sends test notifications of every shape)
 - `docs/` — `TODO.md`, `plan.txt` (the improvement plan)
 - `refrences/` — another person's Quickshell config kept for ideas (gitignored)
 
@@ -72,13 +73,34 @@ The repo is grouped by role. Moving a top-level folder breaks symlinks in `$HOME
 
 ## Validating changes
 
-There is no build, test suite, linter config or CI. Before committing:
+There is no build, test suite or CI. Before committing, run **`tools/check`** (about 7 s); it must
+end with "all good". It runs:
 
-- Re-read QML diffs carefully for property/id typos and missing imports — mistakes only show up at runtime.
-- Shell scripts: `bash -n <file>` (and `shellcheck` if available).
-- Lua: `luac -p dotfiles/hypr/*.lua themes/*/hyprland/colors.lua` if `luac` is available.
-- JSON: `python3 -m json.tool themes/<id>/quickshell/colors.json`.
-- On a real machine: Quickshell hot-reloads on save; logs are in `qs log -f`.
+- Qt 6's qmllint (`/usr/lib/qt6/bin/qmllint`, settings in `shell/v1/.qmllint.ini`; `/usr/bin/qmllint`
+  is Qt 5's and checks nothing). It needs Quickshell's import paths: with the shell running, a
+  one-time `touch shell/v1/.qmlls.ini shell/v1/shell.qml` makes Quickshell write them (the file is
+  gitignored). Syntax errors always fail; other warnings fail only when they are not in
+  `tools/qmllint-baseline.txt`, which holds the known false alarms (qmllint cannot tell that the
+  shell's own services are singletons). After fixing warnings, or after checking that new ones are
+  false alarms, run `tools/check --update-baseline` and commit the baseline with the change.
+- `bash -n` (and shellcheck if installed), `luac -p`, JSON and Python parsing, and that every
+  `themes/<id>/` has every file and `colors.json` key.
+
+qmllint does not run the code: still re-read QML diffs, and watch `qs log -f` (Quickshell
+hot-reloads on save). Many reloads in one session can slow the shell down; restart it rather than
+rebooting.
+
+## QML rules
+
+Apply these to code you write or touch; there is no sweep to apply them everywhere at once.
+
+- Typed functions: `function apply(path: string): void`, so qmllint can check the callers.
+- Delegates take their model data as `required property var modelData` / `required property int
+  index`, and files with delegates start with `pragma ComponentBehavior: Bound`, which makes
+  delegates name what they use from outside (`root.selected`, not a bare `selected`).
+- Don't let a new qmllint warning into the baseline without reading it: most real typos show up
+  as `[missing-property]` or `[unresolved-type]`.
+- A setting goes through `Settings`, a color through `Theme` (see Conventions).
 
 ## Commits
 

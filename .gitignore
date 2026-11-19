@@ -6,3 +6,6 @@ themes/solarized-light
 refrences
 # generated from the wallpaper by shell/v1/scripts/theme-from-wallpaper
 themes/dynamic
+
+# written by Quickshell for qmllint / qmlls: this machine's import paths
+.qmlls.ini
