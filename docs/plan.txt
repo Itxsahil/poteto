@@ -284,7 +284,7 @@ PHASE 1 — MAKE V1 THE ONLY SHELL (about 1 week)
       - Battery/Wi-Fi/calendar capsules beside the pill, and notifications shown inside
         the pill. These are design choices; keep v1's way unless you miss them.
       - Quiet mode = v1's Do Not Disturb (nothing to port).
-  1.2 One settings file for v1. v1's config/Settings.qml already reads
+  1.2 [done 2026-11-20] One settings file for v1. v1's config/Settings.qml already reads
       ~/.config/poteto/shell.json, but only showWorkspaces and showMusic, and only reads it.
       - Move the layout (now in ~/.cache/quickshell/layout) and other user choices into it.
       - Leave real cache (thumbnails, emoji-recent, album art) in ~/.cache.

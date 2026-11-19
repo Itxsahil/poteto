@@ -201,7 +201,7 @@ Scope {
 
     IpcHandler {
         target: "notifications"
-        function toggleDnd(): void { Notifications.dnd = !Notifications.dnd; }
+        function toggleDnd(): void { Notifications.toggleDnd(); }
         function dnd(): bool { return Notifications.dnd; }
         function clear(): void { Notifications.clearAll(); }
         function count(): int { return Notifications.count; }

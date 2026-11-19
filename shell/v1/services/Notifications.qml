@@ -3,6 +3,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Services.Notifications
+import qs.config
 
 Singleton {
     id: root
@@ -12,8 +13,18 @@ Singleton {
     readonly property int defaultTimeout: 5000
     readonly property int criticalTimeout: 20000
 
-    property bool dnd: false
+    // Do Not Disturb: kept in config/Settings.qml ("quiet" in shell.json, Poteto's Quiet switch),
+    // so it survives a restart. Change it with setDnd() / toggleDnd(), not by assigning.
+    readonly property bool dnd: Settings.quiet
     property var popups: []
+
+    function setDnd(on) {
+        Settings.set("quiet", !!on);
+    }
+
+    function toggleDnd() {
+        setDnd(!dnd);
+    }
     property var arrivedAt: ({})
     // Everything that arrived at or before this has been seen
     property double readAt: 0

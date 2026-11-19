@@ -11,7 +11,7 @@ QuickToggleTile {
         : "No notifications"
     active: Notifications.dnd
 
-    onToggleRequested: Notifications.dnd = !Notifications.dnd
+    onToggleRequested: Notifications.toggleDnd()
 
     BellIcon {
         anchors.centerIn: parent

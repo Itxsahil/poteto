@@ -76,7 +76,7 @@ Item {
             Toggle {
                 anchors.verticalCenter: parent.verticalCenter
                 checked: Notifications.dnd
-                onToggled: on => Notifications.dnd = on
+                onToggled: on => Notifications.setDnd(on)
             }
         }
     }

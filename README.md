@@ -29,7 +29,7 @@ poteto/
 
 | | |
 |---|---|
-| **Simple bar mode** | `mod + Shift + B` swaps the floating pills for one flat bar across the top — workspaces, the playing track and status in a single strip that reserves its own space. Everything the island opens still opens; click the right of the bar for the control center. The choice is remembered |
+| **Simple bar mode** | `mod + Shift + B` swaps the floating pills for one flat bar across the top — workspaces, the playing track and status in a single strip that reserves its own space. Everything the island opens still opens; click the right of the bar for the control center. The choice is remembered (`style` in `~/.config/poteto/shell.json`, so Poteto's layout switch works too) |
 | **Island (idle)** | The 12-hour clock, plus a red mic icon while the mic is muted and a pulsing dot while recording. Wi-Fi, battery and unread notifications are in the control center (and in bar mode, on the bar) |
 | **Control center** (rest the pointer on the island, or click it to keep it open) | A compact bento grid: clock (click it for the calendar), battery with health, Wi-Fi, Bluetooth, Notifications and Night Light tiles (Night Light opens a warmth slider), and brightness, volume and microphone sliders (click the mic icon or right click to mute). The button beside volume and mic opens the Sound page, which lists every output and input, with unplugged ones greyed out |
 | **Workspace overview** (`mod + Tab`, both shells) | The screen dimmed, with a card per workspace that has windows (and the current one), each showing its windows live where they sit on the wallpaper. Tab / Shift+Tab or arrows move, letting go of Alt goes there |
@@ -38,7 +38,7 @@ poteto/
 | **Wi-Fi page** | Scan, connect (with password), disconnect, forget |
 | **Bluetooth page** | Scan, pair + connect, disconnect, forget, device battery |
 | **OSD** | Volume, brightness and mic changes (including the Fn mic-mute key) briefly turn the island into a level bar |
-| **Notifications** | Popups under the island with icons, images, actions and markup; history page and Do Not Disturb in the control center; unread dot in the island |
+| **Notifications** | Popups under the island with icons, images, actions and markup; history page and Do Not Disturb in the control center (remembered across restarts; Poteto's Quiet switch); unread dot in the island |
 | **Workspaces** | Separate pill top-left: click to switch, scroll to cycle. Poteto → Workspaces turns it off (the same switch as in quickshell v2) |
 | **Music pill** | Small pill left of the center island: circular MPD album art (music icon when unavailable), four live visualizer bars while playing; click for media controls, right click for play/pause, Esc or click outside to close. Shown in island mode |
 | **Status pill** | Top-right: MPD track with a live cava visualizer (click play/pause, right click next, middle click previous) and the date. Poteto → Music & date turns it off; while recording, the stop button stays |
@@ -676,7 +676,7 @@ The same actions are registered as Hyprland global shortcuts named `quickshell:l
 | `~/.cache/quickshell/video-thumbs/` | video poster frames and durations |
 | `~/.cache/quickshell/album-art/` | album art extracted from the playing track |
 | `~/.cache/quickshell/border` | `on` / `off` for the focused window's border (`mod + B`) |
-| `~/.cache/quickshell/layout` | `island` / `bar`, the shell's shape (`mod + Shift + B`) |
+| `~/.config/poteto/shell.json` | settings, shared with Poteto and quickshell v2: `style` (`pill` / `bar`, `mod + Shift + B`), `quiet` (Do Not Disturb), `nightLight`, `nightTemperature`, `showWorkspaces`, `showMusic`. Read and written only by `config/Settings.qml`. The older `~/.cache/quickshell/layout` is carried over once and removed |
 | `~/.cache/quickshell/hypr-layout` | `dwindle` / `scrolling`, Hyprland's window layout (`mod + S`) |
 | `$XDG_RUNTIME_DIR/qs-cliphist/` | decoded clipboard images (private: folder 0700, files 0600, cleared at logout) |
 

@@ -3,55 +3,35 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import qs.config
 
 // Night light: while it is on, hyprsunset warms the screens to `temperature` (kelvin); off stops
-// it, which hands the colors back. The setting is the one quickshell v2 and the Poteto settings
-// app use (nightLight and nightTemperature in ~/.config/poteto/shell.json), so it carries over
-// when switching shells and the app's controls keep working. Only those two keys are written;
-// everything else in the file is left as it is.
+// it, which hands the colors back. The setting lives in config/Settings.qml (nightLight and
+// nightTemperature in ~/.config/poteto/shell.json), the one quickshell v2 and the Poteto
+// settings app use, so it carries over when switching shells and the app's controls keep working.
 //
 // hyprsunset runs on its own (it outlives a shell restart), so this only ever brings it in line:
 // start it, retune the one already running through hyprctl, or stop it.
 Singleton {
     id: root
 
-    readonly property string file: Quickshell.env("HOME") + "/.config/poteto/shell.json"
-    property var data: ({})
-    // Only written once it has been read cleanly (or found missing): writing over a file that
-    // did not parse would drop every other setting in it
-    property bool readable: false
-
-    readonly property bool enabled: data.nightLight === true
+    readonly property bool enabled: Settings.nightLight
     readonly property int minTemperature: 2000
     readonly property int maxTemperature: 6500
-    readonly property int temperature: typeof data.nightTemperature === "number"
-        ? Math.max(1000, Math.min(6500, Math.round(data.nightTemperature))) : 4000
+    readonly property int temperature: Settings.nightTemperature
     readonly property var wanted: [enabled, temperature]
     property bool queued: false
 
     function toggle() {
-        set("nightLight", !enabled);
+        Settings.set("nightLight", !enabled);
     }
 
     function setEnabled(on) {
-        set("nightLight", !!on);
+        Settings.set("nightLight", !!on);
     }
 
     function setTemperature(kelvin) {
-        set("nightTemperature", Math.round(Math.max(minTemperature, Math.min(maxTemperature, kelvin)) / 100) * 100);
-    }
-
-    function set(key, value) {
-        if (!readable) {
-            console.warn("NightLight: shell.json could not be read; not writing to it");
-            return;
-        }
-        if (data[key] === value)
-            return;
-        const updated = Object.assign({}, data);
-        updated[key] = value;
-        data = updated;
-        store.setText(JSON.stringify(updated, null, 2) + "\n");
+        Settings.set("nightTemperature", Math.round(Math.max(minTemperature, Math.min(maxTemperature, kelvin)) / 100) * 100);
     }
 
     function apply() {
@@ -68,29 +48,6 @@ Singleton {
     onWantedChanged: apply()
     // The change handler does not run for the first value: bring hyprsunset in line at start
     Component.onCompleted: apply()
-
-    FileView {
-        id: store
-        path: root.file
-        blockLoading: true
-        printErrors: false
-        watchChanges: true
-        onFileChanged: reload()
-        onLoaded: {
-            try {
-                const parsed = JSON.parse(text());
-                if (parsed && typeof parsed === "object") {
-                    root.data = parsed;
-                    root.readable = true;
-                }
-            } catch (e) {
-                root.readable = false;
-                console.warn("NightLight: shell.json is not valid JSON; leaving it alone");
-            }
-        }
-        // No file yet: one is written on the first change
-        onLoadFailed: root.readable = true
-    }
 
     Process {
         id: proc

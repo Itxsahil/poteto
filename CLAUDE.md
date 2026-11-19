@@ -53,6 +53,9 @@ The repo is grouped by role. Moving a top-level folder breaks symlinks in `$HOME
   apply and on every wallpaper change while active; a new per-app file needs a line there too.
 - Theme colors in `config/Theme.qml` fade (`Behavior` + `Theme.fade`); `Theme.preview` holds the
   theme picker's preview. Read colors through `Theme`, never from `colors.json` directly.
+- User settings live in `~/.config/poteto/shell.json`, read and written only by `config/Settings.qml`
+  (shared with Poteto and v2, so keep their key names). Services bind to `Settings.<key>` and change
+  it with `Settings.set(key, value)`; never give a setting its own file or `FileView`.
 - Cache/state goes under `~/.cache/quickshell/`; list new paths in the README "Caches and state" table.
 - New user-facing features and keys go in the README tables (Features, Keybinds, IPC, Customizing).
 
