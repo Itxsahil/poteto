@@ -1,5 +1,4 @@
 import QtQuick
-import Quickshell.Widgets
 import qs.config
 import qs.services
 
@@ -342,7 +341,9 @@ Item {
             cellHeight: cellWidth * 0.68
             model: root.results
             boundsBehavior: Flickable.StopAtBounds
-            cacheBuffer: cellHeight * 3
+            // One row kept ready past each edge, and cards reused as they scroll out
+            cacheBuffer: cellHeight
+            reuseItems: true
             currentIndex: root.selected
 
             delegate: Item {
@@ -361,51 +362,60 @@ Item {
                     anchors.fill: parent
                     anchors.margins: 5
                     radius: 18
-                    color: Theme.tileBg
+                    // Shown until the thumbnail has loaded
+                    color: Theme.controlBg
                     scale: cellMouse.pressed ? 0.96 : cell.isSelected ? 1.0 : 0.985
                     Behavior on scale { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
 
-                    ClippingRectangle {
-                        id: imageClip
+                    Image {
+                        id: img
                         anchors.fill: parent
-                        anchors.margins: 3
-                        radius: 15
-                        color: Theme.controlBg
+                        // No version in the URL: a thumbnail only appears (hasThumb), it is never
+                        // rewritten in place, so the image cache can keep every one
+                        source: cell.modelData.hasThumb ? "file://" + cell.modelData.thumb : ""
+                        sourceSize.width: 480
+                        fillMode: Image.PreserveAspectCrop
+                        asynchronous: true
+                        smooth: true
+                        opacity: status === Image.Ready ? 1 : 0
+                        Behavior on opacity { NumberAnimation { duration: 200 } }
+                    }
 
-                        Image {
-                            id: img
+                    Rectangle {
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.bottom: parent.bottom
+                        height: 30
+                        color: Qt.alpha(Theme.islandBg, 0.8)
+                        opacity: cell.isSelected ? 1 : 0
+                        Behavior on opacity { NumberAnimation { duration: 140 } }
+
+                        Text {
                             anchors.fill: parent
-                            source: cell.modelData.hasThumb ? "file://" + cell.modelData.thumb + "?v=" + Wallpaper.thumbsVersion : ""
-                            sourceSize.width: 480
-                            fillMode: Image.PreserveAspectCrop
-                            asynchronous: true
-                            smooth: true
-                            opacity: status === Image.Ready ? 1 : 0
-                            Behavior on opacity { NumberAnimation { duration: 200 } }
+                            anchors.leftMargin: 12
+                            anchors.rightMargin: 12
+                            verticalAlignment: Text.AlignVCenter
+                            elide: Text.ElideMiddle
+                            text: cell.modelData.label
+                            color: Theme.textPrimary
+                            font.pixelSize: 11
+                            font.family: Theme.fontFamily
                         }
+                    }
 
-                        Rectangle {
-                            anchors.left: parent.left
-                            anchors.right: parent.right
-                            anchors.bottom: parent.bottom
-                            height: 30
-                            color: Qt.alpha(Theme.islandBg, 0.8)
-                            opacity: cell.isSelected ? 1 : 0
-                            Behavior on opacity { NumberAnimation { duration: 140 } }
-
-                            Text {
-                                anchors.fill: parent
-                                anchors.leftMargin: 10
-                                anchors.rightMargin: 10
-                                verticalAlignment: Text.AlignVCenter
-                                elide: Text.ElideMiddle
-                                text: cell.modelData.label
-                                color: Theme.textPrimary
-                                font.pixelSize: 11
-                                font.family: Theme.fontFamily
-                            }
-                        }
-
+                    // Rounds the corners: a ring in the island's color over the square corners of
+                    // the image and the label. Far cheaper than a ClippingRectangle per card,
+                    // which renders two offscreen layers and a shader for every card on screen.
+                    // The ring must be at least 0.42 x radius wide to cover a corner; it reaches
+                    // 8px past the card, inside the 10px gap between cards.
+                    Rectangle {
+                        readonly property int reach: 8
+                        anchors.fill: parent
+                        anchors.margins: -reach
+                        radius: card.radius + reach
+                        color: "transparent"
+                        border.width: reach
+                        border.color: Theme.islandBg
                     }
 
                     Rectangle {

@@ -27,6 +27,8 @@ Singleton {
     property bool loading: false
     property bool generating: false
     property int thumbsVersion: 0
+    // The last list's paths and thumbnail states, to tell a real change from the same list again
+    property string signature: ""
     property var thumbAttempted: ({})
 
     signal applied(string path)
@@ -134,7 +136,13 @@ Singleton {
                         root.thumbAttempted[path] = true;
                     }
                 }
-                root.wallpapers = list;
+                // Only a real change replaces the list: a new array resets the picker's grid, which
+                // rebuilds every card and reloads every image, on each open
+                const signature = list.map(w => (w.hasThumb ? "1" : "0") + w.path).join("\n");
+                if (signature !== root.signature) {
+                    root.signature = signature;
+                    root.wallpapers = list;
+                }
                 root.loading = false;
                 if (missing.length && !genProc.running) {
                     genProc.command = ["sh", "-c", `
