@@ -17,7 +17,7 @@ What is still left to bring over from the old shell (`shell/v1/`) or to finish i
 
 ## Small additions
 
-- [ ] **Low-battery warning** — a notification around 15% and 5% while unplugged (today only the
+- [x ] **Low-battery warning** — a notification around 15% and 5% while unplugged (today only the
       battery icon changes color).
 - [ ] **Fn + F4 (mic mute)** — check it works; if not, find its key with `wev` and bind it the way
       Fn + F6 is (`code:160`).

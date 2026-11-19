@@ -38,6 +38,7 @@ poteto/
 | **Wi-Fi page** | Scan, connect (with password), disconnect, forget |
 | **Bluetooth page** | Scan, pair + connect, disconnect, forget, device battery |
 | **OSD** | Volume, brightness and mic changes (including the Fn mic-mute key) briefly turn the island into a level bar |
+| **Low-battery warnings** | On battery, a notification at 15% and a critical one at 5%, both shown even in Do Not Disturb, once per discharge; plugging in resets them. Levels are `batteryLow` / `batteryCritical` in `shell.json` (0 turns one off) |
 | **Notifications** | Popups under the island with icons, images, actions and markup; history page and Do Not Disturb in the control center (remembered across restarts; Poteto's Quiet switch); unread dot in the island |
 | **Workspaces** | Separate pill top-left: click to switch, scroll to cycle. Poteto → Workspaces turns it off (the same switch as in quickshell v2) |
 | **Music pill** | Small pill left of the center island: circular MPD album art (music icon when unavailable), four live visualizer bars while playing; click for media controls, right click for play/pause, Esc or click outside to close. Shown in island mode |
@@ -629,6 +630,7 @@ qs ipc call bar        toggle|simple|island|status|panel
 qs ipc call layout     toggle|pill|bar|status       # same names as quickshell v2 (Alt + Shift + B)
 qs ipc call controlcenter toggle|open|close        # same names as quickshell v2 (Super + C)
 qs ipc call nightlight toggle|on|off|status        # shared with quickshell v2 and Poteto (shell.json)
+qs ipc call battery    status|testLow|testCritical  # level and warning levels; send a sample warning
 qs ipc call player     play <path>|stop|next|previous|loop|status
 qs ipc call player     speed 1        # or -1, steps 0.5×…2×
 ```
@@ -676,7 +678,7 @@ The same actions are registered as Hyprland global shortcuts named `quickshell:l
 | `~/.cache/quickshell/video-thumbs/` | video poster frames and durations |
 | `~/.cache/quickshell/album-art/` | album art extracted from the playing track |
 | `~/.cache/quickshell/border` | `on` / `off` for the focused window's border (`mod + B`) |
-| `~/.config/poteto/shell.json` | settings, shared with Poteto and quickshell v2: `style` (`pill` / `bar`, `mod + Shift + B`), `quiet` (Do Not Disturb), `nightLight`, `nightTemperature`, `showWorkspaces`, `showMusic`. Read and written only by `config/Settings.qml`. The older `~/.cache/quickshell/layout` is carried over once and removed |
+| `~/.config/poteto/shell.json` | settings, shared with Poteto and quickshell v2: `style` (`pill` / `bar`, `mod + Shift + B`), `quiet` (Do Not Disturb), `nightLight`, `nightTemperature`, `showWorkspaces`, `showMusic`, `batteryLow`, `batteryCritical`. Read and written only by `config/Settings.qml`. The older `~/.cache/quickshell/layout` is carried over once and removed |
 | `~/.cache/quickshell/hypr-layout` | `dwindle` / `scrolling`, Hyprland's window layout (`mod + S`) |
 | `$XDG_RUNTIME_DIR/qs-cliphist/` | decoded clipboard images (private: folder 0700, files 0600, cleared at logout) |
 

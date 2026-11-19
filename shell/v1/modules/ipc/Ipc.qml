@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
+import qs.config
 import qs.services
 
 Scope {
@@ -134,6 +135,18 @@ Scope {
         function on(): bool { NightLight.setEnabled(true); return true; }
         function off(): bool { NightLight.setEnabled(false); return false; }
         function status(): bool { return NightLight.enabled; }
+    }
+
+    // qs ipc call battery status | testLow | testCritical: the level and the warning levels, and
+    // the two low-battery notifications sent now, to see what they look like
+    IpcHandler {
+        target: "battery"
+        function status(): string {
+            return `${Battery.percent}% ${Battery.discharging ? "discharging" : "not discharging"}; `
+                + `warns at ${Settings.batteryLow}% and ${Settings.batteryCritical}%`;
+        }
+        function testLow(): void { Battery.warn(1); }
+        function testCritical(): void { Battery.warn(2); }
     }
 
     IpcHandler {

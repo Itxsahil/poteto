@@ -17,6 +17,7 @@ Singleton {
     // so it survives a restart. Change it with setDnd() / toggleDnd(), not by assigning.
     readonly property bool dnd: Settings.quiet
     property var popups: []
+    readonly property string showInDndHint: "x-poteto-show-in-dnd"
 
     function setDnd(on) {
         Settings.set("quiet", !!on);
@@ -81,6 +82,9 @@ Singleton {
         bodyHyperlinksSupported: true
         actionsSupported: true
         imageSupported: true
+        // Kept on incoming notifications (unlisted hints are dropped). x-poteto-show-in-dnd: the
+        // shell's own warnings that must be seen even in Do Not Disturb (services/Battery.qml).
+        extraHints: [root.showInDndHint]
 
         onNotification: notification => {
             notification.tracked = true;
@@ -101,7 +105,8 @@ Singleton {
             for (let i = 0; i < tracked.length - root.maxHistory; i++)
                 tracked[i].expire();
 
-            if (root.dnd && notification.urgency !== NotificationUrgency.Critical)
+            if (root.dnd && notification.urgency !== NotificationUrgency.Critical
+                    && notification.hints[root.showInDndHint] !== true)
                 return;
 
             root.popups = [notification, ...root.popups.filter(n => n !== notification)].slice(0, root.maxPopups);

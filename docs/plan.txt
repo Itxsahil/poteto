@@ -290,7 +290,7 @@ PHASE 1 — MAKE V1 THE ONLY SHELL (about 1 week)
       - Leave real cache (thumbnails, emoji-recent, album art) in ~/.cache.
       - Until Phase 4, Poteto (the Python app) keeps working: take out its v2-only rows
         (mode, accent if not ported, capsules).
-  1.3 Low-battery warning: a daemons/BatteryMonitor.qml like caelestia's.
+  1.3 [done 2026-11-20, in services/Battery.qml] Low-battery warning: a daemons/BatteryMonitor.qml like caelestia's.
       - Configurable levels from Settings; a notification at 15% and 5%.
       - Optionally hibernate at a critical level.
   1.4 Delete quickshellv2/, switch-shell, dev.poteto.SwitchShell.desktop, and the

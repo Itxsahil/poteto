@@ -38,6 +38,16 @@ Singleton {
     readonly property int nightTemperature: typeof data.nightTemperature === "number"
         ? Math.max(1000, Math.min(6500, Math.round(data.nightTemperature))) : 4000
 
+    // Low-battery warnings (services/Battery.qml), in percent, while on battery: a notification at
+    // batteryLow, and a critical one (shown even in Do Not Disturb) at batteryCritical. 0 turns
+    // that warning off.
+    readonly property int batteryLow: percent(data.batteryLow, 15)
+    readonly property int batteryCritical: percent(data.batteryCritical, 5)
+
+    function percent(value, fallback) {
+        return typeof value === "number" ? Math.max(0, Math.min(100, Math.round(value))) : fallback;
+    }
+
     // Sets one key and writes the file; everything else in it is kept as it is
     function set(key, value) {
         update({ [key]: value });
