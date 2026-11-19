@@ -1,0 +1,90 @@
+#![enable(implicit_some)]
+#![enable(unwrap_newtypes)]
+#![enable(unwrap_variant_newtypes)]
+(
+    default_album_art_path: None,
+    draw_borders: false,
+    show_song_table_header: false,
+    symbols: (song: "🎵", dir: "📁", playlist: "🎼", marker: "\u{e0b0}"),
+    layout: Split(
+        direction: Vertical,
+        panes: [
+            (
+                pane: Pane(Header),
+                size: "1",
+            ),
+            (
+                pane: Pane(TabContent),
+                size: "100%",
+            ),
+            (
+                pane: Pane(ProgressBar),
+                size: "1",
+            ),
+        ],
+    ),
+    progress_bar: (
+        symbols: ["=", "=", "⭘", " ", " "],
+        track_style: (bg: "{{tile}}"),
+        elapsed_style: (fg: "{{accent}}", bg: "{{tile}}"),
+        thumb_style: (fg: "{{accent}}", bg: "{{tile}}"),
+    ),
+    scrollbar: (
+        symbols: ["│", "█", "▲", "▼"],
+        track_style: (),
+        ends_style: (),
+        thumb_style: (fg: "{{accent}}"),
+    ),
+    browser_column_widths: [20, 38, 42],
+    text_color: "{{text}}",
+    background_color: "{{island}}",
+    header_background_color: "{{tile}}",
+    modal_background_color: None,
+    modal_backdrop: false,
+    tab_bar: (active_style: (fg: "{{island}}", bg: "{{accent}}", modifiers: "Bold"), inactive_style: ()),
+    borders_style: (fg: "{{border}}"),
+    highlighted_item_style: (fg: "{{accent}}", modifiers: "Bold"),
+    current_item_style: (fg: "{{island}}", bg: "{{accent}}", modifiers: "Bold"),
+    highlight_border_style: (fg: "{{accent}}"),
+    song_table_format: [
+        (
+            prop: (kind: Property(Artist), style: (fg: "{{accent}}"), default: (kind: Text("Unknown"))),
+            width: "50%",
+            alignment: Right,
+        ),
+        (
+            prop: (kind: Text("-"), style: (fg: "{{accent}}"), default: (kind: Text("Unknown"))),
+            width: "1",
+            alignment: Center,
+        ),
+        (
+            prop: (kind: Property(Title), style: (fg: "{{success}}"), default: (kind: Text("Unknown"))),
+            width: "50%",
+        ),
+    ],
+    header: (
+        rows: [
+            (
+                left: [
+                    (kind: Text("["), style: (fg: "{{accent}}", modifiers: "Bold")),
+                    (kind: Property(Status(State)), style: (fg: "{{accent}}", modifiers: "Bold")),
+                    (kind: Text("]"), style: (fg: "{{accent}}", modifiers: "Bold"))
+                ],
+                center: [
+                    (kind: Property(Song(Artist)), style: (fg: "{{warning}}", modifiers: "Bold"),
+                        default: (kind: Text("Unknown"), style: (fg: "{{warning}}", modifiers: "Bold"))
+                    ),
+                    (kind: Text(" - ")),
+                    (kind: Property(Song(Title)), style: (fg: "{{success}}", modifiers: "Bold"),
+                        default: (kind: Text("No Song"), style: (fg: "{{success}}", modifiers: "Bold"))
+                    )
+                ],
+                right: [
+                    (kind: Text("Vol: "), style: (fg: "{{accent}}", modifiers: "Bold")),
+                    (kind: Property(Status(Volume)), style: (fg: "{{accent}}", modifiers: "Bold")),
+                    (kind: Text("% "), style: (fg: "{{accent}}", modifiers: "Bold"))
+                ]
+            )
+        ],
+    ),
+)

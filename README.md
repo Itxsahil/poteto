@@ -51,7 +51,7 @@ poteto/
 | **Emoji picker** | 1,900 emoji (Unicode 17) in 9 categories plus recently used, search by name, Enter to copy |
 | **Clipboard** | cliphist history with text and image previews, search, filters, delete |
 | **Wallpapers** | Thumbnail grid of your wallpaper folders, applied with awww |
-| **Themes** | Twelve color schemes, picked from a scrolling row of palette cards, that restyle Quickshell, Hyprland borders, kitty, NvChad, VS Code, rmpc, hyprlock and (when supplied) the wallpaper |
+| **Themes** | Sixteen hand-made color schemes plus **Dynamic**, generated from the wallpaper (Material You through matugen), picked from a scrolling row of palette cards that preview on the whole shell as you browse. They restyle Quickshell, Hyprland borders, kitty, NvChad, VS Code, rmpc, hyprlock and (when supplied) the wallpaper; colors fade instead of jumping |
 | **Power menu** | Lock, logout, suspend, hibernate, reboot, shutdown with letter keys; logout/reboot/shutdown ask for a second press |
 | **Color picker** | Frozen-screen picker with a pixel magnifier, arrow-key nudging, HEX / RGB / HSL copy, a notification swatch and a recent-colors bar |
 | **Screen recorder** | Whole screen or a region at native resolution and 60 fps (NVENC, falls back to x264), system audio and/or mic mixed in, recording timer with a stop button, a name prompt while it saves (Enter to save, Esc keeps the date name), notification with Open / Show in folder |
@@ -123,7 +123,7 @@ sudo pacman -S quickshell hyprland hyprlock awww kitty neovim \
   networkmanager bluez bluez-utils wireplumber upower brightnessctl \
   cliphist wl-clipboard grim imagemagick glib2 xdg-utils libnotify playerctl mpd cava \
   wf-recorder ffmpeg qt6-multimedia-ffmpeg \
-  breeze-icons ttf-jetbrains-mono-nerd noto-fonts-emoji inter-font
+  breeze-icons ttf-jetbrains-mono-nerd noto-fonts-emoji inter-font matugen
 ```
 
 - **Quickshell 0.3+** is required: the code uses `import qs.*` modules and the built-in Bluetooth,
@@ -133,6 +133,8 @@ sudo pacman -S quickshell hyprland hyprlock awww kitty neovim \
 - **NvChad** (base46 themes) and **VS Code** (`code` on `PATH`) are optional; themes skip them if
   they are missing.
 - `inter-font` is optional; without it the shell falls back to the default sans-serif font.
+- **matugen** is optional: the Dynamic theme uses it for Material You colors, and falls back to a
+  simpler built-in palette (ImageMagick only) without it.
 - **MPD + cava** are optional. The shell talks to MPD on `127.0.0.1:6600` (or `MPD_HOST` / `MPD_PORT`).
   The visualizer needs a fifo output in `mpd.conf`:
 
@@ -367,7 +369,8 @@ everywhere, while a custom color shows as the nearest named one in live apps and
 
 ## Themes
 
-Each theme is a folder of ready-made files. Nothing is generated; switching only moves symlinks.
+Each theme is a folder of ready-made files, and switching only moves symlinks. The one exception is
+**Dynamic** (see below), whose folder is generated from the wallpaper.
 
 ```
 themes/everforest-dark/
@@ -405,6 +408,28 @@ Switching a theme (`mod + T`, or `qs ipc call theme apply <id>`):
 | rxyhn | rxyhn | Dark Modern (built in; no matching VS Code theme bundled) |
 | solitude | monochrome | Noctokai (`farigab.noctokai-theme`) |
 | tokyo-night-storm | tokyonight | Tokyo Night Storm (`enkia.tokyo-night`) |
+
+While the picker is open, the selected card's colors are shown on the whole shell (a preview: no
+links move until Enter). Esc fades back to the active theme.
+
+### Dynamic theme (from the wallpaper)
+
+`themes/dynamic/` is built by `shell/v1/scripts/theme-from-wallpaper` and kept out of git. It has
+every file a hand-made theme has, except `wallpaper/`: it follows the wallpaper instead of setting
+one. It is rebuilt when you apply it, and every time the wallpaper changes while it is active.
+
+- **Colors**: matugen's Material You scheme of the wallpaper (surfaces, text, accent, error).
+  Material has no success / warning / caution, so those keep fixed green / yellow / orange hues,
+  moved until they read on the background. Without matugen, a built-in palette is used instead
+  (OKLCH, the most colorful well-represented color as the accent).
+- **Mode**: `dark`, `light` or `auto` (light for a bright wallpaper). **Style**: matugen's scheme
+  type, `tonal-spot` (default), `vibrant`, `expressive`, `fidelity`, `content`, `fruit-salad`,
+  `rainbow`, `neutral` or `monochrome`. Both are remembered.
+- In the picker, with Dynamic selected: **Ctrl + D** cycles the mode, **Ctrl + S** the style.
+  From a terminal: `qs ipc call theme dynamic light ""`, `qs ipc call theme dynamic "" vibrant`.
+- **Neovim**: a base46 theme `poteto-dynamic` is written next to it and linked as
+  `~/.config/nvim/lua/themes/poteto-dynamic.lua` (once; an existing file there is never replaced).
+- **VS Code**: Default Dark Modern / Default Light Modern, by mode.
 
 ### Dark and light mode in quickshell v2
 
@@ -584,6 +609,7 @@ qs ipc call recorder   toggle|stop|status
 qs ipc call wallpaper  toggle|open|close|random
 qs ipc call theme      toggle|open|close|list|current
 qs ipc call theme      apply gruvbox-material
+qs ipc call theme      dynamic <dark|light|auto|""> <scheme|"">   # rebuild from the wallpaper and apply
 qs ipc call logintheme toggle|open|close|list|current
 qs ipc call logintheme apply rover-in-rain
 qs ipc call loginvideo toggle|open|close|current
@@ -638,6 +664,8 @@ The same actions are registered as Hyprland global shortcuts named `quickshell:l
 | Path | Contents |
 |---|---|
 | `~/.cache/quickshell/theme/` | symlinks to the active theme's files |
+| `themes/dynamic/` (in the repo, gitignored) | the Dynamic theme, generated from the wallpaper; its `colors.json` remembers the mode and style |
+| `~/.config/nvim/lua/themes/poteto-dynamic.lua` | link to the Dynamic theme's NvChad theme |
 | `~/.cache/quickshell/theme/dark/`, `light/`, `active` | v2: the apps' files for each mode, and the active one (`scripts/apply-palette`) |
 | `~/.cache/quickshell/vscode-settings.lock` | v2: keeps the palette and accent scripts from editing VS Code's settings at once |
 | `~/.cache/quickshell/wallpaper-thumbs/` | wallpaper grid thumbnails |

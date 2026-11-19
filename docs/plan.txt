@@ -399,6 +399,24 @@ PHASE 6 — NEW FEATURES (later, pick only what you want)
     job; hyprlock already works), and i18n.
 
 
+PHASE T — THEMING (borrowed from caelestia; DONE 2026-11-20 except T4)
+  Keeps every hand-made theme as it is, and adds a generated one next to them.
+  T1 [done] Dynamic theme from the wallpaper: shell/v1/scripts/theme-from-wallpaper writes
+       themes/dynamic/ (matugen Material You; built-in OKLCH fallback without matugen), with the
+       same files as a hand-made theme. Rebuilt on apply and on wallpaper change while active.
+       Mode dark/light/auto and style (tonal-spot, vibrant, …) remembered; Ctrl+D / Ctrl+S in
+       the picker, `qs ipc call theme dynamic <mode> <scheme>`.
+  T2 [done] Live preview: browsing the theme picker shows the selected theme on the whole
+       shell (Theme.preview); Esc fades back.
+  T3 [done] Color fades: the theme colors in Theme.qml animate (Theme.fade), so a theme switch
+       or preview fades across every module without touching them.
+  T4 [todo] Transparency + blur: tokens for island opacity, a Hyprland layer rule (blur,
+       ignore_alpha) for the shell's namespace, a toggle in settings. Wait for Phase 3 tokens
+       and Phase 4 settings, and tune by eye on light and monochrome themes.
+  T5 [idea] More color roles in colors.json (surface levels, an "on" color per surface) only if
+       a module needs them; v1 already has 17 keys, so this is not urgent.
+
+
 SUGGESTED TIMELINE
 ------------------
   Week 1     Phase 0, then Phase 1 (port the few v2-only bits, remove v2)

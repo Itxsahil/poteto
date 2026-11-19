@@ -35,6 +35,15 @@ Item {
         list.positionViewAtIndex(selected, ListView.Center);
     }
 
+    // The selected card's colors are shown on the whole shell while browsing (Theme.preview);
+    // closing without applying fades back to the active theme
+    function updatePreview() {
+        Theme.preview = active ? (results[selected]?.colors ?? null) : null;
+    }
+
+    readonly property var selectedTheme: results[selected] ?? null
+    readonly property bool dynamicSelected: selectedTheme?.id === ThemeManager.dynamicId
+
     onActiveChanged: {
         if (active) {
             input.text = "";
@@ -42,10 +51,14 @@ Item {
             selectCurrent();
             input.forceActiveFocus();
         }
+        updatePreview();
     }
+    onSelectedChanged: updatePreview()
+    Component.onDestruction: Theme.preview = null
     onResultsChanged: {
         if (selected >= results.length)
             selected = Math.max(0, results.length - 1);
+        updatePreview();
     }
 
     Connections {
@@ -116,6 +129,12 @@ Item {
                     root.applySelected();
                     if (event.modifiers & Qt.ShiftModifier)
                         root.closeRequested();
+                } else if (ctrl && event.key === Qt.Key_D && root.dynamicSelected) {
+                    // The dynamic theme's mode: dark → light → auto (rebuilt and applied)
+                    ThemeManager.cycleDynamicMode();
+                } else if (ctrl && event.key === Qt.Key_S && root.dynamicSelected) {
+                    // Its Material You style: tonal-spot → vibrant → expressive → …
+                    ThemeManager.cycleDynamicScheme();
                 } else {
                     return;
                 }
@@ -262,7 +281,10 @@ Item {
                 anchors.bottomMargin: 12
                 horizontalAlignment: Text.AlignHCenter
                 elide: Text.ElideRight
-                text: card.modelData.name
+                // The dynamic theme shows its mode: "Dynamic · auto"
+                text: card.modelData.id === ThemeManager.dynamicId
+                    ? `${card.modelData.name} · ${card.colors.mode ?? card.modelData.variant}`
+                    : card.modelData.name
                 color: card.isSelected ? (card.colors.text ?? Theme.textPrimary) : (card.colors.textDim ?? Theme.textSecondary)
                 font.pixelSize: 11
                 font.weight: card.isSelected ? Font.DemiBold : Font.Normal
@@ -293,7 +315,9 @@ Item {
         anchors.right: parent.right
         anchors.rightMargin: 6
         anchors.bottom: parent.bottom
-        text: "Enter to apply"
+        text: root.dynamicSelected
+            ? `From the wallpaper · ${root.selectedTheme.colors.scheme ?? "tonal-spot"} · Ctrl+D mode · Ctrl+S style · Enter to apply`
+            : "Enter to apply"
         color: Theme.textSecondary
         font.pixelSize: 11
         font.family: Theme.fontFamily

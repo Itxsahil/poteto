@@ -1,0 +1,435 @@
+#!/usr/bin/env python3
+"""Builds the "dynamic" color theme from a wallpaper.
+
+    theme-from-wallpaper THEMES_DIR [WALLPAPER] [--mode dark|light|auto] [--scheme NAME]
+
+Writes THEMES_DIR/dynamic/, a theme folder like every hand-made one (quickshell/colors.json,
+kitty, Hyprland, hyprlock, rmpc, Neovim, VS Code), so ThemeManager applies it the same way.
+There is no wallpaper/ folder in it on purpose: the theme follows the wallpaper, it never sets one.
+
+Without WALLPAPER, the one awww is showing is used. --mode and --scheme are remembered (in the
+theme's colors.json): dark and tonal-spot the first time. "auto" picks light for a bright
+wallpaper and dark otherwise.
+
+The colors come from matugen (Material You, the scheme picked with --scheme: tonal-spot,
+vibrant, expressive, fidelity, content, fruit-salad, rainbow, neutral, monochrome). Without
+matugen, a built-in fallback is used: the standard library and ImageMagick (`magick`), picking
+colors in OKLCH. The accent is the most colorful color the wallpaper has a fair amount of,
+surfaces are near-neutral greys tinted towards it, and the accent is moved until it reads
+against the background. Either way, success / warning / caution are fixed hues kept readable.
+"""
+
+import json
+import math
+import os
+import re
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+THEME_ID = "dynamic"
+NVIM_THEME = "poteto-dynamic"
+TEMPLATES = Path(__file__).resolve().parent / "theme-templates"
+
+# --- color math: sRGB <-> OKLab / OKLCH --------------------------------------------------------
+
+
+def _lin(c):
+    return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+
+
+def _gam(c):
+    return 12.92 * c if c <= 0.0031308 else 1.055 * c ** (1 / 2.4) - 0.055
+
+
+def rgb_to_oklch(rgb):
+    r, g, b = (_lin(v) for v in rgb)
+    l = (0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b) ** (1 / 3)
+    m = (0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b) ** (1 / 3)
+    s = (0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b) ** (1 / 3)
+    L = 0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s
+    a = 1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s
+    bb = 0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s
+    return L, math.hypot(a, bb), math.degrees(math.atan2(bb, a)) % 360
+
+
+def _oklch_to_linear(L, C, h):
+    a, b = C * math.cos(math.radians(h)), C * math.sin(math.radians(h))
+    l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3
+    m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3
+    s = (L - 0.0894841775 * a - 1.2914855480 * b) ** 3
+    return (4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+            -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+            -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s)
+
+
+def oklch(L, C, h):
+    """An sRGB color for L/C/h, lowering chroma until it fits in sRGB (keeps lightness and hue)."""
+    L = max(0.0, min(1.0, L))
+    lo, hi = 0.0, C
+    rgb = _oklch_to_linear(L, 0, h)
+    if all(-1e-4 <= v <= 1 + 1e-4 for v in _oklch_to_linear(L, C, h)):
+        rgb = _oklch_to_linear(L, C, h)
+    else:
+        for _ in range(24):
+            mid = (lo + hi) / 2
+            cand = _oklch_to_linear(L, mid, h)
+            if all(-1e-4 <= v <= 1 + 1e-4 for v in cand):
+                lo, rgb = mid, cand
+            else:
+                hi = mid
+    return tuple(max(0.0, min(1.0, _gam(max(0.0, v)))) for v in rgb)
+
+
+def hexof(rgb):
+    return "#" + "".join(f"{round(v * 255):02x}" for v in rgb)
+
+
+def rgb_of(hexstr):
+    return tuple(int(hexstr[i:i + 2], 16) / 255 for i in (1, 3, 5))
+
+
+def luminance(rgb):
+    r, g, b = (_lin(v) for v in rgb)
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def contrast(x, y):
+    a, b = luminance(x), luminance(y)
+    return (max(a, b) + 0.05) / (min(a, b) + 0.05)
+
+
+def readable(L, C, h, bg, target, lighter):
+    """oklch(L, C, h), its lightness moved away from bg until the contrast reaches target."""
+    color = oklch(L, C, h)
+    while contrast(color, bg) < target and 0.02 < L < 0.98:
+        L += 0.01 if lighter else -0.01
+        color = oklch(L, C, h)
+    return color
+
+
+# --- the wallpaper ------------------------------------------------------------------------------
+
+
+def current_wallpaper():
+    try:
+        out = subprocess.run(["awww", "query"], capture_output=True, text=True, timeout=5).stdout
+    except (OSError, subprocess.SubprocessError):
+        return None
+    m = re.search(r"image: (.+)$", out, re.M)
+    return m.group(1).strip() if m else None
+
+
+def sample(path):
+    """[(share of the picture, (r, g, b)), ...] for the wallpaper's main colors."""
+    out = subprocess.run(
+        ["magick", f"{path}[0]", "-auto-orient", "-resize", "160x160>", "-colors", "24",
+         "-depth", "8", "-format", "%c", "histogram:info:-"],
+        capture_output=True, text=True, timeout=60, check=True).stdout
+    colors = []
+    for line in out.splitlines():
+        m = re.match(r"\s*(\d+):.*?#([0-9A-Fa-f]{6})", line)
+        if m:
+            colors.append((int(m.group(1)), rgb_of("#" + m.group(2))))
+    total = sum(n for n, _ in colors) or 1
+    return [(n / total, rgb) for n, rgb in colors]
+
+
+def pick_seed(colors):
+    """The accent's hue and chroma, and the picture's mean lightness.
+
+    Each color scores by how much of the picture it covers (square root, so a small vivid detail
+    can still beat a big dull area) times how colorful it is, capped so neon does not always win.
+    A nearly grey wallpaper gives a grey accent tinted with its strongest hue.
+    """
+    best, best_score = None, -1.0
+    mean_l = 0.0
+    for share, rgb in colors:
+        L, C, h = rgb_to_oklch(rgb)
+        mean_l += share * L
+        if L < 0.15 or L > 0.95:
+            continue
+        score = math.sqrt(share) * min(C, 0.16)
+        if score > best_score:
+            best, best_score = (C, h), score
+    if best is None:
+        best = (0.0, 250.0)
+    return best[0], best[1], mean_l
+
+
+# --- the palette --------------------------------------------------------------------------------
+
+SCHEMES = ("tonal-spot", "vibrant", "expressive", "fidelity", "content", "fruit-salad", "rainbow",
+           "neutral", "monochrome")
+
+
+def matugen_palette(wallpaper, mode, scheme):
+    """(palette, variant, seed chroma, seed hue) from matugen's Material You scheme, or None
+    when matugen is missing or fails (then the built-in palette below is used).
+
+    Material has no success / warning / caution: those keep fixed hues (green, yellow, orange),
+    moved in lightness until they read on the background, like the built-in palette does.
+    """
+    m = {"auto": "smart"}.get(mode, mode)
+    try:
+        out = subprocess.run(
+            ["matugen", "image", wallpaper, "-m", m, "-t", f"scheme-{scheme}", "--json", "hex",
+             "--dry-run", "--source-color-index", "0", "-q"],
+            capture_output=True, text=True, timeout=60, stdin=subprocess.DEVNULL, check=True).stdout
+        data = json.loads(out)
+        variant = mode if mode != "auto" else ("dark" if data.get("is_dark_mode", True) else "light")
+        c = {k: rgb_of(v[variant]["color"]) for k, v in data["colors"].items()}
+    except (OSError, subprocess.SubprocessError, ValueError, KeyError, TypeError):
+        return None
+
+    _, seed_c, seed_h = rgb_to_oklch(c["source_color"])
+    p = {
+        "island": c["surface"], "tile": c["surface_container"],
+        "tileHover": c["surface_container_high"], "control": c["surface_container_high"],
+        "controlHover": c["surface_container_highest"], "border": c["outline_variant"],
+        "text": c["on_surface"], "textDim": c["on_surface_variant"], "muted": c["outline"],
+        "accent": c["primary"], "onAccent": c["on_primary"],
+        "fill": c["on_surface"], "onFill": c["surface"], "danger": c["error"],
+    }
+    p.update(status_colors(p["island"], variant == "dark"))
+    return p, variant, seed_c, seed_h
+
+
+def status_colors(island, dark):
+    status_l = 0.78 if dark else 0.55
+    return {
+        "success": readable(status_l, 0.12, 150, island, 3, dark),
+        "warning": readable(status_l + (0.08 if dark else 0.06), 0.13, 92, island, 3, dark),
+        "caution": readable(status_l, 0.13, 62, island, 3, dark),
+    }
+
+
+def palette(chroma, hue, mode):
+    dark = mode == "dark"
+    grey = chroma < 0.035
+    # Surfaces: neutral, with just enough of the accent's hue to feel related
+    tint = 0.004 if grey else min(0.016, 0.004 + chroma * 0.08)
+
+    def surface(L, c=tint):
+        return oklch(L, c, hue)
+
+    if dark:
+        island = surface(0.18)
+        p = {
+            "island": island, "tile": surface(0.235), "tileHover": surface(0.28),
+            "control": surface(0.28), "controlHover": surface(0.33), "border": surface(0.28),
+            "text": surface(0.93, tint * 0.6), "textDim": surface(0.72), "muted": surface(0.55),
+        }
+        accent_l, accent_c, status_l = 0.78, (0.012 if grey else max(0.07, min(chroma, 0.15))), 0.78
+    else:
+        island = surface(0.975)
+        p = {
+            "island": island, "tile": surface(0.93), "tileHover": surface(0.89),
+            "control": surface(0.89), "controlHover": surface(0.845), "border": surface(0.87),
+            "text": surface(0.24, tint * 0.8), "textDim": surface(0.46), "muted": surface(0.62),
+        }
+        accent_l, accent_c, status_l = 0.52, (0.012 if grey else max(0.08, min(chroma, 0.16))), 0.55
+
+    lighter = dark
+    p["accent"] = readable(accent_l, accent_c, hue, island, 4.5, lighter)
+    # Text on the accent: the background or the text color, whichever reads better
+    p["onAccent"] = max((p["island"], p["text"]), key=lambda c: contrast(c, p["accent"]))
+    p["fill"] = p["text"]
+    p["onFill"] = p["island"]
+    p.update(status_colors(island, dark))
+    p["danger"] = readable(status_l - (0.08 if dark else 0.0), 0.17, 27, island, 3, lighter)
+    return p
+
+
+def terminal(p, mode, hue, chroma):
+    """kitty's 16 colors: the usual hues at even lightness, black/white from the surfaces."""
+    dark = mode == "dark"
+    tint = min(0.012, chroma * 0.08)
+    normal_l, bright_l, c = (0.72, 0.80, 0.13) if dark else (0.50, 0.42, 0.14)
+    hues = {1: 27, 2: 145, 3: 90, 4: 255, 5: 330, 6: 195}
+    t = {0: oklch(0.30 if dark else 0.28, tint, hue), 8: oklch(0.48, tint, hue),
+         7: oklch(0.80 if dark else 0.72, tint, hue), 15: oklch(0.95 if dark else 0.90, tint, hue)}
+    for i, h in hues.items():
+        t[i] = oklch(normal_l, c, h)
+        t[i + 8] = oklch(bright_l, c, h)
+    return t
+
+
+# --- the files ----------------------------------------------------------------------------------
+
+
+def write(path, text):
+    """Replaces path in one step, so the links pointing at it never see a half-written file."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.")
+    with os.fdopen(fd, "w") as f:
+        f.write(text)
+    os.chmod(tmp, 0o644)
+    os.replace(tmp, path)
+
+
+def files(p, t, mode, wallpaper, generator, scheme):
+    h = {k: hexof(v) for k, v in p.items()}
+    th = {k: hexof(v) for k, v in t.items()}
+    rgb = {k: v[1:] for k, v in h.items()}
+    out = {}
+
+    # scheme is kept even when the built-in fallback ran, so it carries over once matugen is back
+    colors = {"name": "Dynamic", "variant": mode, "source": wallpaper, "generator": generator,
+              "scheme": scheme}
+    for key in ("island", "border", "tile", "tileHover", "control", "controlHover", "fill", "onFill",
+                "text", "textDim", "muted", "accent", "onAccent", "success", "warning", "caution",
+                "danger"):
+        colors[key] = h[key]
+    out["quickshell/colors.json"] = json.dumps(colors, indent=2) + "\n"
+
+    kitty = [f"# Dynamic - generated from {wallpaper} by theme-from-wallpaper", "",
+             f"background {h['island']}", f"foreground {h['text']}",
+             f"cursor {h['text']}", f"cursor_text_color {h['island']}",
+             f"selection_background {h['control']}", f"selection_foreground {h['text']}",
+             f"active_tab_background {h['tile']}", f"active_tab_foreground {h['text']}",
+             f"inactive_tab_background {h['island']}", f"inactive_tab_foreground {h['muted']}",
+             f"url_color {h['accent']}", ""]
+    kitty += [f"color{i} {th[i]}" for i in range(16)]
+    kitty += ["", f"mark1_foreground {h['onAccent']}", f"mark1_background {h['accent']}"]
+    out[f"kitty/{THEME_ID}.conf"] = "\n".join(kitty) + "\n"
+
+    out["hyprland/colors.lua"] = (
+        "-- Dynamic window borders for Hyprland (generated)\n"
+        "return {\n"
+        f"    active_border = \"rgba({rgb['accent']}ff)\",\n"
+        f"    inactive_border = \"rgba({rgb['border']}aa)\",\n"
+        "}\n")
+
+    out["hyprlock/colors.conf"] = (
+        "# Dynamic colors for hyprlock (generated)\n"
+        f"$accent = rgb({rgb['accent']})\n$surface = rgb({rgb['island']})\n"
+        f"$text = rgb({rgb['text']})\n$time = rgb({rgb['text']})\n$date = rgb({rgb['textDim']})\n"
+        f"$warning = rgb({rgb['warning']})\n$danger = rgb({rgb['danger']})\n")
+
+    template = (TEMPLATES / "rmpc.ron").read_text()
+    out["rmpc/theme.ron"] = re.sub(r"\{\{(\w+)\}\}", lambda m: h[m.group(1)], template)
+
+    out["vscode/theme"] = ("Default Dark Modern" if mode == "dark" else "Default Light Modern") + "\n"
+
+    out["nvim/theme.lua"] = f'return "{NVIM_THEME}"\n'
+    out["nvim/base46.lua"] = base46(h, th, mode)
+    return out
+
+
+def base46(h, t, mode):
+    """An NvChad base46 theme, loaded as themes.poteto-dynamic from ~/.config/nvim/lua/themes/."""
+    dark = mode == "dark"
+    isl = rgb_of(h["island"])
+    L0, _, hue = rgb_to_oklch(isl)
+    step = 0.03 if dark else -0.03
+
+    def s(n, c=0.01):
+        return hexof(oklch(L0 + step * n, c, hue))
+
+    b30 = {
+        "white": h["text"], "darker_black": s(-0.7), "black": h["island"], "black2": s(0.7),
+        "one_bg": s(1.1), "one_bg2": s(2), "one_bg3": s(2.8), "grey": s(4), "grey_fg": s(5),
+        "grey_fg2": s(6), "light_grey": s(7.5), "red": t[1], "baby_pink": t[9], "pink": t[5],
+        "line": s(2), "green": t[2], "vibrant_green": t[10], "nord_blue": t[12], "blue": t[4],
+        "yellow": t[3], "sun": t[11], "purple": t[5], "dark_purple": t[13], "teal": t[6],
+        "orange": h["caution"], "cyan": t[14], "statusline_bg": s(0.8), "lightbg": s(2),
+        "pmenu_bg": h["accent"], "folder_bg": h["accent"],
+    }
+    b16 = {
+        "base00": h["island"], "base01": s(1.1), "base02": s(2), "base03": s(4), "base04": s(6),
+        "base05": h["text"], "base06": h["text"], "base07": h["text"], "base08": t[1],
+        "base09": h["caution"], "base0A": t[3], "base0B": t[2], "base0C": t[6], "base0D": h["accent"],
+        "base0E": t[5], "base0F": h["danger"],
+    }
+    lines = ["-- Dynamic theme for NvChad (generated by theme-from-wallpaper)", "local M = {}", "",
+             "M.base_30 = {"]
+    lines += [f'  {k} = "{v}",' for k, v in b30.items()]
+    lines += ["}", "", "M.base_16 = {"]
+    lines += [f'  {k} = "{v}",' for k, v in b16.items()]
+    lines += ["}", "", f'M.type = "{mode}"', "",
+              f'M = require("base46").override_theme(M, "{NVIM_THEME}")', "", "return M", ""]
+    return "\n".join(lines)
+
+
+def link_nvim_theme(base46_file):
+    """NvChad finds user themes in ~/.config/nvim/lua/themes/. Link ours there, once; never
+    replace a file that is not our link."""
+    lua = Path.home() / ".config/nvim/lua"
+    if not lua.is_dir():
+        return
+    link = lua / "themes" / f"{NVIM_THEME}.lua"
+    if link.is_symlink() or not link.exists():
+        link.parent.mkdir(exist_ok=True)
+        if link.is_symlink() and Path(os.readlink(link)) == base46_file:
+            return
+        if link.is_symlink():
+            link.unlink()
+        link.symlink_to(base46_file)
+
+
+def main(argv):
+    args, opts = [], {"mode": None, "scheme": None}
+    it = iter(argv)
+    for a in it:
+        name = a[2:].split("=", 1)[0] if a.startswith("--") else None
+        if name in opts:
+            opts[name] = a.split("=", 1)[1] if "=" in a else next(it, None)
+        else:
+            args.append(a)
+    mode, scheme = opts["mode"], opts["scheme"]
+    if not args or mode not in (None, "dark", "light", "auto") or scheme not in (None, *SCHEMES):
+        print(__doc__.strip().splitlines()[2].strip(), file=sys.stderr)
+        print(f"schemes: {', '.join(SCHEMES)}", file=sys.stderr)
+        return 2
+
+    out_dir = Path(args[0]).resolve() / THEME_ID
+    wallpaper = args[1] if len(args) > 1 else current_wallpaper()
+    if not wallpaper or not Path(wallpaper).is_file():
+        print(f"theme-from-wallpaper: no wallpaper to read ({wallpaper or 'awww shows none'})",
+              file=sys.stderr)
+        return 1
+
+    # Anything not given keeps what the last run used
+    try:
+        last = json.loads((out_dir / "quickshell/colors.json").read_text())
+    except (OSError, ValueError):
+        last = {}
+    if mode is None:
+        mode = last.get("mode") or last.get("variant") or "dark"
+        if mode not in ("dark", "light", "auto"):
+            mode = "dark"
+    if scheme is None:
+        scheme = last.get("scheme") if last.get("scheme") in SCHEMES else "tonal-spot"
+
+    made = matugen_palette(wallpaper, mode, scheme)
+    if made:
+        p, variant, chroma, hue = made
+        generator = "matugen"
+    else:
+        try:
+            colors = sample(wallpaper)
+        except (OSError, subprocess.SubprocessError) as e:
+            print(f"theme-from-wallpaper: could not read {wallpaper}: {e}", file=sys.stderr)
+            return 1
+        chroma, hue, mean_l = pick_seed(colors)
+        variant = ("light" if mean_l > 0.62 else "dark") if mode == "auto" else mode
+        p = palette(chroma, hue, variant)
+        generator = "built-in"
+
+    t = terminal(p, variant, hue, chroma)
+    for rel, text in files(p, t, variant, wallpaper, generator, scheme).items():
+        write(out_dir / rel, text)
+    # "auto" is kept as the mode for the next wallpaper; the variant is what this one got
+    if mode == "auto":
+        data = json.loads((out_dir / "quickshell/colors.json").read_text())
+        data["mode"] = "auto"
+        write(out_dir / "quickshell/colors.json", json.dumps(data, indent=2) + "\n")
+    link_nvim_theme(out_dir / "nvim/base46.lua")
+    print(out_dir)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

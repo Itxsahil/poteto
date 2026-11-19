@@ -38,6 +38,10 @@ Scope {
         function open(): void { ShellState.open("themes"); }
         function close(): void { ShellState.close("themes"); }
         function apply(id: string): void { ThemeManager.apply(id); }
+        // Rebuild the dynamic theme from the wallpaper and apply it. mode: dark | light | auto,
+        // scheme: tonal-spot | vibrant | expressive | fidelity | content | fruit-salad | rainbow |
+        // neutral | monochrome; "" keeps the last one
+        function dynamic(mode: string, scheme: string): void { ThemeManager.applyDynamic(mode, scheme, ""); }
         function current(): string { return ThemeManager.current; }
         function list(): string { return ThemeManager.themes.map(t => t.id).join("\n"); }
     }

@@ -46,8 +46,13 @@ The repo is grouped by role. Moving a top-level folder breaks symlinks in `$HOME
 - New island view: add a component to `modules/island/Island.qml` (`viewItem` + an instance),
   open it with `ShellState.open("name")`, add an `IpcHandler` in `modules/ipc/Ipc.qml`, and bind a
   key in `dotfiles/hypr/bindings.lua` that calls `qs ipc call <target> <action>`.
-- Theme switching only moves symlinks in `~/.cache/quickshell/theme/`; nothing is generated. A new
-  theme must provide every file above, with the kitty file named after the folder.
+- Theme switching only moves symlinks in `~/.cache/quickshell/theme/`. A new theme must provide
+  every file above, with the kitty file named after the folder. The one generated theme is
+  `themes/dynamic/` (gitignored), written by `shell/v1/scripts/theme-from-wallpaper` (matugen, or a
+  built-in OKLCH fallback; the rmpc template is in `scripts/theme-templates/`). It is rebuilt on
+  apply and on every wallpaper change while active; a new per-app file needs a line there too.
+- Theme colors in `config/Theme.qml` fade (`Behavior` + `Theme.fade`); `Theme.preview` holds the
+  theme picker's preview. Read colors through `Theme`, never from `colors.json` directly.
 - Cache/state goes under `~/.cache/quickshell/`; list new paths in the README "Caches and state" table.
 - New user-facing features and keys go in the README tables (Features, Keybinds, IPC, Customizing).
 
