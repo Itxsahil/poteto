@@ -36,7 +36,9 @@ The repo is grouped by role. Moving a top-level folder breaks symlinks in `$HOME
 - `tools/` — `check` (every check, run before committing), `build-shaders` (compiles `shell/v1/shaders`), `qmllint-baseline.txt` (its known
   qmllint false alarms), `notif-test` (sends test notifications of every shape)
 - `docs/` — `TODO.md`, `plan.txt` (the improvement plan)
-- `refrences/` — another person's Quickshell config kept for ideas (gitignored)
+- `refrences/` — another person's Quickshell config (GPL-3) kept for ideas (gitignored)
+- `LICENSE` — GPL-3.0-or-later. Code adapted from `refrences/` or anywhere else GPL-compatible
+  keeps its original copyright notice in a comment where it is used
 
 ## Conventions
 

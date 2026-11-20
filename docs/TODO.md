@@ -19,12 +19,12 @@ Last updated 2026-11-20. quickshell v2 was removed; it is kept in the `v2-final`
 
 ## Repo
 
-- [ ] Choose a license (MIT or GPL-3; GPL-3 allows copying from `refrences/`).
 - [ ] Decide on `temp`, and whether the four ignored light themes get committed.
 - [ ] Push `reformating` (nothing from this round of work is pushed yet).
 
 ## Done
 
+- [x] License: GPL-3.0-or-later (`LICENSE`, README) (2026-11-20).
 - [x] Keybind cheatsheet: binds over several lines and comments wrapping onto a second line
       are read whole, so no more stray ")" or half commands (2026-11-20).
 - [x] `SimpleBar.qml` MouseArea warning — already fixed earlier (commit d137e0f).

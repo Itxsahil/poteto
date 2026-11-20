@@ -630,3 +630,20 @@ ln -s ../../tools/check .git/hooks/pre-commit
 - Screenshots capture only the focused monitor.
 - Notification history lives in memory: it survives shell reloads but not a restart or logout.
   Inline replies are not supported.
+
+---
+
+## License
+
+Copyright (C) 2026 Itxsahil
+
+poteto is free software: you can redistribute it and/or modify it under the terms of the GNU
+General Public License as published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
+License in [`LICENSE`](LICENSE) for more details.
+
+The login themes' fonts and videos, and the wallpapers in `themes/`, keep their own authors'
+terms.

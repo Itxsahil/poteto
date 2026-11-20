@@ -258,7 +258,7 @@ PHASE 0 — DECIDE (do first; about 1 hour, no code)
       Why first: every other phase is half the work once there's one shell.
       When to delete v2: once Phase 1 has brought over the few v2-only things you want.
       Before deleting, tag it (git tag v2-final) so it stays in history to copy from.
-  0.2 Choose a license for poteto (MIT or GPL-3). If GPL-3, you may copy caelestia's
+  0.2 [done 2026-11-20: GPL-3.0-or-later] Choose a license for poteto (MIT or GPL-3). If GPL-3, you may copy caelestia's
       code directly; if not, copy patterns only.
   0.3 Repo hygiene:
       - Remove the stray `boobs` line from .gitignore.
