@@ -94,7 +94,7 @@ Item {
         property real value: 0
         property color fill: Theme.accent
         height: 6
-        radius: 3
+        radius: height / 2
         color: Theme.controlBg
 
         Rectangle {
@@ -103,7 +103,7 @@ Item {
             radius: parent.radius
             color: meter.fill
             visible: meter.value > 0
-            Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
+            Behavior on width { Anim { duration: Tokens.duration.page } }
         }
     }
 
@@ -289,7 +289,7 @@ Item {
                                         height: Math.max(parent.radius, parent.height * Math.min(1, modelData / 100))
                                         radius: parent.radius
                                         color: root.level(modelData, 75, 92) === Theme.textPrimary ? Theme.accent : root.level(modelData, 75, 92)
-                                        Behavior on height { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
+                                        Behavior on height { Anim { duration: Tokens.duration.page } }
                                     }
                                 }
 
@@ -322,7 +322,7 @@ Item {
                                 // A core is two threads wide
                                 width: (threads.width - 6 * ((root.s.temps?.cores?.length ?? 1) - 1)) / Math.max(1, root.s.temps?.cores?.length ?? 1)
                                 height: 20
-                                radius: 6
+                                radius: Tokens.radius.tiny
                                 color: Theme.controlBg
 
                                 Text {
@@ -653,7 +653,7 @@ Item {
 
                             width: parent.width
                             height: 28
-                            radius: 8
+                            radius: Tokens.radius.tiny
                             color: rowHover.hovered ? Theme.tileHover : "transparent"
 
                             HoverHandler {
@@ -700,7 +700,7 @@ Item {
                                 visible: procRow.modelData.endable && (rowHover.hovered || procRow.confirming)
                                 width: 58
                                 height: 22
-                                radius: 11
+                                radius: height / 2
                                 color: procRow.confirming ? Theme.danger : endMouse.containsMouse ? Theme.controlHover : Theme.controlBg
 
                                 Text {

@@ -1,5 +1,6 @@
 import QtQuick
 import qs.config
+import qs.components
 import qs.services
 
 Item {
@@ -68,7 +69,7 @@ Item {
         id: search
         width: parent.width
         height: 48
-        radius: 18
+        radius: Tokens.radius.field
         color: Theme.tileBg
 
         Canvas {
@@ -162,7 +163,7 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         spacing: 4
         opacity: input.text ? 0.4 : 1
-        Behavior on opacity { NumberAnimation { duration: 150 } }
+        Behavior on opacity { Anim { duration: Tokens.duration.fade } }
 
         Repeater {
             model: Emoji.groups
@@ -174,11 +175,11 @@ Item {
 
                 width: 66
                 height: 50
-                radius: 16
+                radius: Tokens.radius.button
                 color: isSelected ? Theme.tileHover : chipMouse.containsMouse ? Theme.tileBg : "transparent"
                 border.width: isSelected ? 1 : 0
                 border.color: Theme.accent
-                Behavior on color { ColorAnimation { duration: 120 } }
+                Behavior on color { CAnim {} }
 
                 Column {
                     anchors.centerIn: parent
@@ -266,7 +267,7 @@ Item {
             Rectangle {
                 anchors.fill: parent
                 anchors.margins: 2
-                radius: 12
+                radius: Tokens.radius.row
                 color: cell.isSelected ? Theme.tileHover : cellMouse.containsMouse ? Theme.tileBg : "transparent"
                 border.width: cell.isSelected ? 1 : 0
                 border.color: Theme.accent
@@ -278,7 +279,7 @@ Item {
                 font.pixelSize: 26
                 font.family: root.emojiFont
                 scale: cellMouse.pressed ? 0.85 : cell.isSelected ? 1.12 : 1
-                Behavior on scale { NumberAnimation { duration: 110; easing.type: Easing.OutCubic } }
+                Behavior on scale { Anim { duration: Tokens.duration.press } }
             }
 
             MouseArea {

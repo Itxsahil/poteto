@@ -44,7 +44,7 @@ Item {
         id: search
         width: parent.width
         height: 48
-        radius: 18
+        radius: Tokens.radius.field
         color: Theme.tileBg
 
         Canvas {
@@ -184,7 +184,7 @@ Item {
                         required property string modelData
                         width: keyText.implicitWidth + 14
                         height: 22
-                        radius: 7
+                        radius: Tokens.radius.tiny
                         color: row.clash ? Qt.alpha(Theme.danger, 0.16) : Theme.tileBg
                         border.width: 1
                         border.color: row.clash ? Qt.alpha(Theme.danger, 0.5) : Qt.alpha(Theme.textPrimary, 0.08)

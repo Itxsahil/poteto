@@ -1,5 +1,6 @@
 import QtQuick
 import qs.config
+import qs.components
 import qs.services
 
 Item {
@@ -73,7 +74,7 @@ Item {
         id: search
         width: parent.width
         height: 48
-        radius: 18
+        radius: Tokens.radius.field
         color: Theme.tileBg
 
         Canvas {
@@ -232,14 +233,14 @@ Item {
 
             width: list.cardWidth
             height: list.cardHeight
-            radius: 14
+            radius: Tokens.radius.chip
             color: colors.island ?? Theme.tileBg
             border.width: isSelected ? 2 : 1
             border.color: isSelected ? (colors.accent ?? Theme.accent) : (colors.border ?? "transparent")
             opacity: isSelected ? 1 : 0.9 - 0.45 * distance
             scale: cardMouse.pressed ? 0.96 : 1
-            Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
-            Behavior on border.color { ColorAnimation { duration: 140 } }
+            Behavior on scale { Anim { duration: Tokens.duration.press } }
+            Behavior on border.color { CAnim { duration: Tokens.duration.fade } }
 
             // The active theme
             Rectangle {
@@ -249,7 +250,7 @@ Item {
                 anchors.margins: 9
                 width: 6
                 height: 6
-                radius: 3
+                radius: height / 2
                 color: card.colors.accent ?? Theme.accent
             }
 
@@ -266,7 +267,7 @@ Item {
                         required property string modelData
                         width: 11
                         height: 11
-                        radius: 5.5
+                        radius: height / 2
                         color: modelData
                     }
                 }

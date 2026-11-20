@@ -1,5 +1,6 @@
 import QtQuick
 import qs.config
+import qs.components
 import qs.services
 
 Item {
@@ -88,7 +89,7 @@ Item {
             id: avatar
             width: 40
             height: 40
-            radius: 20
+            radius: Tokens.radius.card
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
             color: Theme.accent
@@ -146,15 +147,15 @@ Item {
 
                 width: root.buttonWidth
                 height: 128
-                radius: 24
+                radius: Tokens.radius.tile
                 color: isArmed ? Theme.danger : isSelected ? Theme.tileHover : Theme.tileBg
                 border.width: 2
                 border.color: isArmed ? Theme.danger : isSelected ? Theme.textPrimary : "transparent"
                 scale: mouse.pressed ? 0.96 : 1
 
-                Behavior on color { ColorAnimation { duration: 150 } }
-                Behavior on border.color { ColorAnimation { duration: 150 } }
-                Behavior on scale { NumberAnimation { duration: 100 } }
+                Behavior on color { CAnim { duration: Tokens.duration.fade } }
+                Behavior on border.color { CAnim { duration: Tokens.duration.fade } }
+                Behavior on scale { Anim { duration: Tokens.duration.press } }
 
                 Column {
                     anchors.centerIn: parent
@@ -184,7 +185,7 @@ Item {
                     anchors.margins: 10
                     width: 20
                     height: 20
-                    radius: 6
+                    radius: Tokens.radius.tiny
                     color: button.isArmed ? Qt.alpha(Theme.islandBg, 0.25) : Theme.controlBg
 
                     Text {

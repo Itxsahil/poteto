@@ -58,7 +58,7 @@ Item {
                 id: badge
                 width: 40
                 height: 40
-                radius: 20
+                radius: Tokens.radius.card
                 color: Theme.accent
 
                 // padlock
@@ -121,11 +121,11 @@ Item {
             id: field
             width: parent.width
             height: 44
-            radius: 14
+            radius: Tokens.radius.chip
             color: Theme.tileBg
             border.width: 1
             border.color: root.wrong ? Theme.danger : input.activeFocus ? Theme.accent : "transparent"
-            Behavior on border.color { ColorAnimation { duration: 140 } }
+            Behavior on border.color { CAnim { duration: Tokens.duration.fade } }
 
             SequentialAnimation {
                 id: shake

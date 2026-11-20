@@ -20,6 +20,8 @@ Singleton {
     // Corner radii, smallest to largest. scale makes every corner rounder (1.2) or squarer (0.8).
     component Radii: QtObject {
         readonly property real scale: 1
+        // key caps, little badges and cells, hover rows in dense lists
+        readonly property real tiny: 6 * scale
         // thumbnails, small badges and buttons
         readonly property real small: 10 * scale
         // list rows: launcher results, Wi-Fi networks, clipboard entries

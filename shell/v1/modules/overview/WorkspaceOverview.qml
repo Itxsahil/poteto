@@ -4,6 +4,7 @@ import Quickshell.Hyprland
 import Quickshell.Wayland
 import Quickshell.Widgets
 import qs.config
+import qs.components
 import qs.services
 
 // The workspace overview (Alt + Tab), on the focused screen: a dimmed screen with a card per
@@ -46,7 +47,7 @@ PanelWindow {
         color: Qt.rgba(0, 0, 0, 0.5)
         opacity: root.shown ? 1 : 0
         Behavior on opacity {
-            NumberAnimation { id: fade; duration: 160; easing.type: Easing.OutCubic }
+            Anim { id: fade; duration: Tokens.duration.fade }
         }
 
         MouseArea {
@@ -98,7 +99,7 @@ PanelWindow {
 
                     spacing: 10
                     scale: isSelected ? 1 : 0.94
-                    Behavior on scale { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+                    Behavior on scale { Anim { duration: Tokens.duration.fade } }
 
                     ClippingRectangle {
                         id: frame
@@ -159,7 +160,7 @@ PanelWindow {
                             color: "transparent"
                             border.width: card.isSelected ? 3 : 1
                             border.color: card.isSelected ? Theme.accent : Qt.alpha(Theme.textPrimary, 0.15)
-                            Behavior on border.color { ColorAnimation { duration: 140 } }
+                            Behavior on border.color { CAnim { duration: Tokens.duration.fade } }
                         }
 
                         // A click goes there; hovering does not select, so a resting pointer
