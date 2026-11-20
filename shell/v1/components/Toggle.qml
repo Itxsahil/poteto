@@ -11,7 +11,7 @@ Rectangle {
     implicitHeight: 26
     radius: height / 2
     color: checked ? Theme.accent : Theme.controlBg
-    Behavior on color { ColorAnimation { duration: 180 } }
+    Behavior on color { CAnim { duration: Tokens.duration.view } }
 
     Rectangle {
         width: parent.height - 4
@@ -20,7 +20,7 @@ Rectangle {
         y: 2
         x: root.checked ? root.width - width - 2 : 2
         color: Theme.controlFill
-        Behavior on x { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+        Behavior on x { Anim {} }
     }
 
     MouseArea {

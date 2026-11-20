@@ -13,10 +13,10 @@ Rectangle {
 
     width: 34
     height: 34
-    radius: 17
+    radius: width / 2
     color: active ? (mouse.containsMouse ? Qt.lighter(Theme.accent, 1.12) : Theme.accent)
         : (mouse.containsMouse ? Theme.controlBg : Theme.tileBg)
-    Behavior on color { ColorAnimation { duration: 120 } }
+    Behavior on color { CAnim {} }
 
     Text {
         id: glyphText

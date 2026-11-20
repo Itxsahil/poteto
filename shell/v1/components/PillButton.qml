@@ -11,11 +11,11 @@ Rectangle {
 
     height: 32
     width: label.implicitWidth + 28
-    radius: 16
+    radius: Tokens.radius.button
     color: primary ? (mouse.containsMouse ? Qt.lighter(Theme.accent, 1.15) : Theme.accent)
         : (mouse.containsMouse ? Theme.controlHover : Theme.controlBg)
     opacity: enabled ? 1 : 0.5
-    Behavior on color { ColorAnimation { duration: 120 } }
+    Behavior on color { CAnim {} }
 
     Text {
         id: label

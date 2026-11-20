@@ -39,7 +39,7 @@ Item {
         // A little lighter under the pointer, so it reads as something to grab
         color: hover.hovered || drag.pressed ? Theme.controlHover : Theme.controlBg
         clip: true
-        Behavior on color { ColorAnimation { duration: 120 } }
+        Behavior on color { CAnim {} }
 
         HoverHandler {
             id: hover
@@ -54,8 +54,8 @@ Item {
             radius: track.radius
             color: Theme.controlFill
             opacity: root.dimmed ? 0.45 : 1
-            Behavior on width { enabled: !drag.pressed; NumberAnimation { duration: 120 } }
-            Behavior on opacity { NumberAnimation { duration: 150 } }
+            Behavior on width { enabled: !drag.pressed; Anim { duration: Tokens.duration.press } }
+            Behavior on opacity { Anim { duration: Tokens.duration.fade } }
         }
 
         // The second lap, past 100%
@@ -68,7 +68,7 @@ Item {
             radius: track.radius
             color: Theme.boost
             opacity: root.dimmed ? 0.45 : 1
-            Behavior on width { enabled: !drag.pressed; NumberAnimation { duration: 120 } }
+            Behavior on width { enabled: !drag.pressed; Anim { duration: Tokens.duration.press } }
         }
 
         Item {

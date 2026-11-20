@@ -7,7 +7,7 @@ Rectangle {
     property int padding: 14
     default property alias content: inner.data
 
-    radius: 22
+    radius: Tokens.radius.tile
     color: Theme.tileBg
 
     Item {
