@@ -18,6 +18,12 @@ The repo is grouped by role. Moving a top-level folder breaks symlinks in `$HOME
   - `services/` — singletons that talk to the system (nmcli, BlueZ, UPower, MPD, cliphist, polkit, …); no UI
   - `modules/<feature>/` — UI, one folder per feature; `modules/ipc/Ipc.qml` holds every `qs ipc` target and global shortcut
   - `components/` — reusable widgets and `icons/`
+  - `modules/island/Island.qml` — one full-screen Overlay window per screen: the island, the side pills
+    (`modules/bar/WorkspacesBar.qml`, `StatusBar.qml`) and the shell's surface; `Reservations.qml`
+    keeps tiled windows clear of the top and the frame
+  - `shaders/` — `surface.frag` (the frame and pills as one shape) and its compiled `.qsb`; run
+    `tools/build-shaders` after editing a shader, then restart Quickshell: Qt caches shaders by
+    file, so a hot reload keeps the old one
   - `utils/Calc.js` — the launcher's safe expression parser
 - `dotfiles/hypr/` — `hyprland.lua` (Hyprland's Lua config), `bindings.lua` (all keybinds), `hyprlock.conf`, `scripts/`
 - `dotfiles/firefox/` — `userChrome.css`, `userContent.css`, `user.js`, linked into the Firefox profile
@@ -27,7 +33,7 @@ The repo is grouped by role. Moving a top-level folder breaks symlinks in `$HOME
 - `login/` — SDDM login themes (`metadata.desktop` + `Main.qml` + video), `setup` script, and
   `system/` (root-owned helper `poteto-login-theme` + polkit policy)
 - `apps/settings/` — Poteto, the GTK settings app (`poteto-settings`, `.desktop`, icon)
-- `tools/` — `check` (every check, run before committing), `qmllint-baseline.txt` (its known
+- `tools/` — `check` (every check, run before committing), `build-shaders` (compiles `shell/v1/shaders`), `qmllint-baseline.txt` (its known
   qmllint false alarms), `notif-test` (sends test notifications of every shape)
 - `docs/` — `TODO.md`, `plan.txt` (the improvement plan)
 - `refrences/` — another person's Quickshell config kept for ideas (gitignored)
@@ -40,8 +46,9 @@ The repo is grouped by role. Moving a top-level folder breaks symlinks in `$HOME
   themes (catppuccin-latte) and monochrome ones (solitude).
 - Floating shell surfaces get a shadow with `components/Shadow.qml`, declared as a sibling before
   the surface. Its window needs room around the surface, or the shadow is clipped at the window edge.
-- The shell has two shapes (`services/Layout.qml`): the floating island and a flat bar
-  (`modules/bar/SimpleBar.qml`). Only the idle face changes — the island window still hosts every view,
+- The shell has two shapes (`services/Layout.qml`): the island, hanging from the top edge like a notch,
+  and a flat bar (`modules/bar/SimpleBar.qml`), which is then the top edge of the frame: the surface
+  starts below it and never draws over it, and the island's views hang from its bottom. Only the idle face changes — the island window still hosts every view,
   the OSD and the control center — so anything added to the idle pills needs a place on the bar too.
 - New island view: add a component to `modules/island/Island.qml` (`viewItem` + an instance),
   open it with `ShellState.open("name")`, add an `IpcHandler` in `modules/ipc/Ipc.qml`, and bind a
@@ -58,7 +65,9 @@ The repo is grouped by role. Moving a top-level folder breaks symlinks in `$HOME
   corners of a few pixels.
 - Shared widgets live in `components/` and are used instead of redrawing them: the search box at
   the top of a view is `SearchField` (keys reach the view through `onKeyPressed`, extras declared
-  inside it sit at its right end); a round icon button is `CircleButton` (flat with
+  inside it sit at its right end); a pill hanging from the top edge lives in the island's window, is
+  transparent, and is listed in the `Surface`'s `pills` (it draws the background and the shadow; at
+  most four) and in the window's input `mask`; a round icon button is `CircleButton` (flat with
   `baseColor: "transparent"`, `active` for the accent fill, `glyphFont: Theme.monoFamily` for a Nerd
   Font icon).
 - Theme colors in `config/Theme.qml` fade (`Behavior` + `Theme.fade`); `Theme.preview` holds the

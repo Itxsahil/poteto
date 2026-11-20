@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Effects
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
@@ -21,50 +22,66 @@ import qs.modules.keybinds
 import qs.modules.perf
 import qs.modules.media
 import qs.modules.polkit
+import qs.modules.bar
 
 PanelWindow {
     id: root
 
     required property ShellScreen targetScreen
 
-    // The pill holds its own 8px gap from the top of the screen instead of the window doing it,
-    // so its shadow has somewhere to fall above it. The exclusive zone covers both and no more, so
-    // windows start Hyprland's gaps_out below the pill.
-    readonly property int gapTop: 8
+    // The island hangs from the top edge of the screen: no gap above it. Windows keep clear of it
+    // and of the frame through modules/island/Reservations.qml, since this window covers the
+    // whole screen and so cannot reserve an edge itself.
+    readonly property int gapTop: 0
     // At rest it is 30px tall (Layout.pillHeight, the side pills'
     // too), the time with 40px either side
     readonly property int pillHeight: Layout.pillHeight
     readonly property int idlePadding: 80
 
     // In bar mode the strip across the top reserves the space and shows the idle status, so this
-    // window reserves nothing and only appears when something is opened in it.
-    readonly property int topGap: Layout.bar ? Layout.barHeight + 6 : gapTop
+    // window only shows something when something is opened in it. What opens then hangs from the
+    // bottom of the bar instead, covering its 1px bottom line so the two read as one piece.
+    readonly property int topGap: Layout.bar ? Layout.barHeight - 1 : gapTop
 
+    // The whole screen: the shell's surface (the frame, the island and the side pills) is drawn
+    // here as one shape, components/Surface.qml. Only the pills take input (mask below).
     screen: targetScreen
     anchors.top: true
-    implicitWidth: 800
-    // Tall enough for whatever the pill has to show. The control center is not a fixed height —
-    // the audio pickers appear when there is a device to choose, and their chips wrap — and in bar
-    // mode the pill starts further down, so a fixed window clipped the bottom of the panel.
-    implicitHeight: topGap + Math.max(680, controlCenter.implicitHeight + 56)
+    anchors.bottom: true
+    anchors.left: true
+    anchors.right: true
     color: "transparent"
-    // In bar mode this reserves the bar's height on the bar's behalf — see SimpleBar.qml
-    exclusiveZone: Layout.bar ? Layout.barHeight : pillHeight + gapTop
+    exclusionMode: ExclusionMode.Ignore
 
     // Always on the Overlay layer, so what opens here shows above a fullscreen window (Alt + F),
     // which Hyprland draws over the Top layer. Never moved between layers: Hyprland 0.57 ignores a
     // layer change on a mapped surface (and moving it is a suspect in its crashes). Instead the
-    // window is unmapped while the workspace is fullscreen and nothing is open, so the idle pill
-    // stays out of the way of a fullscreen video or game
+    // window is unmapped while the workspace is fullscreen and nothing is open, so the idle
+    // surface stays out of the way of a fullscreen video or game; when something opens over one,
+    // only the island shows (no frame, no side pills)
     readonly property bool fullscreen: Hyprland.monitorFor(targetScreen)?.activeWorkspace?.hasFullscreen ?? false
     visible: !fullscreen || pill.viewOpen || pill.showPanel || pill.showOsd
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "dynamic-island"
     WlrLayershell.keyboardFocus: pill.viewOpen || pill.showPanel ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
+    // Input only on the pills; the frame and everything between them let clicks through
     mask: Region {
         // Nothing to click when the bar is showing the status and nothing is open
         item: pill.hidden ? nothing : pill
+
+        Region {
+            item: workspacesBar.visible ? workspacesBar.pill : nothing
+            intersection: Intersection.Combine
+        }
+        Region {
+            item: statusBar.pillShown ? statusBar.pill : nothing
+            intersection: Intersection.Combine
+        }
+        Region {
+            item: statusBar.visible ? statusBar.recPill : nothing
+            intersection: Intersection.Combine
+        }
     }
 
     Item {
@@ -103,8 +120,50 @@ PanelWindow {
         }
     }
 
-    Shadow {
-        target: pill
+    // The shell's surface, behind everything: the frame and every pill as one shape, with one
+    // shadow under all of it. The pills below are transparent and only hold their content.
+    Item {
+        id: surfaceLayer
+        anchors.fill: parent
+        layer.enabled: true
+        layer.effect: MultiEffect {
+            shadowEnabled: true
+            shadowBlur: 1.0
+            // Nearly even all round, so every edge of the wallpaper looks inset alike
+            shadowVerticalOffset: 1
+            shadowColor: Theme.shadow
+            blurMax: 24
+        }
+
+        Surface {
+            anchors.fill: parent
+            pills: [pill, workspacesBar.pill, statusBar.pill, statusBar.recPill]
+            // No frame over a fullscreen window
+            frameWidth: root.fullscreen ? 0 : Tokens.frameWidth
+            frameRadius: root.fullscreen ? 0 : Tokens.radius.screen
+            // In bar mode the bar is the frame's top edge: the frame starts below it, never over
+            // it, and covers only its 1px bottom line so the two read as one piece
+            frameTop: Layout.bar ? Layout.barHeight : Tokens.frameWidth
+            frameClip: Layout.bar ? Layout.barHeight - 1 : -1e4
+            // In bar mode what opens hangs from the bar's bottom edge, while it is open
+            wallTop: Layout.bar ? Layout.barHeight - 1 : -100
+            wallBottom: Layout.bar ? Layout.barHeight : 0
+            wallAlpha: Layout.bar ? pill.opacity : 1
+        }
+    }
+
+    WorkspacesBar {
+        id: workspacesBar
+        anchors.fill: parent
+        targetScreen: root.targetScreen
+        suppressed: root.fullscreen
+    }
+
+    StatusBar {
+        id: statusBar
+        anchors.fill: parent
+        targetScreen: root.targetScreen
+        suppressed: root.fullscreen
     }
 
     Rectangle {
@@ -170,9 +229,8 @@ PanelWindow {
             : showPanel ? controlCenter.implicitHeight + 40
             : root.pillHeight
         radius: viewOpen || showPanel ? Tokens.radius.panel : height / 2
-        color: Theme.islandBg
-        border.color: Theme.islandBorder
-        border.width: 1
+        // Drawn by the surface behind it (Surface.qml); its radius rounds the bottom corners
+        color: "transparent"
         clip: true
 
         Behavior on width { Anim { duration: Tokens.duration.morph; easing.type: Tokens.easing.morph; easing.overshoot: Tokens.easing.morphOvershoot } }

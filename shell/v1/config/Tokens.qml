@@ -16,6 +16,9 @@ Singleton {
     readonly property Radii radius: Radii {}
     readonly property Durations duration: Durations {}
     readonly property Easings easing: Easings {}
+    // The thin frame around the screen (components/Surface.qml), in pixels; 0 turns it off.
+    // Its rounded inside corners are radius.screen
+    readonly property int frameWidth: 10
 
     // Corner radii, smallest to largest. scale makes every corner rounder (1.2) or squarer (0.8).
     component Radii: QtObject {
@@ -39,6 +42,12 @@ Singleton {
         // large surfaces: the island's open views and control center, the bar's drop-down panel,
         // the music pill opened into its panel
         readonly property real panel: 30 * scale
+        // the round curve where a pill hanging from the top flows into the frame (Surface); the
+        // same size as the screen's corners, so every corner of the wallpaper looks alike
+        readonly property real flare: 20 * scale
+        // the screen's own corners: the inside of the frame around it. A little rounder than
+        // Hyprland's window rounding (decoration.rounding, 10), so windows sit inside them
+        readonly property real screen: 22 * scale
     }
 
     // Animation lengths in milliseconds. scale slows everything down (1.5) or speeds it up (0.7).

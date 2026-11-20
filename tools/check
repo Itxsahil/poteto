@@ -14,6 +14,7 @@
 #   false alarms are known and recorded there. Only warnings not in it fail, which still catches a
 #   new typo in a property name the moment it is made.
 # Shell scripts: bash -n, and shellcheck when it is installed.
+# Shaders: each compiled .qsb matches its .frag (tools/build-shaders).
 # Lua: luac -p. JSON: parsed. Python: parsed.
 # Themes: every themes/<id>/ has the files and colors.json keys a theme needs (CLAUDE.md).
 set -uo pipefail
@@ -82,6 +83,15 @@ else
             echo "          $(printf '%s\n' "$gone" | grep -c .) known warning(s) are gone: run tools/check --update-baseline"
         fi
     fi
+fi
+
+# --- Shaders ------------------------------------------------------------------------------------
+if [ ! -x /usr/lib/qt6/bin/qsb ]; then
+    skip "shaders: qsb not installed (qt6-shadertools)"
+elif out=$(tools/build-shaders --check 2>&1); then
+    ok "shaders: every .qsb matches its source"
+else
+    bad "shaders:"; printf '%s\n' "$out" | detail
 fi
 
 # --- Shell scripts ------------------------------------------------------------------------------

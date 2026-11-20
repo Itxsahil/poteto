@@ -1,51 +1,30 @@
 import QtQuick
 import Quickshell
-import Quickshell.Wayland
 import qs.components
 import qs.config
 import qs.services
 
-PanelWindow {
+// The status pill (the playing track and the date, opening into the media panel on hover) and
+// the recording pill beside it, top right, hanging from the top edge like the island. They live
+// in the island's window (modules/island/Island.qml), which draws their backgrounds as part of the
+// shell's one surface (components/Surface.qml); the pills themselves are transparent.
+Item {
     id: root
 
     required property ShellScreen targetScreen
+    // Hidden while the workspace is fullscreen, like the rest of the idle surface
+    property bool suppressed: false
 
-    // The pills keep their gap from the screen edge through their own anchor margins rather than
-    // the window's, so the window reaches the corner and their shadows have somewhere to fall.
-    readonly property int gapTop: 8
-    readonly property int gapRight: 12
+    // Clear of the frame's rounded corner and its bevel, so the pill hangs on its own
+    readonly property int gapRight: Tokens.frameWidth + Tokens.radius.screen + Tokens.radius.flare + 8
+    readonly property alias pill: pill
+    readonly property alias recPill: recPill
+    // The pills that take input (the island's window masks everything else)
+    readonly property bool pillShown: visible && Settings.showMusic
 
-    screen: targetScreen
     // the simple bar carries all of this when it is on. The music and date pill can be turned
-    // off (Poteto → Music & date); the window stays while recording, for the stop button
-    visible: !Layout.bar && (Settings.showMusic || recordingWidget.shown)
-    anchors.top: true
-    anchors.right: true
-    // Room for the media panel to grow into, plus the recorder pill beside it, plus the shadows.
-    // Only the pills themselves take input.
-    implicitWidth: 640
-    implicitHeight: 260
-    color: "transparent"
-    exclusionMode: ExclusionMode.Ignore
-
-    WlrLayershell.layer: WlrLayer.Top
-    WlrLayershell.namespace: "statusbar"
-
-    mask: Region {
-        item: Settings.showMusic ? pill : noPill
-
-        Region {
-            item: recPill
-            intersection: Intersection.Combine
-        }
-    }
-
-    // What the mask holds in place of the pill while it is turned off
-    Item {
-        id: noPill
-        width: 0
-        height: 0
-    }
+    // off (Poteto → Music & date); the recording pill stays while recording, for the stop button
+    visible: !Layout.bar && (Settings.showMusic || recordingWidget.shown) && !suppressed
 
     SystemClock {
         id: clock
@@ -59,26 +38,21 @@ PanelWindow {
         color: Theme.controlBg
     }
 
-    Shadow {
-        target: recPill
-    }
-
     // Recording indicator and stop button, kept out of the status pill: that one turns into
     // the media panel on hover, which would hide the stop button mid-recording.
     Rectangle {
         id: recPill
         // Beside the pill, or where it would be when it is turned off
         anchors.right: Settings.showMusic ? pill.left : parent.right
-        anchors.rightMargin: !Settings.showMusic ? root.gapRight : recordingWidget.shown ? 8 : 0
+        // Far enough from the pill that the two stay apart rather than blending
+        anchors.rightMargin: !Settings.showMusic ? root.gapRight : recordingWidget.shown ? Tokens.radius.flare * 2 + 8 : 0
         anchors.top: parent.top
-        anchors.topMargin: root.gapTop
         // zero width when idle, so the input mask has no invisible strip beside the pill
         width: recordingWidget.shown ? recordingWidget.implicitWidth + 24 : 0
         height: Layout.pillHeight
         radius: height / 2
-        color: Theme.islandBg
-        border.color: Theme.islandBorder
-        border.width: 1
+        // Drawn by the surface behind it
+        color: "transparent"
         opacity: recordingWidget.shown ? 1 : 0
         visible: opacity > 0
         Behavior on opacity { Anim {} }
@@ -87,10 +61,6 @@ PanelWindow {
             id: recordingWidget
             anchors.centerIn: parent
         }
-    }
-
-    Shadow {
-        target: pill
     }
 
     Rectangle {
@@ -104,13 +74,11 @@ PanelWindow {
         anchors.right: parent.right
         anchors.rightMargin: root.gapRight
         anchors.top: parent.top
-        anchors.topMargin: root.gapTop
         width: showMedia ? media.implicitWidth + 32 : content.implicitWidth + 24
         height: showMedia ? media.implicitHeight + 28 : Layout.pillHeight
         radius: showMedia ? Tokens.radius.panel : height / 2
-        color: Theme.islandBg
-        border.color: Theme.islandBorder
-        border.width: 1
+        // Drawn by the surface behind it
+        color: "transparent"
         clip: true
 
         Behavior on width { Anim { duration: Tokens.duration.page } }

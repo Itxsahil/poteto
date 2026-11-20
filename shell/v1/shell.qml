@@ -33,11 +33,7 @@ ShellRoot {
             id: screenScope
             required property ShellScreen modelData
 
-            WorkspacesBar {
-                targetScreen: screenScope.modelData
-            }
-
-            StatusBar {
+            Reservations {
                 targetScreen: screenScope.modelData
             }
 

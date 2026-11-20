@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# Compiles the shell's shaders (shell/v1/shaders/*.frag) into the .qsb files Quickshell loads.
+# Both are committed: the shell has no build step, so run this after editing a shader.
+# tools/check fails when a .qsb is out of date with its source. Restart Quickshell afterwards:
+# Qt caches a shader by its file, so a hot reload keeps drawing the old one.
+#
+#   tools/build-shaders           compile every shader
+#   tools/build-shaders --check   only report the ones that are out of date (exit 1 if any)
+set -euo pipefail
+
+repo=$(cd "$(dirname "$(realpath "$0")")/.." && pwd)
+qsb=/usr/lib/qt6/bin/qsb
+[ -x "$qsb" ] || { echo "build-shaders: $qsb not found (qt6-shadertools)" >&2; exit 2; }
+# Every backend Qt Quick may pick: OpenGL (ES), Vulkan (SPIR-V, always included), D3D, Metal
+targets=(--glsl "100 es,120,150" --hlsl 50 --msl 12)
+
+check=false
+[ "${1:-}" = --check ] && check=true
+
+stale=0
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+for src in "$repo"/shell/v1/shaders/*.frag "$repo"/shell/v1/shaders/*.vert; do
+    [ -e "$src" ] || continue
+    out="$src.qsb"
+    if $check; then
+        "$qsb" "${targets[@]}" -o "$tmp/out.qsb" "$src"
+        if ! cmp -s "$tmp/out.qsb" "$out"; then
+            echo "out of date: ${out#"$repo"/} (run tools/build-shaders)"
+            stale=1
+        fi
+    else
+        "$qsb" "${targets[@]}" -o "$out" "$src"
+        echo "compiled ${out#"$repo"/}"
+    fi
+done
+exit "$stale"

@@ -1,8 +1,8 @@
 # poteto
 
-An opinionated Hyprland desktop built around a **dynamic island**: one pill at the top of the
-screen that shows the time, grows into a control center on hover, and morphs into the app
-launcher, clipboard history, emoji picker, wallpaper switcher, theme switcher and power menu.
+An opinionated Hyprland desktop built around a **dynamic island**: a notch hanging from the top
+edge of the screen that shows the time, grows down into a control center on hover, and morphs
+into the app launcher, clipboard history, emoji picker, wallpaper switcher, theme switcher and power menu.
 
 Everything lives in this repository and is symlinked into `~/.config`.
 
@@ -27,8 +27,9 @@ poteto/
 
 | | |
 |---|---|
-| **Simple bar mode** | `mod + Shift + B` swaps the floating pills for one flat bar across the top — workspaces, the playing track and status in a single strip that reserves its own space. Everything the island opens still opens; click the right of the bar for the control center. The choice is remembered (`style` in `~/.config/poteto/shell.json`, so Poteto's layout switch works too) |
-| **Island (idle)** | The 12-hour clock, plus a red mic icon while the mic is muted and a pulsing dot while recording. Wi-Fi, battery and unread notifications are in the control center (and in bar mode, on the bar) |
+| **Simple bar mode** | `mod + Shift + B` swaps the notches for one flat bar across the top — workspaces, the playing track and status in a single strip that reserves its own space. The bar is the top of the screen frame, which carries on below it; everything the island opens still opens, hanging from the bottom of the bar; click the right of the bar for the control center. The choice is remembered (`style` in `~/.config/poteto/shell.json`, so Poteto's layout switch works too) |
+| **One surface** | A 10px frame around the whole screen with rounded inside corners, and the island and the side pills hanging from it, drawn as one shape by a shader (`shell/v1/shaders/surface.frag`): where a pill meets the frame it flows in with a round curve the size of the screen's corners, so the wallpaper showing through reads as one hole with every corner rounded alike, computed so it holds at any size and through every animation, under one shared shadow. Windows keep clear of the frame; it is not drawn over a fullscreen window. `Tokens.frameWidth` sets the width (0 turns it off), `Tokens.radius.screen` the corners, `Tokens.radius.flare` the curves where pills meet it |
+| **Island (idle)** | A notch hanging from the top edge, flowing into the frame in round curves at both sides. The 12-hour clock, plus a red mic icon while the mic is muted and a pulsing dot while recording. Wi-Fi, battery and unread notifications are in the control center (and in bar mode, on the bar) |
 | **Control center** (rest the pointer on the island, or click it to keep it open) | A compact bento grid: clock (click it for the calendar), battery with health, Wi-Fi, Bluetooth, Notifications and Night Light tiles (Night Light opens a warmth slider), and brightness, volume and microphone sliders (click the mic icon or right click to mute). The button beside volume and mic opens the Sound page, which lists every output and input, with unplugged ones greyed out |
 | **Workspace overview** (`mod + Tab`) | The screen dimmed, with a card per workspace that has windows (and the current one), each showing its windows live where they sit on the wallpaper. Tab / Shift+Tab or arrows move, letting go of Alt goes there |
 | **Performance monitor** (`Super + M`) | Its own island view, like the control center: CPU with a one-minute graph, every thread's load and each core's temperature; memory and swap; the NVIDIA GPU (usage, VRAM, temperature, power; left asleep when it is, rather than woken to ask) and the Intel GPU's clock; disk space, SSD temperature and read/write speed; network speed; load, fan and battery draw; the busiest processes, with End (asked twice) for your own, never for the session's own (Hyprland, the shell, audio). It samples only while open (`scripts/sysstats`) |
@@ -38,9 +39,9 @@ poteto/
 | **OSD** | Volume, brightness and mic changes (including the Fn mic-mute key) briefly turn the island into a level bar |
 | **Low-battery warnings** | On battery, a notification at 15% and a critical one at 5%, both shown even in Do Not Disturb, once per discharge; plugging in resets them. Levels are `batteryLow` / `batteryCritical` in `shell.json` (0 turns one off) |
 | **Notifications** | Popups under the island with icons, images, actions and markup; history page and Do Not Disturb in the control center (remembered across restarts; Poteto's Quiet switch); unread dot in the island |
-| **Workspaces** | Separate pill top-left: click to switch, scroll to cycle. Poteto → Workspaces turns it off |
+| **Workspaces** | Separate notch top-left: click to switch, scroll to cycle. Poteto → Workspaces turns it off |
 | **Music pill** | Small pill left of the center island: circular MPD album art (music icon when unavailable), four live visualizer bars while playing; click for media controls, right click for play/pause, Esc or click outside to close. Shown in island mode |
-| **Status pill** | Top-right: MPD track with a live cava visualizer (click play/pause, right click next, middle click previous) and the date. Poteto → Music & date turns it off; while recording, the stop button stays |
+| **Status pill** | A notch top-right: MPD track with a live cava visualizer (click play/pause, right click next, middle click previous) and the date. Poteto → Music & date turns it off; while recording, the stop button stays |
 | **Media panel** (hover the status pill) | Album art, track, seek bar, play/pause, next/previous, shuffle, repeat (all / one) and MPD volume |
 | **Launcher** | Fuzzy app search, terminal apps open in kitty, built-in calculator, and a **Keybindings** card when you type `key` |
 | **Keybindings** | Searchable cheatsheet parsed live from `dotfiles/hypr/bindings.lua` plus the shell's own keys; flags combos bound twice |
@@ -88,7 +89,7 @@ poteto/
 | `mod + X` | Power menu (L lock · E logout · S suspend · H hibernate · R reboot · P shutdown) |
 | `mod + Shift + ;` | Lock screen |
 | `mod + B` | Border around the focused window on / off (remembered across reloads) |
-| `mod + Shift + B` | Simple bar instead of the floating island, and back |
+| `mod + Shift + B` | Simple bar instead of the island's notches, and back |
 | `mod + S` | Scrolling layout (columns on an endless strip) instead of dwindle, and back |
 | Hover the island | Control center (opens after a moment, closes when the pointer leaves) |
 | Click the island | Control center, kept open until you click elsewhere or press Esc |
@@ -555,6 +556,7 @@ The same actions are registered as Hyprland global shortcuts named `quickshell:l
 | Icon theme | first line of `shell/v1/shell.qml` (`//@ pragma IconTheme breeze-dark`) |
 | Fonts | `fontFamily` in `shell/v1/config/Theme.qml` |
 | Window corners, shadows, blur, gaps, borders | `general` and `decoration` in `dotfiles/hypr/hyprland.lua` |
+| Screen frame width and its corners | `frameWidth` (0 turns it off) and `radius.screen` in `shell/v1/config/Tokens.qml` |
 | Corner rounding and animation speed of the whole shell | `scale` in `radius` / `duration` in `shell/v1/config/Tokens.qml` (1.2 rounder, 0.7 faster); the named sizes and timings are there too |
 | Shadow under the shell's own surfaces | `shadow` in `shell/v1/config/Theme.qml`, shape in `shell/v1/components/Shadow.qml` |
 

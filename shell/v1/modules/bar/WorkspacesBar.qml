@@ -1,49 +1,35 @@
 import QtQuick
 import Quickshell
-import Quickshell.Wayland
-import qs.components
 import qs.config
 import qs.services
 
-PanelWindow {
+// The workspaces pill, top left, hanging from the top edge like the island. It lives in the
+// island's window (modules/island/Island.qml), which draws its background as part of the shell's
+// one surface (components/Surface.qml); the pill itself is transparent.
+Item {
     id: root
 
     required property ShellScreen targetScreen
+    // Hidden while the workspace is fullscreen, like the rest of the idle surface
+    property bool suppressed: false
 
-    // The window sits in the screen corner and the pill is inset by the gap it used to get from
-    // the window margins, so there is room around it for the shadow. Only the pill takes input.
-    readonly property int gapTop: 8
-    readonly property int gapLeft: 12
-    readonly property int shadowRoom: 24
+    // Clear of the frame's rounded corner and its bevel, so the pill hangs on its own
+    readonly property int gapLeft: Tokens.frameWidth + Tokens.radius.screen + Tokens.radius.flare + 8
+    readonly property alias pill: workspaces
 
-    screen: targetScreen
     // the simple bar carries all of this when it is on; and it can be turned off (Poteto →
     // Workspaces)
-    visible: !Layout.bar && Settings.showWorkspaces
-    anchors.top: true
-    anchors.left: true
-    implicitWidth: workspaces.implicitWidth + gapLeft + shadowRoom
-    implicitHeight: workspaces.implicitHeight + gapTop + shadowRoom
-    color: "transparent"
-    exclusionMode: ExclusionMode.Ignore
-
-    WlrLayershell.layer: WlrLayer.Top
-    WlrLayershell.namespace: "workspaces"
-
-    mask: Region {
-        item: workspaces
-    }
-
-    Shadow {
-        target: workspaces
-    }
+    visible: !Layout.bar && Settings.showWorkspaces && !suppressed
 
     Workspaces {
         id: workspaces
         x: root.gapLeft
-        y: root.gapTop
+        y: 0
         width: implicitWidth
         height: implicitHeight
         screen: root.targetScreen
+        // Drawn by the surface behind it
+        color: "transparent"
+        border.width: 0
     }
 }
