@@ -334,27 +334,15 @@ PanelWindow {
                 color: Theme.controlBg
             }
 
-            Rectangle {
+            CircleButton {
                 width: 32
                 height: 32
-                radius: height / 2
-                color: closeMouse.containsMouse ? Theme.controlBg : "transparent"
-
-                Text {
-                    anchors.centerIn: parent
-                    text: "✕"
-                    color: Theme.textSecondary
-                    font.pixelSize: 13
-                    font.family: Theme.fontFamily
-                }
-
-                MouseArea {
-                    id: closeMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: ColorPicker.cancel()
-                }
+                baseColor: "transparent"
+                glyph: "✕"
+                glyphSize: 13
+                glyphColor: Theme.textSecondary
+                glyphOffset: 0
+                onClicked: ColorPicker.cancel()
             }
         }
     }

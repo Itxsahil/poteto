@@ -68,23 +68,15 @@ Tile {
                 Repeater {
                     model: [-1, 1]
 
-                    Rectangle {
+                    CircleButton {
                         required property int modelData
                         width: 24
                         height: 24
-                        radius: height / 2
-                        color: navHover.hovered ? Theme.controlBg : "transparent"
-
-                        Text {
-                            anchors.centerIn: parent
-                            text: parent.modelData < 0 ? "‹" : "›"
-                            color: Theme.textPrimary
-                            font.pixelSize: 18
-                            font.family: Theme.fontFamily
-                        }
-
-                        HoverHandler { id: navHover; cursorShape: Qt.PointingHandCursor }
-                        TapHandler { onTapped: root.shift(parent.modelData) }
+                        baseColor: "transparent"
+                        glyph: modelData < 0 ? "‹" : "›"
+                        glyphSize: 18
+                        glyphOffset: 0
+                        onClicked: root.shift(modelData)
                     }
                 }
             }

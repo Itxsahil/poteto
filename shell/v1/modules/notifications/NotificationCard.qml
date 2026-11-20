@@ -213,31 +213,20 @@ Rectangle {
                         font.family: Theme.fontFamily
                     }
 
-                    Rectangle {
+                    CircleButton {
                         width: 20
                         height: 20
-                        radius: height / 2
                         anchors.verticalCenter: parent.verticalCenter
-                        color: closeMouse.containsMouse ? Theme.controlHover : Theme.controlBg
                         opacity: root.hovered || !root.popup ? 1 : 0
                         Behavior on opacity { Anim { duration: Tokens.duration.press } }
-
-                        Text {
-                            anchors.centerIn: parent
-                            text: "✕"
-                            color: Theme.textSecondary
-                            font.pixelSize: 9
-                            font.family: Theme.fontFamily
-                        }
-
-                        MouseArea {
-                            id: closeMouse
-                            anchors.fill: parent
-                            anchors.margins: -4
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: Notifications.dismiss(root.notification)
-                        }
+                        baseColor: Theme.controlBg
+                        hoverColor: Theme.controlHover
+                        glyph: "✕"
+                        glyphSize: 9
+                        glyphColor: Theme.textSecondary
+                        glyphOffset: 0
+                        hitMargin: 4
+                        onClicked: Notifications.dismiss(root.notification)
                     }
                 }
             }

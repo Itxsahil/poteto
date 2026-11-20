@@ -58,7 +58,9 @@ The repo is grouped by role. Moving a top-level folder breaks symlinks in `$HOME
   corners of a few pixels.
 - Shared widgets live in `components/` and are used instead of redrawing them: the search box at
   the top of a view is `SearchField` (keys reach the view through `onKeyPressed`, extras declared
-  inside it sit at its right end).
+  inside it sit at its right end); a round icon button is `CircleButton` (flat with
+  `baseColor: "transparent"`, `active` for the accent fill, `glyphFont: Theme.monoFamily` for a Nerd
+  Font icon).
 - Theme colors in `config/Theme.qml` fade (`Behavior` + `Theme.fade`); `Theme.preview` holds the
   theme picker's preview. Read colors through `Theme`, never from `colors.json` directly.
 - User settings live in `~/.config/poteto/shell.json`, read and written only by `config/Settings.qml`

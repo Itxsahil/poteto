@@ -247,59 +247,78 @@ Item {
             enabled: Mpd.connected
             opacity: enabled ? 1 : 0.4
 
-            RoundButton {
+            CircleButton {
                 anchors.verticalCenter: parent.verticalCenter
-                implicitWidth: 34
-                implicitHeight: 34
-                flat: !Mpd.random
-                on: Mpd.random
-                onColor: Qt.alpha(Theme.accent, 0.22)
-                onGlyph: Theme.accent
+                width: 34
+                height: 34
+                active: Mpd.random
+                activeColor: Qt.alpha(Theme.accent, 0.22)
+                activeGlyphColor: Theme.accent
                 glyph: "󰒝"
                 glyphSize: 15
+                baseColor: "transparent"
+                hoverColor: Theme.tileBg
+                glyphFont: Theme.monoFamily
+                glyphOffset: 0
+                pressedScale: 0.92
                 onClicked: Mpd.toggleRandom()
             }
 
-            RoundButton {
+            CircleButton {
                 anchors.verticalCenter: parent.verticalCenter
-                implicitWidth: 40
-                implicitHeight: 40
-                flat: true
+                width: 40
+                height: 40
                 glyph: "󰒮"
                 glyphSize: 18
+                baseColor: "transparent"
+                hoverColor: Theme.tileBg
+                glyphFont: Theme.monoFamily
+                glyphOffset: 0
+                pressedScale: 0.92
                 onClicked: Mpd.previous()
             }
 
-            RoundButton {
+            CircleButton {
                 anchors.verticalCenter: parent.verticalCenter
-                implicitWidth: 54
-                implicitHeight: 54
-                on: true
+                width: 54
+                height: 54
+                active: true
                 glyph: Mpd.playing ? "󰏤" : "󰐊"
                 glyphSize: 22
+                glyphFont: Theme.monoFamily
+                glyphOffset: 0
+                pressedScale: 0.92
                 onClicked: Mpd.toggle()
             }
 
-            RoundButton {
+            CircleButton {
                 anchors.verticalCenter: parent.verticalCenter
-                implicitWidth: 40
-                implicitHeight: 40
-                flat: true
+                width: 40
+                height: 40
                 glyph: "󰒭"
                 glyphSize: 18
+                baseColor: "transparent"
+                hoverColor: Theme.tileBg
+                glyphFont: Theme.monoFamily
+                glyphOffset: 0
+                pressedScale: 0.92
                 onClicked: Mpd.next()
             }
 
-            RoundButton {
+            CircleButton {
                 anchors.verticalCenter: parent.verticalCenter
-                implicitWidth: 34
-                implicitHeight: 34
-                flat: !Mpd.repeat
-                on: Mpd.repeat
-                onColor: Qt.alpha(Theme.accent, 0.22)
-                onGlyph: Theme.accent
+                width: 34
+                height: 34
+                active: Mpd.repeat
+                activeColor: Qt.alpha(Theme.accent, 0.22)
+                activeGlyphColor: Theme.accent
                 glyph: Mpd.repeat && Mpd.single ? "󰑘" : "󰑖"
                 glyphSize: 15
+                baseColor: "transparent"
+                hoverColor: Theme.tileBg
+                glyphFont: Theme.monoFamily
+                glyphOffset: 0
+                pressedScale: 0.92
                 onClicked: Mpd.cycleRepeat()
             }
         }
