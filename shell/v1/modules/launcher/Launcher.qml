@@ -14,7 +14,7 @@ Item {
     property int selected: 0
     property string terminal: "kitty"
 
-    readonly property var calc: Calc.evaluate(input.text)
+    readonly property var calc: Calc.evaluate(search.text)
     readonly property int firstIndex: wantsKeys ? -2 : calc ? -1 : 0
 
     signal closeRequested()
@@ -24,13 +24,13 @@ Item {
         .sort((a, b) => a.name.localeCompare(b.name))
 
     readonly property bool wantsKeys: {
-        const q = input.text.trim().toLowerCase();
+        const q = search.text.trim().toLowerCase();
         return q !== "" && ["keys", "keybinds", "keybindings", "shortcuts", "bindings", "?"]
             .some(w => w.startsWith(q));
     }
 
     readonly property var results: {
-        const q = input.text.trim().toLowerCase();
+        const q = search.text.trim().toLowerCase();
         if (!q)
             return apps;
         const scored = [];
@@ -104,9 +104,9 @@ Item {
 
     onActiveChanged: {
         if (active) {
-            input.text = "";
+            search.text = "";
             resetSelection();
-            input.forceActiveFocus();
+            search.focusInput();
         }
     }
     onResultsChanged: resetSelection()
@@ -117,84 +117,33 @@ Item {
     implicitHeight: search.height + (calc ? calcCard.height + 10 : 0)
         + (wantsKeys ? keysCard.height + 10 : 0) + (listArea.height > 0 ? listArea.height + 10 : 0)
 
-    Rectangle {
+    SearchField {
         id: search
         width: parent.width
-        height: 48
-        radius: Tokens.radius.field
-        color: Theme.tileBg
-
-        Canvas {
-            id: glass
-            width: 18
-            height: 18
-            anchors.left: parent.left
-            anchors.leftMargin: 16
-            anchors.verticalCenter: parent.verticalCenter
-            property color tint: Theme.textSecondary
-            onTintChanged: requestPaint()
-            onPaint: {
-                const ctx = getContext("2d");
-                ctx.reset();
-                ctx.strokeStyle = tint;
-                ctx.lineWidth = 2;
-                ctx.lineCap = "round";
-                ctx.beginPath();
-                ctx.arc(7.5, 7.5, 5.5, 0, Math.PI * 2);
-                ctx.moveTo(11.5, 11.5);
-                ctx.lineTo(16, 16);
-                ctx.stroke();
+        placeholder: "Search apps or calculate"
+        onKeyPressed: event => {
+            const ctrl = event.modifiers & Qt.ControlModifier;
+            if (event.key === Qt.Key_Escape) {
+                root.closeRequested();
+            } else if (event.key === Qt.Key_Down || event.key === Qt.Key_Tab || (ctrl && event.key === Qt.Key_J) || (ctrl && event.key === Qt.Key_N)) {
+                root.move(1);
+            } else if (event.key === Qt.Key_Up || event.key === Qt.Key_Backtab || (ctrl && event.key === Qt.Key_K) || (ctrl && event.key === Qt.Key_P)) {
+                root.move(-1);
+            } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                if (root.selected === -2)
+                    root.openKeybinds();
+                else if (root.selected === -1)
+                    root.copyCalc();
+                else
+                    root.launch(root.results[root.selected]);
+            } else {
+                return;
             }
-        }
-
-        TextInput {
-            id: input
-            anchors.left: glass.right
-            anchors.leftMargin: 12
-            anchors.right: countLabel.left
-            anchors.rightMargin: 12
-            anchors.verticalCenter: parent.verticalCenter
-            color: Theme.textPrimary
-            selectionColor: Theme.accent
-            selectedTextColor: Theme.onAccent
-            font.pixelSize: 16
-            font.family: Theme.fontFamily
-            clip: true
-
-            Keys.onPressed: event => {
-                const ctrl = event.modifiers & Qt.ControlModifier;
-                if (event.key === Qt.Key_Escape) {
-                    root.closeRequested();
-                } else if (event.key === Qt.Key_Down || event.key === Qt.Key_Tab || (ctrl && event.key === Qt.Key_J) || (ctrl && event.key === Qt.Key_N)) {
-                    root.move(1);
-                } else if (event.key === Qt.Key_Up || event.key === Qt.Key_Backtab || (ctrl && event.key === Qt.Key_K) || (ctrl && event.key === Qt.Key_P)) {
-                    root.move(-1);
-                } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                    if (root.selected === -2)
-                        root.openKeybinds();
-                    else if (root.selected === -1)
-                        root.copyCalc();
-                    else
-                        root.launch(root.results[root.selected]);
-                } else {
-                    return;
-                }
-                event.accepted = true;
-            }
-
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                visible: !input.text
-                text: "Search apps or calculate"
-                color: Theme.textSecondary
-                font: input.font
-            }
+            event.accepted = true;
         }
 
         Text {
             id: countLabel
-            anchors.right: parent.right
-            anchors.rightMargin: 16
             anchors.verticalCenter: parent.verticalCenter
             visible: !(root.calc && root.results.length === 0)
             text: root.results.length + (root.results.length === 1 ? " app" : " apps")
@@ -256,7 +205,7 @@ Item {
             Text {
                 width: parent.width
                 elide: Text.ElideLeft
-                text: input.text.trim()
+                text: search.text.trim()
                 color: Theme.textSecondary
                 font.pixelSize: 11
                 font.family: Theme.fontFamily
@@ -381,7 +330,7 @@ Item {
         Text {
             anchors.centerIn: parent
             visible: root.results.length === 0 && !root.calc
-            text: `No apps match "${input.text}"`
+            text: `No apps match "${search.text}"`
             color: Theme.textSecondary
             font.pixelSize: 13
             font.family: Theme.fontFamily

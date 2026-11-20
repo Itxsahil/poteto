@@ -56,6 +56,9 @@ The repo is grouped by role. Moving a top-level folder breaks symlinks in `$HOME
   Circles and pills are `height / 2` (or `width / 2`). Only functional timings and drawn shapes stay
   literal: spinner and pulse loops, the polkit shake, the camera flash, the visualizer bars, icon
   corners of a few pixels.
+- Shared widgets live in `components/` and are used instead of redrawing them: the search box at
+  the top of a view is `SearchField` (keys reach the view through `onKeyPressed`, extras declared
+  inside it sit at its right end).
 - Theme colors in `config/Theme.qml` fade (`Behavior` + `Theme.fade`); `Theme.preview` holds the
   theme picker's preview. Read colors through `Theme`, never from `colors.json` directly.
 - User settings live in `~/.config/poteto/shell.json`, read and written only by `config/Settings.qml`

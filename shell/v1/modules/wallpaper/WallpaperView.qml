@@ -18,7 +18,7 @@ Item {
         return Wallpaper.folders.filter(f => counts[f]).map(f => ({ path: f, name: f.split("/").pop(), count: counts[f] }));
     }
     readonly property var results: {
-        const q = input.text.trim().toLowerCase();
+        const q = search.text.trim().toLowerCase();
         return Wallpaper.wallpapers.filter(w => (!folder || w.folder === folder) && (!q || w.label.toLowerCase().includes(q)));
     }
 
@@ -48,7 +48,7 @@ Item {
 
     function selectFolder(value) {
         folder = value;
-        input.forceActiveFocus();
+        search.focusInput();
     }
 
     function cycleFolder(delta) {
@@ -59,11 +59,11 @@ Item {
 
     onActiveChanged: {
         if (active) {
-            input.text = "";
+            search.text = "";
             folder = "";
             Wallpaper.refresh();
             selectCurrent();
-            input.forceActiveFocus();
+            search.focusInput();
         }
     }
     onResultsChanged: {
@@ -78,7 +78,7 @@ Item {
     Connections {
         target: Wallpaper
         function onLoadingChanged() {
-            if (!Wallpaper.loading && root.active && !input.text)
+            if (!Wallpaper.loading && root.active && !search.text)
                 root.selectCurrent();
         }
     }
@@ -127,96 +127,45 @@ Item {
         }
     }
 
-    Rectangle {
+    SearchField {
         id: search
         width: parent.width
-        height: 48
-        radius: Tokens.radius.field
-        color: Theme.tileBg
-
-        Canvas {
-            id: glass
-            width: 18
-            height: 18
-            anchors.left: parent.left
-            anchors.leftMargin: 16
-            anchors.verticalCenter: parent.verticalCenter
-            property color tint: Theme.textSecondary
-            onTintChanged: requestPaint()
-            onPaint: {
-                const ctx = getContext("2d");
-                ctx.reset();
-                ctx.strokeStyle = tint;
-                ctx.lineWidth = 2;
-                ctx.lineCap = "round";
-                ctx.beginPath();
-                ctx.arc(7.5, 7.5, 5.5, 0, Math.PI * 2);
-                ctx.moveTo(11.5, 11.5);
-                ctx.lineTo(16, 16);
-                ctx.stroke();
-            }
+        trailingMargin: 10
+        placeholder: "Search wallpapers"
+        onTextChanged: {
+            root.selected = 0;
+            grid.positionViewAtBeginning();
         }
-
-        TextInput {
-            id: input
-            anchors.left: glass.right
-            anchors.leftMargin: 12
-            anchors.right: randomBtn.left
-            anchors.rightMargin: 12
-            anchors.verticalCenter: parent.verticalCenter
-            color: Theme.textPrimary
-            selectionColor: Theme.accent
-            selectedTextColor: Theme.onAccent
-            font.pixelSize: 16
-            font.family: Theme.fontFamily
-            clip: true
-
-            onTextChanged: {
-                root.selected = 0;
-                grid.positionViewAtBeginning();
-            }
-
-            Keys.onPressed: event => {
-                const ctrl = event.modifiers & Qt.ControlModifier;
-                if (event.key === Qt.Key_Escape) {
+        onKeyPressed: event => {
+            const ctrl = event.modifiers & Qt.ControlModifier;
+            if (event.key === Qt.Key_Escape) {
+                root.closeRequested();
+            } else if (event.key === Qt.Key_Right || (ctrl && event.key === Qt.Key_L)) {
+                root.move(1);
+            } else if (event.key === Qt.Key_Left || (ctrl && event.key === Qt.Key_H)) {
+                root.move(-1);
+            } else if (event.key === Qt.Key_Down || (ctrl && event.key === Qt.Key_J)) {
+                root.move(root.columns);
+            } else if (event.key === Qt.Key_Up || (ctrl && event.key === Qt.Key_K)) {
+                root.move(-root.columns);
+            } else if (event.key === Qt.Key_Tab) {
+                root.cycleFolder(1);
+            } else if (event.key === Qt.Key_Backtab) {
+                root.cycleFolder(-1);
+            } else if (ctrl && event.key === Qt.Key_R) {
+                Wallpaper.applyRandom();
+            } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                root.applySelected();
+                if (event.modifiers & Qt.ShiftModifier)
                     root.closeRequested();
-                } else if (event.key === Qt.Key_Right || (ctrl && event.key === Qt.Key_L)) {
-                    root.move(1);
-                } else if (event.key === Qt.Key_Left || (ctrl && event.key === Qt.Key_H)) {
-                    root.move(-1);
-                } else if (event.key === Qt.Key_Down || (ctrl && event.key === Qt.Key_J)) {
-                    root.move(root.columns);
-                } else if (event.key === Qt.Key_Up || (ctrl && event.key === Qt.Key_K)) {
-                    root.move(-root.columns);
-                } else if (event.key === Qt.Key_Tab) {
-                    root.cycleFolder(1);
-                } else if (event.key === Qt.Key_Backtab) {
-                    root.cycleFolder(-1);
-                } else if (ctrl && event.key === Qt.Key_R) {
-                    Wallpaper.applyRandom();
-                } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                    root.applySelected();
-                    if (event.modifiers & Qt.ShiftModifier)
-                        root.closeRequested();
-                } else {
-                    return;
-                }
-                event.accepted = true;
+            } else {
+                return;
             }
-
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                visible: !input.text
-                text: "Search wallpapers"
-                color: Theme.textSecondary
-                font: input.font
-            }
+            event.accepted = true;
         }
 
         Rectangle {
             id: randomBtn
-            anchors.right: parent.right
-            anchors.rightMargin: 10
             anchors.verticalCenter: parent.verticalCenter
             width: randomRow.implicitWidth + 24
             height: 32
@@ -270,7 +219,7 @@ Item {
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
                     Wallpaper.applyRandom();
-                    input.forceActiveFocus();
+                    search.focusInput();
                 }
             }
         }
@@ -317,7 +266,7 @@ Item {
 
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: Wallpaper.loading ? "Loading wallpapers…" : input.text ? "No wallpapers match" : "No wallpapers found"
+                text: Wallpaper.loading ? "Loading wallpapers…" : search.text ? "No wallpapers match" : "No wallpapers found"
                 color: Theme.textPrimary
                 font.pixelSize: 14
                 font.weight: Font.DemiBold
@@ -326,7 +275,7 @@ Item {
 
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
-                visible: !Wallpaper.loading && !input.text
+                visible: !Wallpaper.loading && !search.text
                 text: "Add folders in Wallpaper.qml"
                 color: Theme.textSecondary
                 font.pixelSize: 12
@@ -469,7 +418,7 @@ Item {
                     onEntered: root.selected = cell.index
                     onClicked: {
                         Wallpaper.apply(cell.modelData.path);
-                        input.forceActiveFocus();
+                        search.focusInput();
                     }
                     onDoubleClicked: {
                         Wallpaper.apply(cell.modelData.path);

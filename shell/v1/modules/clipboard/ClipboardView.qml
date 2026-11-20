@@ -14,7 +14,7 @@ Item {
     property string fullText: ""
 
     readonly property var results: {
-        const q = input.text.trim().toLowerCase();
+        const q = search.text.trim().toLowerCase();
         return Clipboard.entries.filter(e => {
             if (filter === "text" && e.isImage) return false;
             if (filter === "images" && !e.isImage) return false;
@@ -58,13 +58,13 @@ Item {
 
     onActiveChanged: {
         if (active) {
-            input.text = "";
+            search.text = "";
             filter = "all";
             selected = 0;
             confirmWipe = false;
             Clipboard.refresh();
             list.positionViewAtBeginning();
-            input.forceActiveFocus();
+            search.focusInput();
         }
     }
     onResultsChanged: if (selected >= results.length) selected = Math.max(0, results.length - 1)
@@ -130,97 +130,46 @@ Item {
             onClicked: {
                 root.filter = chip.value;
                 root.selected = 0;
-                input.forceActiveFocus();
+                search.focusInput();
             }
         }
     }
 
-    Rectangle {
+    SearchField {
         id: search
         width: parent.width
-        height: 48
-        radius: Tokens.radius.field
-        color: Theme.tileBg
-
-        Canvas {
-            id: glass
-            width: 18
-            height: 18
-            anchors.left: parent.left
-            anchors.leftMargin: 16
-            anchors.verticalCenter: parent.verticalCenter
-            property color tint: Theme.textSecondary
-            onTintChanged: requestPaint()
-            onPaint: {
-                const ctx = getContext("2d");
-                ctx.reset();
-                ctx.strokeStyle = tint;
-                ctx.lineWidth = 2;
-                ctx.lineCap = "round";
-                ctx.beginPath();
-                ctx.arc(7.5, 7.5, 5.5, 0, Math.PI * 2);
-                ctx.moveTo(11.5, 11.5);
-                ctx.lineTo(16, 16);
-                ctx.stroke();
-            }
+        trailingMargin: 10
+        placeholder: "Search clipboard"
+        onTextChanged: {
+            root.selected = 0;
+            list.positionViewAtBeginning();
         }
-
-        TextInput {
-            id: input
-            anchors.left: glass.right
-            anchors.leftMargin: 12
-            anchors.right: chips.left
-            anchors.rightMargin: 12
-            anchors.verticalCenter: parent.verticalCenter
-            color: Theme.textPrimary
-            selectionColor: Theme.accent
-            selectedTextColor: Theme.onAccent
-            font.pixelSize: 16
-            font.family: Theme.fontFamily
-            clip: true
-
-            onTextChanged: {
-                root.selected = 0;
-                list.positionViewAtBeginning();
+        onKeyPressed: event => {
+            const ctrl = event.modifiers & Qt.ControlModifier;
+            if (event.key === Qt.Key_Escape) {
+                root.closeRequested();
+            } else if (event.key === Qt.Key_Down || (ctrl && (event.key === Qt.Key_J || event.key === Qt.Key_N))) {
+                root.move(1);
+            } else if (event.key === Qt.Key_Up || (ctrl && (event.key === Qt.Key_K || event.key === Qt.Key_P))) {
+                root.move(-1);
+            } else if (event.key === Qt.Key_PageDown) {
+                root.move(8);
+            } else if (event.key === Qt.Key_PageUp) {
+                root.move(-8);
+            } else if (event.key === Qt.Key_Tab) {
+                root.cycleFilter();
+            } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                root.copyCurrent();
+            } else if (event.key === Qt.Key_Delete || (event.key === Qt.Key_Backspace && search.text === "" && ctrl)) {
+                root.removeCurrent();
+            } else {
+                return;
             }
-
-            Keys.onPressed: event => {
-                const ctrl = event.modifiers & Qt.ControlModifier;
-                if (event.key === Qt.Key_Escape) {
-                    root.closeRequested();
-                } else if (event.key === Qt.Key_Down || (ctrl && (event.key === Qt.Key_J || event.key === Qt.Key_N))) {
-                    root.move(1);
-                } else if (event.key === Qt.Key_Up || (ctrl && (event.key === Qt.Key_K || event.key === Qt.Key_P))) {
-                    root.move(-1);
-                } else if (event.key === Qt.Key_PageDown) {
-                    root.move(8);
-                } else if (event.key === Qt.Key_PageUp) {
-                    root.move(-8);
-                } else if (event.key === Qt.Key_Tab) {
-                    root.cycleFilter();
-                } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                    root.copyCurrent();
-                } else if (event.key === Qt.Key_Delete || (event.key === Qt.Key_Backspace && input.text === "" && ctrl)) {
-                    root.removeCurrent();
-                } else {
-                    return;
-                }
-                event.accepted = true;
-            }
-
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                visible: !input.text
-                text: "Search clipboard"
-                color: Theme.textSecondary
-                font: input.font
-            }
+            event.accepted = true;
         }
 
         Row {
             id: chips
-            anchors.right: parent.right
-            anchors.rightMargin: 10
             anchors.verticalCenter: parent.verticalCenter
             spacing: 4
 
@@ -245,7 +194,7 @@ Item {
 
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: Clipboard.loading ? "Loading…" : input.text ? "Nothing matches" : "Clipboard is empty"
+                text: Clipboard.loading ? "Loading…" : search.text ? "Nothing matches" : "Clipboard is empty"
                 color: Theme.textPrimary
                 font.pixelSize: 14
                 font.weight: Font.DemiBold
@@ -255,7 +204,7 @@ Item {
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
                 visible: !Clipboard.loading
-                text: input.text ? "Try a different search" : "Copied text and images show up here"
+                text: search.text ? "Try a different search" : "Copied text and images show up here"
                 color: Theme.textSecondary
                 font.pixelSize: 12
                 font.family: Theme.fontFamily
@@ -483,7 +432,7 @@ Item {
                         root.confirmWipe = true;
                         wipeReset.restart();
                     }
-                    input.forceActiveFocus();
+                    search.focusInput();
                 }
             }
 

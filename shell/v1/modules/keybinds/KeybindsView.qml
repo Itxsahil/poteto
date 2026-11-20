@@ -1,5 +1,6 @@
 import QtQuick
 import qs.config
+import qs.components
 import qs.services
 
 // The keybind cheatsheet. Hyprland's binds are read from hypr/bindings.lua, so this is the
@@ -10,7 +11,7 @@ Item {
     property bool active: false
 
     readonly property var rows: {
-        const q = input.text.trim().toLowerCase();
+        const q = search.text.trim().toLowerCase();
         const out = [];
         for (const group of Keybinds.groups) {
             const items = group.items.filter(it => !q
@@ -34,87 +35,35 @@ Item {
 
     onActiveChanged: {
         if (active) {
-            input.text = "";
+            search.text = "";
             list.positionViewAtBeginning();
-            input.forceActiveFocus();
+            search.focusInput();
         }
     }
 
-    Rectangle {
+    SearchField {
         id: search
         width: parent.width
-        height: 48
-        radius: Tokens.radius.field
-        color: Theme.tileBg
-
-        Canvas {
-            id: glass
-            width: 18
-            height: 18
-            anchors.left: parent.left
-            anchors.leftMargin: 16
-            anchors.verticalCenter: parent.verticalCenter
-            property color tint: Theme.textSecondary
-            onTintChanged: requestPaint()
-            onPaint: {
-                const ctx = getContext("2d");
-                ctx.reset();
-                ctx.strokeStyle = tint;
-                ctx.lineWidth = 2;
-                ctx.lineCap = "round";
-                ctx.beginPath();
-                ctx.arc(7.5, 7.5, 5.5, 0, Math.PI * 2);
-                ctx.moveTo(11.5, 11.5);
-                ctx.lineTo(16, 16);
-                ctx.stroke();
-            }
-        }
-
-        TextInput {
-            id: input
-            anchors.left: glass.right
-            anchors.leftMargin: 12
-            anchors.right: status.left
-            anchors.rightMargin: 12
-            anchors.verticalCenter: parent.verticalCenter
-            color: Theme.textPrimary
-            selectionColor: Theme.accent
-            selectedTextColor: Theme.onAccent
-            font.pixelSize: 16
-            font.family: Theme.fontFamily
-            clip: true
-
-            onTextChanged: list.positionViewAtBeginning()
-
-            Keys.onPressed: event => {
-                if (event.key === Qt.Key_Escape)
-                    root.closeRequested();
-                else if (event.key === Qt.Key_Down)
-                    list.flick(0, -900);
-                else if (event.key === Qt.Key_Up)
-                    list.flick(0, 900);
-                else if (event.key === Qt.Key_PageDown)
-                    list.flick(0, -2600);
-                else if (event.key === Qt.Key_PageUp)
-                    list.flick(0, 2600);
-                else
-                    return;
-                event.accepted = true;
-            }
-
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                visible: !input.text
-                text: "Search keys or actions"
-                color: Theme.textSecondary
-                font: input.font
-            }
+        placeholder: "Search keys or actions"
+        onTextChanged: list.positionViewAtBeginning()
+        onKeyPressed: event => {
+            if (event.key === Qt.Key_Escape)
+                root.closeRequested();
+            else if (event.key === Qt.Key_Down)
+                list.flick(0, -900);
+            else if (event.key === Qt.Key_Up)
+                list.flick(0, 900);
+            else if (event.key === Qt.Key_PageDown)
+                list.flick(0, -2600);
+            else if (event.key === Qt.Key_PageUp)
+                list.flick(0, 2600);
+            else
+                return;
+            event.accepted = true;
         }
 
         Text {
             id: status
-            anchors.right: parent.right
-            anchors.rightMargin: 16
             anchors.verticalCenter: parent.verticalCenter
             text: `${Keybinds.count} shortcuts`
             color: Theme.textSecondary
@@ -126,7 +75,7 @@ Item {
     Text {
         anchors.centerIn: list
         visible: root.rows.length === 0
-        text: `Nothing matches "${input.text}"`
+        text: `Nothing matches "${search.text}"`
         color: Theme.textSecondary
         font.pixelSize: 13
         font.family: Theme.fontFamily

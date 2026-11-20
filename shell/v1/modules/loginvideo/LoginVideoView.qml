@@ -14,7 +14,7 @@ Item {
 
     readonly property int columns: 3
     readonly property var results: {
-        const q = input.text.trim().toLowerCase();
+        const q = search.text.trim().toLowerCase();
         return LoginVideo.videos.filter(entry => !q || entry.name.toLowerCase().includes(q));
     }
 
@@ -25,10 +25,10 @@ Item {
 
     onActiveChanged: {
         if (active) {
-            input.text = "";
+            search.text = "";
             selected = 0;
             LoginVideo.refresh();
-            input.forceActiveFocus();
+            search.focusInput();
         }
     }
 
@@ -49,65 +49,37 @@ Item {
             LoginVideo.apply(entry.path);
     }
 
-    Rectangle {
+    SearchField {
         id: search
         width: parent.width
-        height: 48
-        radius: Tokens.radius.field
-        color: Theme.tileBg
-
-        TextInput {
-            id: input
-            anchors.left: parent.left
-            anchors.leftMargin: 18
-            anchors.right: counter.left
-            anchors.rightMargin: 12
-            anchors.verticalCenter: parent.verticalCenter
-            color: Theme.textPrimary
-            selectionColor: Theme.accent
-            selectedTextColor: Theme.onAccent
-            font.pixelSize: 16
-            font.family: Theme.fontFamily
-            clip: true
-
-            onTextChanged: {
-                root.selected = 0;
-                grid.positionViewAtBeginning();
+        trailingMargin: 18
+        placeholder: "Search login videos"
+        onTextChanged: {
+            root.selected = 0;
+            grid.positionViewAtBeginning();
+        }
+        onKeyPressed: event => {
+            const ctrl = event.modifiers & Qt.ControlModifier;
+            if (event.key === Qt.Key_Escape) {
+                root.closeRequested();
+            } else if (event.key === Qt.Key_Right || (ctrl && event.key === Qt.Key_L)) {
+                root.move(1);
+            } else if (event.key === Qt.Key_Left || (ctrl && event.key === Qt.Key_H)) {
+                root.move(-1);
+            } else if (event.key === Qt.Key_Down || (ctrl && event.key === Qt.Key_J)) {
+                root.move(root.columns);
+            } else if (event.key === Qt.Key_Up || (ctrl && event.key === Qt.Key_K)) {
+                root.move(-root.columns);
+            } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                root.choose(root.results[root.selected]);
+            } else {
+                return;
             }
-
-            Keys.onPressed: event => {
-                const ctrl = event.modifiers & Qt.ControlModifier;
-                if (event.key === Qt.Key_Escape) {
-                    root.closeRequested();
-                } else if (event.key === Qt.Key_Right || (ctrl && event.key === Qt.Key_L)) {
-                    root.move(1);
-                } else if (event.key === Qt.Key_Left || (ctrl && event.key === Qt.Key_H)) {
-                    root.move(-1);
-                } else if (event.key === Qt.Key_Down || (ctrl && event.key === Qt.Key_J)) {
-                    root.move(root.columns);
-                } else if (event.key === Qt.Key_Up || (ctrl && event.key === Qt.Key_K)) {
-                    root.move(-root.columns);
-                } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                    root.choose(root.results[root.selected]);
-                } else {
-                    return;
-                }
-                event.accepted = true;
-            }
-
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                visible: !input.text
-                text: "Search login videos"
-                color: Theme.textSecondary
-                font: input.font
-            }
+            event.accepted = true;
         }
 
         Text {
             id: counter
-            anchors.right: parent.right
-            anchors.rightMargin: 18
             anchors.verticalCenter: parent.verticalCenter
             text: root.results.length + (root.results.length === 1 ? " video" : " videos")
             color: Theme.textSecondary
@@ -122,7 +94,7 @@ Item {
         horizontalAlignment: Text.AlignHCenter
         wrapMode: Text.WordWrap
         visible: root.results.length === 0
-        text: input.text ? "Nothing matches"
+        text: search.text ? "Nothing matches"
             : `No videos in ~/Videos/${LoginVideo.folder}`
         color: Theme.textSecondary
         font.pixelSize: 13

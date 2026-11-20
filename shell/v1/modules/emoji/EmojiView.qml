@@ -12,7 +12,7 @@ Item {
     property string flash: ""
 
     readonly property int columns: 14
-    readonly property var results: Emoji.search(input.text, group)
+    readonly property var results: Emoji.search(search.text, group)
     readonly property var current: results[selected] ?? null
     readonly property string emojiFont: "Noto Color Emoji"
 
@@ -47,11 +47,11 @@ Item {
 
     onActiveChanged: {
         if (active) {
-            input.text = "";
+            search.text = "";
             group = Emoji.recent.length > 0 ? "recent" : "smileys";
             selected = 0;
             grid.positionViewAtBeginning();
-            input.forceActiveFocus();
+            search.focusInput();
         }
     }
     onResultsChanged: {
@@ -65,88 +65,37 @@ Item {
         onTriggered: root.flash = ""
     }
 
-    Rectangle {
+    SearchField {
         id: search
         width: parent.width
-        height: 48
-        radius: Tokens.radius.field
-        color: Theme.tileBg
-
-        Canvas {
-            id: glass
-            width: 18
-            height: 18
-            anchors.left: parent.left
-            anchors.leftMargin: 16
-            anchors.verticalCenter: parent.verticalCenter
-            property color tint: Theme.textSecondary
-            onTintChanged: requestPaint()
-            onPaint: {
-                const ctx = getContext("2d");
-                ctx.reset();
-                ctx.strokeStyle = tint;
-                ctx.lineWidth = 2;
-                ctx.lineCap = "round";
-                ctx.beginPath();
-                ctx.arc(7.5, 7.5, 5.5, 0, Math.PI * 2);
-                ctx.moveTo(11.5, 11.5);
-                ctx.lineTo(16, 16);
-                ctx.stroke();
+        placeholder: "Search emoji"
+        onKeyPressed: event => {
+            const ctrl = event.modifiers & Qt.ControlModifier;
+            const shift = event.modifiers & Qt.ShiftModifier;
+            if (event.key === Qt.Key_Escape) {
+                root.closeRequested();
+            } else if (event.key === Qt.Key_Right || (ctrl && event.key === Qt.Key_L)) {
+                root.move(1);
+            } else if (event.key === Qt.Key_Left || (ctrl && event.key === Qt.Key_H)) {
+                root.move(-1);
+            } else if (event.key === Qt.Key_Down || (ctrl && event.key === Qt.Key_J)) {
+                root.move(root.columns);
+            } else if (event.key === Qt.Key_Up || (ctrl && event.key === Qt.Key_K)) {
+                root.move(-root.columns);
+            } else if (event.key === Qt.Key_Tab) {
+                root.cycleGroup(1);
+            } else if (event.key === Qt.Key_Backtab) {
+                root.cycleGroup(-1);
+            } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                root.pick(root.current, shift);
+            } else {
+                return;
             }
-        }
-
-        TextInput {
-            id: input
-            anchors.left: glass.right
-            anchors.leftMargin: 12
-            anchors.right: countLabel.left
-            anchors.rightMargin: 12
-            anchors.verticalCenter: parent.verticalCenter
-            color: Theme.textPrimary
-            selectionColor: Theme.accent
-            selectedTextColor: Theme.onAccent
-            font.pixelSize: 16
-            font.family: Theme.fontFamily
-            clip: true
-
-            Keys.onPressed: event => {
-                const ctrl = event.modifiers & Qt.ControlModifier;
-                const shift = event.modifiers & Qt.ShiftModifier;
-                if (event.key === Qt.Key_Escape) {
-                    root.closeRequested();
-                } else if (event.key === Qt.Key_Right || (ctrl && event.key === Qt.Key_L)) {
-                    root.move(1);
-                } else if (event.key === Qt.Key_Left || (ctrl && event.key === Qt.Key_H)) {
-                    root.move(-1);
-                } else if (event.key === Qt.Key_Down || (ctrl && event.key === Qt.Key_J)) {
-                    root.move(root.columns);
-                } else if (event.key === Qt.Key_Up || (ctrl && event.key === Qt.Key_K)) {
-                    root.move(-root.columns);
-                } else if (event.key === Qt.Key_Tab) {
-                    root.cycleGroup(1);
-                } else if (event.key === Qt.Key_Backtab) {
-                    root.cycleGroup(-1);
-                } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                    root.pick(root.current, shift);
-                } else {
-                    return;
-                }
-                event.accepted = true;
-            }
-
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                visible: !input.text
-                text: "Search emoji"
-                color: Theme.textSecondary
-                font: input.font
-            }
+            event.accepted = true;
         }
 
         Text {
             id: countLabel
-            anchors.right: parent.right
-            anchors.rightMargin: 16
             anchors.verticalCenter: parent.verticalCenter
             text: root.flash ? `Copied ${root.flash}` : `${root.results.length}`
             color: root.flash ? Theme.accent : Theme.textSecondary
@@ -162,7 +111,7 @@ Item {
         anchors.topMargin: 10
         anchors.horizontalCenter: parent.horizontalCenter
         spacing: 4
-        opacity: input.text ? 0.4 : 1
+        opacity: search.text ? 0.4 : 1
         Behavior on opacity { Anim { duration: Tokens.duration.fade } }
 
         Repeater {
@@ -171,7 +120,7 @@ Item {
             Rectangle {
                 id: chip
                 required property var modelData
-                readonly property bool isSelected: root.group === modelData.id && !input.text
+                readonly property bool isSelected: root.group === modelData.id && !search.text
 
                 width: 66
                 height: 50
@@ -208,9 +157,9 @@ Item {
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
-                        input.text = "";
+                        search.text = "";
                         root.group = chip.modelData.id;
-                        input.forceActiveFocus();
+                        search.focusInput();
                     }
                 }
             }
@@ -224,7 +173,7 @@ Item {
 
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: input.text ? "No emoji found" : root.group === "recent" ? "No recent emoji yet" : "Nothing here"
+            text: search.text ? "No emoji found" : root.group === "recent" ? "No recent emoji yet" : "Nothing here"
             color: Theme.textPrimary
             font.pixelSize: 14
             font.weight: Font.DemiBold
@@ -233,7 +182,7 @@ Item {
 
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: input.text ? "Try another word" : "Emoji you pick will show up here"
+            text: search.text ? "Try another word" : "Emoji you pick will show up here"
             color: Theme.textSecondary
             font.pixelSize: 12
             font.family: Theme.fontFamily
@@ -291,7 +240,7 @@ Item {
                 onEntered: root.selected = cell.index
                 onClicked: event => {
                     root.pick(cell.modelData, event.button === Qt.RightButton || (event.modifiers & Qt.ShiftModifier));
-                    input.forceActiveFocus();
+                    search.focusInput();
                 }
             }
         }

@@ -333,7 +333,7 @@ PHASE 3 — DESIGN SYSTEM (about 1 week)
       token).
   3.3 [done 2026-11-20: every module; ~20 functional timings and drawn shapes stay literal] Replace v1's ~172 duration and ~132 radius literals, one module per commit.
       Grep for them: `grep -rnE 'duration: *[0-9]+|radius: *[0-9]+' quickshell/`.
-  3.4 Base components, extracted from what modules already draw inline:
+  3.4 [started 2026-11-20: SearchField in the 8 views with a search box] Base components, extracted from what modules already draw inline:
       - StyledRect and StyledText (Theme colors, animated color);
       - StateLayer (hover/press tint);
       - IconButton, Toggle/Switch, Slider, TextField;

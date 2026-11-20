@@ -10,7 +10,7 @@ Item {
     property int selected: 0
 
     readonly property var results: {
-        const q = input.text.trim().toLowerCase();
+        const q = search.text.trim().toLowerCase();
         return ThemeManager.themes.filter(t => !q || t.name.toLowerCase().includes(q) || t.variant.includes(q));
     }
 
@@ -47,10 +47,10 @@ Item {
 
     onActiveChanged: {
         if (active) {
-            input.text = "";
+            search.text = "";
             ThemeManager.refresh();
             selectCurrent();
-            input.forceActiveFocus();
+            search.focusInput();
         }
         updatePreview();
     }
@@ -65,96 +65,44 @@ Item {
     Connections {
         target: ThemeManager
         function onThemesChanged() {
-            if (root.active && !input.text)
+            if (root.active && !search.text)
                 root.selectCurrent();
         }
     }
 
-    Rectangle {
+    SearchField {
         id: search
         width: parent.width
-        height: 48
-        radius: Tokens.radius.field
-        color: Theme.tileBg
-
-        Canvas {
-            id: glass
-            width: 18
-            height: 18
-            anchors.left: parent.left
-            anchors.leftMargin: 16
-            anchors.verticalCenter: parent.verticalCenter
-            property color tint: Theme.textSecondary
-            onTintChanged: requestPaint()
-            onPaint: {
-                const ctx = getContext("2d");
-                ctx.reset();
-                ctx.strokeStyle = tint;
-                ctx.lineWidth = 2;
-                ctx.lineCap = "round";
-                ctx.beginPath();
-                ctx.arc(7.5, 7.5, 5.5, 0, Math.PI * 2);
-                ctx.moveTo(11.5, 11.5);
-                ctx.lineTo(16, 16);
-                ctx.stroke();
-            }
-        }
-
-        TextInput {
-            id: input
-            anchors.left: glass.right
-            anchors.leftMargin: 12
-            anchors.right: status.left
-            anchors.rightMargin: 12
-            anchors.verticalCenter: parent.verticalCenter
-            color: Theme.textPrimary
-            selectionColor: Theme.accent
-            selectedTextColor: Theme.onAccent
-            font.pixelSize: 16
-            font.family: Theme.fontFamily
-            clip: true
-
-            onTextChanged: root.selected = 0
-
-            Keys.onPressed: event => {
-                const ctrl = event.modifiers & Qt.ControlModifier;
-                if (event.key === Qt.Key_Escape) {
+        placeholder: "Search themes"
+        onTextChanged: root.selected = 0
+        onKeyPressed: event => {
+            const ctrl = event.modifiers & Qt.ControlModifier;
+            if (event.key === Qt.Key_Escape) {
+                root.closeRequested();
+            } else if (event.key === Qt.Key_Right || event.key === Qt.Key_Down || event.key === Qt.Key_Tab
+                    || (ctrl && (event.key === Qt.Key_L || event.key === Qt.Key_J))) {
+                root.move(1);
+            } else if (event.key === Qt.Key_Left || event.key === Qt.Key_Up || event.key === Qt.Key_Backtab
+                    || (ctrl && (event.key === Qt.Key_H || event.key === Qt.Key_K))) {
+                root.move(-1);
+            } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                root.applySelected();
+                if (event.modifiers & Qt.ShiftModifier)
                     root.closeRequested();
-                } else if (event.key === Qt.Key_Right || event.key === Qt.Key_Down || event.key === Qt.Key_Tab
-                        || (ctrl && (event.key === Qt.Key_L || event.key === Qt.Key_J))) {
-                    root.move(1);
-                } else if (event.key === Qt.Key_Left || event.key === Qt.Key_Up || event.key === Qt.Key_Backtab
-                        || (ctrl && (event.key === Qt.Key_H || event.key === Qt.Key_K))) {
-                    root.move(-1);
-                } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                    root.applySelected();
-                    if (event.modifiers & Qt.ShiftModifier)
-                        root.closeRequested();
-                } else if (ctrl && event.key === Qt.Key_D && root.dynamicSelected) {
-                    // The dynamic theme's mode: dark → light → auto (rebuilt and applied)
-                    ThemeManager.cycleDynamicMode();
-                } else if (ctrl && event.key === Qt.Key_S && root.dynamicSelected) {
-                    // Its Material You style: tonal-spot → vibrant → expressive → …
-                    ThemeManager.cycleDynamicScheme();
-                } else {
-                    return;
-                }
-                event.accepted = true;
+            } else if (ctrl && event.key === Qt.Key_D && root.dynamicSelected) {
+                // The dynamic theme's mode: dark → light → auto (rebuilt and applied)
+                ThemeManager.cycleDynamicMode();
+            } else if (ctrl && event.key === Qt.Key_S && root.dynamicSelected) {
+                // Its Material You style: tonal-spot → vibrant → expressive → …
+                ThemeManager.cycleDynamicScheme();
+            } else {
+                return;
             }
-
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                visible: !input.text
-                text: "Search themes"
-                color: Theme.textSecondary
-                font: input.font
-            }
+            event.accepted = true;
         }
 
         Text {
             id: status
-            anchors.right: parent.right
-            anchors.rightMargin: 16
             anchors.verticalCenter: parent.verticalCenter
             text: ThemeManager.applying ? "Applying…" : root.results.length ? `${root.selected + 1}/${root.results.length}` : ""
             color: ThemeManager.applying ? Theme.accent : Theme.textSecondary
@@ -301,7 +249,7 @@ Item {
                         root.applySelected();
                     else
                         root.selected = card.index;
-                    input.forceActiveFocus();
+                    search.focusInput();
                 }
                 onDoubleClicked: {
                     if (!ThemeManager.applying)

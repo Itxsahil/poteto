@@ -14,7 +14,7 @@ Item {
 
     readonly property int columns: 3
     readonly property var results: {
-        const q = input.text.trim().toLowerCase();
+        const q = search.text.trim().toLowerCase();
         const want = folder === "." ? "" : folder;   // "." is the loose-files chip
         return Videos.entries.filter(e => (!folder || e.folder === want)
             && (!q || e.name.toLowerCase().includes(q) || e.folder.toLowerCase().includes(q)));
@@ -47,7 +47,7 @@ Item {
         folder = value;
         selected = 0;
         grid.positionViewAtBeginning();
-        input.forceActiveFocus();
+        search.focusInput();
     }
 
     function cycleFolder(delta) {
@@ -58,11 +58,11 @@ Item {
 
     onActiveChanged: {
         if (active) {
-            input.text = "";
+            search.text = "";
             folder = "";
             selected = 0;
             Videos.refresh();
-            input.forceActiveFocus();
+            search.focusInput();
         }
     }
     onResultsChanged: {
@@ -113,93 +113,41 @@ Item {
         }
     }
 
-    Rectangle {
+    SearchField {
         id: search
         width: parent.width
-        height: 48
-        radius: Tokens.radius.field
-        color: Theme.tileBg
-
-        Canvas {
-            id: glass
-            width: 18
-            height: 18
-            anchors.left: parent.left
-            anchors.leftMargin: 16
-            anchors.verticalCenter: parent.verticalCenter
-            property color tint: Theme.textSecondary
-            onTintChanged: requestPaint()
-            onPaint: {
-                const ctx = getContext("2d");
-                ctx.reset();
-                ctx.strokeStyle = tint;
-                ctx.lineWidth = 2;
-                ctx.lineCap = "round";
-                ctx.beginPath();
-                ctx.arc(7.5, 7.5, 5.5, 0, Math.PI * 2);
-                ctx.moveTo(11.5, 11.5);
-                ctx.lineTo(16, 16);
-                ctx.stroke();
-            }
+        placeholder: "Search videos"
+        onTextChanged: {
+            root.selected = 0;
+            grid.positionViewAtBeginning();
         }
-
-        TextInput {
-            id: input
-            anchors.left: glass.right
-            anchors.leftMargin: 12
-            anchors.right: status.left
-            anchors.rightMargin: 12
-            anchors.verticalCenter: parent.verticalCenter
-            color: Theme.textPrimary
-            selectionColor: Theme.accent
-            selectedTextColor: Theme.onAccent
-            font.pixelSize: 16
-            font.family: Theme.fontFamily
-            clip: true
-
-            onTextChanged: {
-                root.selected = 0;
-                grid.positionViewAtBeginning();
+        onKeyPressed: event => {
+            const ctrl = event.modifiers & Qt.ControlModifier;
+            const shift = event.modifiers & Qt.ShiftModifier;
+            if (event.key === Qt.Key_Escape) {
+                root.closeRequested();
+            } else if (event.key === Qt.Key_Right || (ctrl && event.key === Qt.Key_L)) {
+                root.move(1);
+            } else if (event.key === Qt.Key_Left || (ctrl && event.key === Qt.Key_H)) {
+                root.move(-1);
+            } else if (event.key === Qt.Key_Down || (ctrl && event.key === Qt.Key_J)) {
+                root.move(root.columns);
+            } else if (event.key === Qt.Key_Up || (ctrl && event.key === Qt.Key_K)) {
+                root.move(-root.columns);
+            } else if (event.key === Qt.Key_Tab) {
+                root.cycleFolder(1);
+            } else if (event.key === Qt.Key_Backtab) {
+                root.cycleFolder(-1);
+            } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                root.openEntry(root.results[root.selected], shift);
+            } else {
+                return;
             }
-
-            Keys.onPressed: event => {
-                const ctrl = event.modifiers & Qt.ControlModifier;
-                const shift = event.modifiers & Qt.ShiftModifier;
-                if (event.key === Qt.Key_Escape) {
-                    root.closeRequested();
-                } else if (event.key === Qt.Key_Right || (ctrl && event.key === Qt.Key_L)) {
-                    root.move(1);
-                } else if (event.key === Qt.Key_Left || (ctrl && event.key === Qt.Key_H)) {
-                    root.move(-1);
-                } else if (event.key === Qt.Key_Down || (ctrl && event.key === Qt.Key_J)) {
-                    root.move(root.columns);
-                } else if (event.key === Qt.Key_Up || (ctrl && event.key === Qt.Key_K)) {
-                    root.move(-root.columns);
-                } else if (event.key === Qt.Key_Tab) {
-                    root.cycleFolder(1);
-                } else if (event.key === Qt.Key_Backtab) {
-                    root.cycleFolder(-1);
-                } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                    root.openEntry(root.results[root.selected], shift);
-                } else {
-                    return;
-                }
-                event.accepted = true;
-            }
-
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                visible: !input.text
-                text: "Search videos"
-                color: Theme.textSecondary
-                font: input.font
-            }
+            event.accepted = true;
         }
 
         Text {
             id: status
-            anchors.right: parent.right
-            anchors.rightMargin: 16
             anchors.verticalCenter: parent.verticalCenter
             text: Videos.loading ? "Loading…" : `${root.results.length} items`
             color: Theme.textSecondary
@@ -236,7 +184,7 @@ Item {
         anchors.centerIn: grid
         visible: root.results.length === 0
         text: Videos.loading ? "Loading…"
-            : input.text ? `No videos match "${input.text}"`
+            : search.text ? `No videos match "${search.text}"`
             : root.folder ? "Nothing in this folder"
             : "No videos in ~/Videos"
         color: Theme.textSecondary
