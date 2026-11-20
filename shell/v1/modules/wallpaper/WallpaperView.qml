@@ -1,5 +1,6 @@
 import QtQuick
 import qs.config
+import qs.components
 import qs.services
 
 Item {
@@ -90,9 +91,9 @@ Item {
         readonly property bool selected: root.folder === value
         width: chipRow.implicitWidth + 22
         height: 28
-        radius: 14
+        radius: Tokens.radius.chip
         color: selected ? Theme.wsActiveBg : chipMouse.containsMouse ? Theme.controlBg : Theme.tileBg
-        Behavior on color { ColorAnimation { duration: 140 } }
+        Behavior on color { CAnim { duration: Tokens.duration.fade } }
 
         Row {
             id: chipRow
@@ -130,7 +131,7 @@ Item {
         id: search
         width: parent.width
         height: 48
-        radius: 18
+        radius: Tokens.radius.field
         color: Theme.tileBg
 
         Canvas {
@@ -219,9 +220,9 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             width: randomRow.implicitWidth + 24
             height: 32
-            radius: 16
+            radius: Tokens.radius.button
             color: randomMouse.containsMouse ? Theme.controlHover : Theme.controlBg
-            Behavior on color { ColorAnimation { duration: 120 } }
+            Behavior on color { CAnim {} }
 
             Row {
                 id: randomRow
@@ -306,7 +307,7 @@ Item {
         anchors.bottom: footer.top
         anchors.bottomMargin: 8
         width: parent.width
-        radius: 18
+        radius: Tokens.radius.field
         color: "transparent"
 
         Column {
@@ -361,11 +362,11 @@ Item {
                     id: card
                     anchors.fill: parent
                     anchors.margins: 5
-                    radius: 18
+                    radius: Tokens.radius.field
                     // Shown until the thumbnail has loaded
                     color: Theme.controlBg
                     scale: cellMouse.pressed ? 0.96 : cell.isSelected ? 1.0 : 0.985
-                    Behavior on scale { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+                    Behavior on scale { Anim { duration: Tokens.duration.fade } }
 
                     Image {
                         id: img
@@ -378,7 +379,7 @@ Item {
                         asynchronous: true
                         smooth: true
                         opacity: status === Image.Ready ? 1 : 0
-                        Behavior on opacity { NumberAnimation { duration: 200 } }
+                        Behavior on opacity { Anim {} }
                     }
 
                     Rectangle {
@@ -388,7 +389,7 @@ Item {
                         height: 30
                         color: Qt.alpha(Theme.islandBg, 0.8)
                         opacity: cell.isSelected ? 1 : 0
-                        Behavior on opacity { NumberAnimation { duration: 140 } }
+                        Behavior on opacity { Anim { duration: Tokens.duration.fade } }
 
                         Text {
                             anchors.fill: parent
@@ -424,7 +425,7 @@ Item {
                         color: "transparent"
                         border.width: 2
                         border.color: cell.isSelected ? Theme.textPrimary : cell.isCurrent ? Theme.accent : "transparent"
-                        Behavior on border.color { ColorAnimation { duration: 140 } }
+                        Behavior on border.color { CAnim { duration: Tokens.duration.fade } }
                     }
 
                     Rectangle {
@@ -434,7 +435,7 @@ Item {
                         anchors.margins: 9
                         width: 22
                         height: 22
-                        radius: 11
+                        radius: height / 2
                         color: Theme.accent
 
                         Canvas {

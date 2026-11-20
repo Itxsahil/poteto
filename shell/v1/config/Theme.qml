@@ -18,8 +18,8 @@ Singleton {
     readonly property string name: colors.name ?? "Default"
     readonly property string variant: colors.variant ?? "dark"
 
-    // How long a theme change takes to fade across the shell
-    readonly property int fade: 320
+    // How long a theme change takes to fade across the shell (config/Tokens.qml)
+    readonly property int fade: Tokens.duration.page
 
     function reload() {
         file.reload();

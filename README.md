@@ -555,6 +555,7 @@ The same actions are registered as Hyprland global shortcuts named `quickshell:l
 | Icon theme | first line of `shell/v1/shell.qml` (`//@ pragma IconTheme breeze-dark`) |
 | Fonts | `fontFamily` in `shell/v1/config/Theme.qml` |
 | Window corners, shadows, blur, gaps, borders | `general` and `decoration` in `dotfiles/hypr/hyprland.lua` |
+| Corner rounding and animation speed of the whole shell | `scale` in `radius` / `duration` in `shell/v1/config/Tokens.qml` (1.2 rounder, 0.7 faster); the named sizes and timings are there too |
 | Shadow under the shell's own surfaces | `shadow` in `shell/v1/config/Theme.qml`, shape in `shell/v1/components/Shadow.qml` |
 
 ---

@@ -1,4 +1,5 @@
 components/Shadow.qml: Member "radius" not found on type "QQuickItem" [missing-property]
+config/Theme.qml: Member "duration" not found on type "Tokens" [missing-property]
 modules/camera/CameraView.qml: Member "imageCapture" not found on type "QObject" [missing-property]
 modules/controlcenter/notifications/NotificationsPage.qml: Id for object Item shadows property "header". Rename one or the other. [id-shadows-member]
 modules/controlcenter/notifications/NotificationsPage.qml: Note: Id defined here [id-shadows-member]

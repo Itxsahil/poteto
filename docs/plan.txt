@@ -323,15 +323,15 @@ PHASE 2 — SAFETY NET (DONE 2026-11-20: .editorconfig, shell/v1/.qmllint.ini, t
       Apply file by file as you touch them, not as one huge commit.
 
 PHASE 3 — DESIGN SYSTEM (about 1 week)
-  3.1 config/Tokens.qml (singleton) with:
+  3.1 [done 2026-11-20: radius, duration and easing by role, each with a scale] config/Tokens.qml (singleton) with:
       - rounding: small/medium/large/full
       - spacing and padding: xs/s/m/l/xl
       - font sizes: label/body/title
       - anim: durations (fast/normal/slow) and easing curves (standard/emphasized)
       Optionally read overrides from ~/.config/poteto/tokens.json.
-  3.2 components/Anim.qml and CAnim.qml (Number/ColorAnimation with a `type` that picks a
+  3.2 [done] components/Anim.qml and CAnim.qml (Number/ColorAnimation with a `type` that picks a
       token).
-  3.3 Replace v1's ~172 duration and ~132 radius literals, one module per commit.
+  3.3 [started: modules/wallpaper done] Replace v1's ~172 duration and ~132 radius literals, one module per commit.
       Grep for them: `grep -rnE 'duration: *[0-9]+|radius: *[0-9]+' quickshell/`.
   3.4 Base components, extracted from what modules already draw inline:
       - StyledRect and StyledText (Theme colors, animated color);
