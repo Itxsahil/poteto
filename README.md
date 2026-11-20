@@ -78,6 +78,7 @@ poteto/
 | `mod + /` | Keybinding cheatsheet |
 | `Super + M` | Performance monitor |
 | `Super + P` | Music player on its own: Space play/pause, ← → seek, N / P skip |
+| `Super + ,` | Poteto, the settings app |
 | `Super + V` | Clipboard history |
 | `Super + .` | Emoji picker |
 | `Super + Shift + C` | Color picker |

@@ -144,17 +144,45 @@ Singleton {
         return [inner, ""];
     }
 
+    // ( minus ) outside quotes: above 0, a statement goes on past this line
+    function openParens(s: string): int {
+        let depth = 0;
+        let quoted = false;
+        for (let i = 0; i < s.length; i++) {
+            const c = s[i];
+            if (c === '"' && s[i - 1] !== "\\")
+                quoted = !quoted;
+            else if (!quoted && c === "(")
+                depth++;
+            else if (!quoted && c === ")")
+                depth--;
+        }
+        return depth;
+    }
+
+    // A bind's description: its comment's first sentence, "Screen off / on (Fn + F6). Bound by
+    // key code: …" → "Screen off / on (Fn + F6)"
+    function firstSentence(s: string): string {
+        const m = s.match(/^(.*?\.)\s/);
+        return (m ? m[1] : s).replace(/\.$/, "");
+    }
+
     function parse(text) {
         const vars = {};
         const groups = [];
         let group = null;
         let comment = "";
+        // The last comment line stopped mid-sentence: the next one continues it
+        let commentOpen = false;
         let expectHeading = false;
         let closingRule = false;
         let inWorkspaceLoop = false;
 
-        for (const raw of text.split("\n")) {
-            const line = raw.trim();
+        const lines = text.split("\n");
+        for (let n = 0; n < lines.length; n++) {
+            let line = lines[n].trim();
+            const wasCommentOpen = commentOpen;
+            commentOpen = false;
 
             const varMatch = line.match(/^(var_\w+)\s*=\s*"(.*)"\s*$/);
             if (varMatch) {
@@ -175,7 +203,11 @@ Singleton {
                     closingRule = true;
                     comment = "";
                 } else if (!body.startsWith("hl.bind")) {
-                    comment = body;                // a description for the next bind
+                    // a description for the next bind, joined with the line before when a
+                    // sentence wraps onto this one (it stopped mid-sentence and this goes on in
+                    // lower case); a line starting in capitals is a new description
+                    comment = wasCommentOpen && comment && /^[a-z]/.test(body) ? `${comment} ${body}` : body;
+                    commentOpen = !/[.!?:)]$/.test(body);
                 }
                 continue;
             }
@@ -192,6 +224,11 @@ Singleton {
             if (!line.startsWith("hl.bind("))
                 continue;
 
+            // A bind can run over several lines (an options table after the action, like
+            // `{ locked = true }`): read on to its closing parenthesis
+            while (openParens(line) > 0 && n + 1 < lines.length)
+                line += " " + lines[++n].trim();
+
             const inner = line.slice("hl.bind(".length, line.lastIndexOf(")"));
             const [keyExpr, rest] = splitArgs(inner);
             let keys = prettyKeys(keyExpr, vars);
@@ -206,7 +243,7 @@ Singleton {
             }
             group.items.push({
                 keys: keys,
-                action: comment || action,
+                action: comment ? firstSentence(comment) : action,
                 detail: comment ? action : ""
             });
             comment = "";
