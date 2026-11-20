@@ -15,6 +15,7 @@ Singleton {
         home + "/Pictures/ashtetic-wp",
         home + "/Pictures/anime-pic",
         home + "/Pictures/fate-stay-night wallpapers",
+        home + "/Pictures/wuwa",
         home + "/copyrice/larp/themes"
     ]
     readonly property string thumbDir: home + "/.cache/quickshell/wallpaper-thumbs"
