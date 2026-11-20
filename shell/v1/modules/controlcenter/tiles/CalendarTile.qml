@@ -72,7 +72,7 @@ Tile {
                         required property int modelData
                         width: 24
                         height: 24
-                        radius: 12
+                        radius: height / 2
                         color: navHover.hovered ? Theme.controlBg : "transparent"
 
                         Text {
@@ -127,7 +127,7 @@ Tile {
                         anchors.centerIn: parent
                         width: 24
                         height: 24
-                        radius: 12
+                        radius: height / 2
                         color: Theme.accent
                         visible: parent.isToday
                     }

@@ -2,6 +2,7 @@ import QtQuick
 import QtMultimedia
 import Quickshell
 import qs.config
+import qs.components
 import qs.services
 
 // The video window the launcher opens: a plain floating window with an overlay that
@@ -199,7 +200,7 @@ FloatingWindow {
         font.pixelSize: 13
         font.weight: Font.DemiBold
         font.family: Theme.fontFamily
-        Behavior on color { ColorAnimation { duration: 120 } }
+        Behavior on color { CAnim {} }
 
         MouseArea {
             id: mouse
@@ -219,7 +220,7 @@ FloatingWindow {
         height: 64
         opacity: win.controlsShown ? 1 : 0
         visible: opacity > 0
-        Behavior on opacity { NumberAnimation { duration: 200 } }
+        Behavior on opacity { Anim {} }
         gradient: Gradient {
             GradientStop { position: 0.0; color: "#cc000000" }
             GradientStop { position: 1.0; color: "#00000000" }
@@ -263,7 +264,7 @@ FloatingWindow {
         height: 96
         opacity: win.controlsShown ? 1 : 0
         visible: opacity > 0
-        Behavior on opacity { NumberAnimation { duration: 200 } }
+        Behavior on opacity { Anim {} }
         gradient: Gradient {
             GradientStop { position: 0.0; color: "#00000000" }
             GradientStop { position: 1.0; color: "#e6000000" }
@@ -293,7 +294,7 @@ FloatingWindow {
                 height: seekMouse.containsMouse || seekMouse.pressed ? 6 : 4
                 radius: height / 2
                 color: "#40ffffff"
-                Behavior on height { NumberAnimation { duration: 120 } }
+                Behavior on height { Anim { duration: Tokens.duration.press } }
 
                 Rectangle {
                     width: parent.width * seek.ratio
@@ -309,7 +310,7 @@ FloatingWindow {
                     height: width
                     radius: width / 2
                     color: Theme.accent
-                    Behavior on width { NumberAnimation { duration: 120 } }
+                    Behavior on width { Anim { duration: Tokens.duration.press } }
                 }
             }
 
@@ -352,7 +353,7 @@ FloatingWindow {
                 anchors.verticalCenter: parent.verticalCenter
                 width: 36
                 height: 36
-                radius: 18
+                radius: height / 2
                 color: playMouse.containsMouse ? Qt.alpha(Theme.accent, 0.9) : Theme.accent
 
                 Canvas {
@@ -464,7 +465,7 @@ FloatingWindow {
                         anchors.verticalCenter: parent.verticalCenter
                         width: parent.width
                         height: 4
-                        radius: 2
+                        radius: height / 2
                         color: "#40ffffff"
 
                         Rectangle {

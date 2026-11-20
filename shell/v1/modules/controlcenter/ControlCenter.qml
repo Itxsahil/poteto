@@ -51,8 +51,8 @@ Item {
         x: root.page === name ? 0 : root.width + 40
         opacity: root.page === name ? 1 : 0
         visible: opacity > 0
-        Behavior on x { NumberAnimation { duration: 320; easing.type: Easing.OutCubic } }
-        Behavior on opacity { NumberAnimation { duration: 220 } }
+        Behavior on x { Anim { duration: Tokens.duration.page } }
+        Behavior on opacity { Anim {} }
     }
 
     Column {
@@ -61,8 +61,8 @@ Item {
         spacing: root.gap
         x: root.page !== "" ? -width - 40 : 0
         opacity: root.page !== "" ? 0 : 1
-        Behavior on x { NumberAnimation { duration: 320; easing.type: Easing.OutCubic } }
-        Behavior on opacity { NumberAnimation { duration: 220 } }
+        Behavior on x { Anim { duration: Tokens.duration.page } }
+        Behavior on opacity { Anim {} }
 
         // Bento: the clock (which opens the calendar) wide beside the battery, then Wi-Fi and
         // Bluetooth, notifications and night light, and the sliders together in one tile
@@ -179,9 +179,9 @@ Item {
 
         width: 56
         height: 40
-        radius: 20
+        radius: height / 2
         color: buttonMouse.containsMouse ? Theme.controlHover : Theme.controlBg
-        Behavior on color { ColorAnimation { duration: 120 } }
+        Behavior on color { CAnim {} }
 
         Row {
             anchors.centerIn: parent

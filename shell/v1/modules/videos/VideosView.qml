@@ -1,5 +1,6 @@
 import QtQuick
 import qs.config
+import qs.components
 import qs.services
 
 // Video browser in the island, in the shape of the wallpaper switcher: every video under
@@ -77,9 +78,9 @@ Item {
         readonly property bool current: root.folder === value
         width: chipRow.implicitWidth + 22
         height: 28
-        radius: 14
+        radius: height / 2
         color: current ? Theme.wsActiveBg : chipMouse.containsMouse ? Theme.controlBg : Theme.tileBg
-        Behavior on color { ColorAnimation { duration: 140 } }
+        Behavior on color { CAnim { duration: Tokens.duration.fade } }
 
         Row {
             id: chipRow
@@ -116,7 +117,7 @@ Item {
         id: search
         width: parent.width
         height: 48
-        radius: 18
+        radius: Tokens.radius.field
         color: Theme.tileBg
 
         Canvas {
@@ -272,14 +273,14 @@ Item {
             Rectangle {
                 anchors.fill: parent
                 anchors.margins: 5
-                radius: 14
+                radius: Tokens.radius.chip
                 color: cell.isSelected ? Theme.tileHover : Theme.tileBg
                 scale: cellMouse.pressed ? 0.97 : 1
                 border.width: 2
                 border.color: cell.isSelected ? Theme.textPrimary : cell.isPlaying ? Theme.accent : "transparent"
-                Behavior on scale { NumberAnimation { duration: 130; easing.type: Easing.OutCubic } }
-                Behavior on color { ColorAnimation { duration: 120 } }
-                Behavior on border.color { ColorAnimation { duration: 140 } }
+                Behavior on scale { Anim { duration: Tokens.duration.press } }
+                Behavior on color { CAnim {} }
+                Behavior on border.color { CAnim { duration: Tokens.duration.fade } }
 
                 Rectangle {
                     id: preview
@@ -288,7 +289,7 @@ Item {
                     anchors.top: parent.top
                     anchors.margins: 4
                     height: width * 0.5625
-                    radius: 10
+                    radius: Tokens.radius.small
                     color: Theme.controlBg
                     clip: true
 
@@ -304,7 +305,7 @@ Item {
                         asynchronous: true
                         smooth: true
                         opacity: status === Image.Ready ? 1 : 0
-                        Behavior on opacity { NumberAnimation { duration: 200 } }
+                        Behavior on opacity { Anim {} }
                     }
 
                     // Play mark while the poster frame is still being made
@@ -335,7 +336,7 @@ Item {
                         anchors.margins: 6
                         width: durationText.implicitWidth + 12
                         height: 18
-                        radius: 9
+                        radius: height / 2
                         visible: cell.modelData.duration > 0
                         color: Qt.alpha("#000000", 0.65)
 

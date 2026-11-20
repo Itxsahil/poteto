@@ -48,7 +48,7 @@ Item {
                 id: badge
                 width: 40
                 height: 40
-                radius: 20
+                radius: height / 2
                 anchors.left: parent.left
                 color: Theme.danger
 
@@ -56,7 +56,7 @@ Item {
                     anchors.centerIn: parent
                     width: 12
                     height: 12
-                    radius: 6
+                    radius: height / 2
                     color: Theme.islandBg
                 }
             }
@@ -106,7 +106,7 @@ Item {
         Rectangle {
             width: parent.width
             height: 44
-            radius: 14
+            radius: Tokens.radius.chip
             color: Theme.tileBg
             border.width: 1
             border.color: input.activeFocus ? Theme.accent : "transparent"

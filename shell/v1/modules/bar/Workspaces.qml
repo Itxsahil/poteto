@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Hyprland
 import qs.config
+import qs.components
 import qs.services
 
 Rectangle {
@@ -33,7 +34,7 @@ Rectangle {
     border.color: Theme.islandBorder
     border.width: 1
 
-    Behavior on implicitWidth { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
+    Behavior on implicitWidth { Anim { duration: Tokens.duration.page } }
 
     WheelHandler {
         property real accumulated: 0
@@ -75,8 +76,8 @@ Rectangle {
                     : slotMouse.containsMouse ? Theme.wsHoverBg
                     : "transparent"
 
-                Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
-                Behavior on color { ColorAnimation { duration: 200 } }
+                Behavior on width { Anim { duration: Tokens.duration.page } }
+                Behavior on color { CAnim { duration: Tokens.duration.view } }
 
                 Text {
                     anchors.centerIn: parent
@@ -92,7 +93,7 @@ Rectangle {
                     font.pixelSize: 13
                     font.weight: slot.isActive ? Font.Bold : Font.Medium
                     font.family: Theme.fontFamily
-                    Behavior on color { ColorAnimation { duration: 200 } }
+                    Behavior on color { CAnim { duration: Tokens.duration.view } }
                 }
 
                 MouseArea {

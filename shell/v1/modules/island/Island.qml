@@ -161,7 +161,7 @@ PanelWindow {
         anchors.topMargin: root.topGap
         opacity: hidden ? 0 : 1
         visible: opacity > 0
-        Behavior on opacity { NumberAnimation { duration: 150 } }
+        Behavior on opacity { Anim { duration: Tokens.duration.fade } }
         width: viewItem ? viewItem.implicitWidth + 24
             : showPanel ? controlCenter.implicitWidth + 40
             : showOsd ? osd.implicitWidth + 40
@@ -169,15 +169,15 @@ PanelWindow {
         height: viewItem ? viewItem.implicitHeight + 24
             : showPanel ? controlCenter.implicitHeight + 40
             : root.pillHeight
-        radius: viewOpen ? 30 : showPanel ? 32 : height / 2
+        radius: viewOpen || showPanel ? Tokens.radius.panel : height / 2
         color: Theme.islandBg
         border.color: Theme.islandBorder
         border.width: 1
         clip: true
 
-        Behavior on width { NumberAnimation { duration: 380; easing.type: Easing.OutBack; easing.overshoot: 1.2 } }
-        Behavior on height { NumberAnimation { duration: 380; easing.type: Easing.OutBack; easing.overshoot: 1.2 } }
-        Behavior on radius { NumberAnimation { duration: 300 } }
+        Behavior on width { Anim { duration: Tokens.duration.morph; easing.type: Tokens.easing.morph; easing.overshoot: Tokens.easing.morphOvershoot } }
+        Behavior on height { Anim { duration: Tokens.duration.morph; easing.type: Tokens.easing.morph; easing.overshoot: Tokens.easing.morphOvershoot } }
+        Behavior on radius { Anim { duration: Tokens.duration.page } }
 
         HoverHandler {
             // Bar mode opens the panel with a click instead, so a stray pointer cannot trip it
@@ -247,7 +247,7 @@ PanelWindow {
             clockOnly: true
             opacity: pill.showPanel || pill.showOsd || pill.viewOpen ? 0 : 1
             visible: opacity > 0
-            Behavior on opacity { NumberAnimation { duration: 150 } }
+            Behavior on opacity { Anim { duration: Tokens.duration.fade } }
         }
 
         IslandOsd {
@@ -267,7 +267,7 @@ PanelWindow {
             date: clock.date
             opacity: pill.showPanel ? 1 : 0
             visible: opacity > 0
-            Behavior on opacity { NumberAnimation { duration: 250 } }
+            Behavior on opacity { Anim {} }
         }
 
         Launcher {
@@ -278,7 +278,7 @@ PanelWindow {
             active: pill.view === "launcher"
             opacity: active ? 1 : 0
             visible: opacity > 0
-            Behavior on opacity { NumberAnimation { duration: 200 } }
+            Behavior on opacity { Anim {} }
             onCloseRequested: ShellState.close()
         }
 
@@ -290,7 +290,7 @@ PanelWindow {
             active: pill.view === "clipboard"
             opacity: active ? 1 : 0
             visible: opacity > 0
-            Behavior on opacity { NumberAnimation { duration: 200 } }
+            Behavior on opacity { Anim {} }
             onCloseRequested: ShellState.close()
         }
 
@@ -302,7 +302,7 @@ PanelWindow {
             active: pill.view === "recordname"
             opacity: active ? 1 : 0
             visible: opacity > 0
-            Behavior on opacity { NumberAnimation { duration: 200 } }
+            Behavior on opacity { Anim {} }
             onCloseRequested: ShellState.close("recordname")
         }
 
@@ -314,7 +314,7 @@ PanelWindow {
             active: pill.view === "emoji"
             opacity: active ? 1 : 0
             visible: opacity > 0
-            Behavior on opacity { NumberAnimation { duration: 200 } }
+            Behavior on opacity { Anim {} }
             onCloseRequested: ShellState.close()
         }
 
@@ -326,7 +326,7 @@ PanelWindow {
             active: pill.view === "power"
             opacity: active ? 1 : 0
             visible: opacity > 0
-            Behavior on opacity { NumberAnimation { duration: 200 } }
+            Behavior on opacity { Anim {} }
             onCloseRequested: ShellState.close()
         }
 
@@ -338,7 +338,7 @@ PanelWindow {
             active: pill.view === "themes"
             opacity: active ? 1 : 0
             visible: opacity > 0
-            Behavior on opacity { NumberAnimation { duration: 200 } }
+            Behavior on opacity { Anim {} }
             onCloseRequested: ShellState.close()
         }
 
@@ -350,7 +350,7 @@ PanelWindow {
             active: pill.view === "keybinds"
             opacity: active ? 1 : 0
             visible: opacity > 0
-            Behavior on opacity { NumberAnimation { duration: 200 } }
+            Behavior on opacity { Anim {} }
             onCloseRequested: ShellState.close("keybinds")
         }
 
@@ -364,7 +364,7 @@ PanelWindow {
             active: pill.view === "media"
             opacity: active ? 1 : 0
             visible: opacity > 0
-            Behavior on opacity { NumberAnimation { duration: 200 } }
+            Behavior on opacity { Anim {} }
             onCloseRequested: ShellState.close("media")
         }
 
@@ -377,7 +377,7 @@ PanelWindow {
             active: pill.view === "performance"
             opacity: active ? 1 : 0
             visible: opacity > 0
-            Behavior on opacity { NumberAnimation { duration: 200 } }
+            Behavior on opacity { Anim {} }
             onCloseRequested: ShellState.close("performance")
         }
 
@@ -389,7 +389,7 @@ PanelWindow {
             active: pill.view === "videos"
             opacity: active ? 1 : 0
             visible: opacity > 0
-            Behavior on opacity { NumberAnimation { duration: 200 } }
+            Behavior on opacity { Anim {} }
             onCloseRequested: ShellState.close("videos")
         }
 
@@ -401,7 +401,7 @@ PanelWindow {
             active: pill.view === "camera"
             opacity: active ? 1 : 0
             visible: opacity > 0
-            Behavior on opacity { NumberAnimation { duration: 200 } }
+            Behavior on opacity { Anim {} }
             onCloseRequested: ShellState.close("camera")
         }
 
@@ -413,7 +413,7 @@ PanelWindow {
             active: pill.view === "logintheme"
             opacity: active ? 1 : 0
             visible: opacity > 0
-            Behavior on opacity { NumberAnimation { duration: 200 } }
+            Behavior on opacity { Anim {} }
             onCloseRequested: ShellState.close("logintheme")
         }
 
@@ -425,7 +425,7 @@ PanelWindow {
             active: pill.view === "loginvideo"
             opacity: active ? 1 : 0
             visible: opacity > 0
-            Behavior on opacity { NumberAnimation { duration: 200 } }
+            Behavior on opacity { Anim {} }
             onCloseRequested: ShellState.close("loginvideo")
         }
 
@@ -437,7 +437,7 @@ PanelWindow {
             active: pill.view === "polkit"
             opacity: active ? 1 : 0
             visible: opacity > 0
-            Behavior on opacity { NumberAnimation { duration: 200 } }
+            Behavior on opacity { Anim {} }
             onCloseRequested: ShellState.close("polkit")
         }
 
@@ -449,7 +449,7 @@ PanelWindow {
             active: pill.view === "wallpaper"
             opacity: active ? 1 : 0
             visible: opacity > 0
-            Behavior on opacity { NumberAnimation { duration: 200 } }
+            Behavior on opacity { Anim {} }
             onCloseRequested: ShellState.close()
         }
     }

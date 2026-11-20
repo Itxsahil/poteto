@@ -118,7 +118,7 @@ Item {
         height: lineHeight + (expanded ? actions.height + 12 : 0)
         clip: true
 
-        Behavior on height { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
+        Behavior on height { Anim {} }
 
         onIsConnectingChanged: {
             if (isConnecting) {
@@ -156,9 +156,9 @@ Item {
             y: 4
             width: parent.width - 8
             height: parent.height - 8
-            radius: 12
+            radius: Tokens.radius.row
             color: row.expanded || rowMouse.containsMouse ? Theme.tileHover : "transparent"
-            Behavior on color { ColorAnimation { duration: 120 } }
+            Behavior on color { CAnim {} }
         }
 
         MouseArea {
@@ -184,7 +184,7 @@ Item {
             y: row.lineHeight / 2 - height / 2
             width: 28
             height: 28
-            radius: 14
+            radius: height / 2
             // A tint rather than a solid color, so it still shows on the hover/expanded highlight
             color: Qt.alpha(Theme.textPrimary, 0.09)
 
@@ -255,7 +255,7 @@ Item {
             spacing: 8
             opacity: row.expanded ? 1 : 0
             visible: opacity > 0
-            Behavior on opacity { NumberAnimation { duration: 180 } }
+            Behavior on opacity { Anim {} }
 
             PillButton {
                 text: row.isConnecting ? "Connecting…" : "Connect"
@@ -287,13 +287,13 @@ Item {
 
         width: parent.width
         height: 68 + (expanded ? cardActions.height + 12 : 0)
-        radius: 18
+        radius: Tokens.radius.field
         color: Qt.alpha(Theme.accent, cardMouse.containsMouse || expanded ? 0.2 : 0.14)
         border.width: 1
         border.color: Qt.alpha(Theme.accent, 0.3)
         clip: true
-        Behavior on height { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
-        Behavior on color { ColorAnimation { duration: 120 } }
+        Behavior on height { Anim {} }
+        Behavior on color { CAnim {} }
 
         MouseArea {
             id: cardMouse
@@ -310,7 +310,7 @@ Item {
             y: 14
             width: 40
             height: 40
-            radius: 20
+            radius: height / 2
             color: Theme.accent
 
             DeviceIcon {
@@ -372,7 +372,7 @@ Item {
                 color: Theme.textSecondary
                 font.pixelSize: 20
                 font.family: Theme.fontFamily
-                Behavior on rotation { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+                Behavior on rotation { Anim {} }
             }
         }
 
@@ -383,7 +383,7 @@ Item {
             spacing: 8
             opacity: card.expanded ? 1 : 0
             visible: opacity > 0
-            Behavior on opacity { NumberAnimation { duration: 180 } }
+            Behavior on opacity { Anim {} }
 
             PillButton {
                 text: "Disconnect"
@@ -410,7 +410,7 @@ Item {
         default property alias extra: rows.data
         width: parent.width
         height: rows.height
-        radius: 18
+        radius: Tokens.radius.field
         color: Theme.tileBg
 
         Column {
@@ -494,7 +494,7 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             width: 56
             height: 56
-            radius: 28
+            radius: height / 2
             color: Theme.tileBg
 
             BluetoothIcon {

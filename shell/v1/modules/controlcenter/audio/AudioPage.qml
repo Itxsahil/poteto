@@ -47,12 +47,12 @@ Item {
 
         width: parent.width
         height: 48
-        radius: 14
+        radius: Tokens.radius.chip
         color: active ? Qt.alpha(Theme.accent, 0.16)
             : mouse.containsMouse && available ? Theme.tileHover
             : Theme.tileBg
         opacity: available ? 1 : 0.55
-        Behavior on color { ColorAnimation { duration: 120 } }
+        Behavior on color { CAnim {} }
 
         Rectangle {
             id: badge
@@ -61,7 +61,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             width: 32
             height: 32
-            radius: 16
+            radius: height / 2
             color: row.active ? Theme.accent : Theme.controlBg
 
             Text {

@@ -98,11 +98,11 @@ PanelWindow {
             anchors.centerIn: parent
             width: time.implicitWidth + 20
             height: Layout.barHeight - 6
-            radius: 6
+            radius: Tokens.radius.tiny
             color: ShellState.panel ? Theme.controlBg
                 : timeMouse.containsMouse ? Theme.wsHoverBg
                 : "transparent"
-            Behavior on color { ColorAnimation { duration: 120 } }
+            Behavior on color { CAnim {} }
 
             Text {
                 id: time
@@ -216,13 +216,13 @@ PanelWindow {
         anchors.rightMargin: 12
         width: panel.implicitWidth + 32
         height: panel.implicitHeight + 28
-        radius: 26
+        radius: Tokens.radius.panel
         color: Theme.islandBg
         border.color: Theme.islandBorder
         border.width: 1
         opacity: root.showMedia ? 1 : 0
         visible: opacity > 0
-        Behavior on opacity { NumberAnimation { duration: 180 } }
+        Behavior on opacity { Anim {} }
 
         HoverHandler {
             onHoveredChanged: {

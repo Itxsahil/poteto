@@ -1,5 +1,6 @@
 import QtQuick
 import qs.config
+import qs.components
 import qs.services
 
 // The media controls that the status pill grows into on hover: album art, the track,
@@ -37,7 +38,7 @@ Item {
             color: button.kind === "play" ? Theme.accent
                 : mouse.containsMouse ? Theme.controlBg
                 : "transparent"
-            Behavior on color { ColorAnimation { duration: 120 } }
+            Behavior on color { CAnim {} }
         }
 
         Canvas {
@@ -165,7 +166,7 @@ Item {
         height: 96
         anchors.left: parent.left
         anchors.top: parent.top
-        radius: 16
+        radius: Tokens.radius.button
         color: Theme.controlBg
         clip: true
 
@@ -265,7 +266,7 @@ Item {
             height: seekMouse.containsMouse || seekMouse.pressed ? 6 : 4
             radius: height / 2
             color: Theme.controlBg
-            Behavior on height { NumberAnimation { duration: 120 } }
+            Behavior on height { Anim { duration: Tokens.duration.press } }
 
             Rectangle {
                 width: parent.width * seek.ratio
@@ -281,7 +282,7 @@ Item {
                 height: width
                 radius: width / 2
                 color: Theme.accent
-                Behavior on width { NumberAnimation { duration: 120 } }
+                Behavior on width { Anim { duration: Tokens.duration.press } }
             }
         }
 
@@ -431,7 +432,7 @@ Item {
             height: volume.engaged ? 6 : 4
             radius: height / 2
             color: Theme.controlBg
-            Behavior on height { NumberAnimation { duration: 120 } }
+            Behavior on height { Anim { duration: Tokens.duration.press } }
 
             Rectangle {
                 width: parent.width * volume.ratio
@@ -447,7 +448,7 @@ Item {
                 height: width
                 radius: width / 2
                 color: Theme.textPrimary
-                Behavior on width { NumberAnimation { duration: 120 } }
+                Behavior on width { Anim { duration: Tokens.duration.press } }
             }
 
             MouseArea {

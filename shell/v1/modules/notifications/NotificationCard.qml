@@ -19,7 +19,7 @@ Rectangle {
     signal timedOut()
 
     implicitHeight: content.implicitHeight + 28
-    radius: 20
+    radius: Tokens.radius.card
     color: popup ? Theme.islandBg : Theme.tileBg
     border.width: 1
     // Critical gets a small red dot by the app name, not a red border around the whole card:
@@ -117,7 +117,7 @@ Rectangle {
 
             Rectangle {
                 anchors.fill: parent
-                radius: 12
+                radius: Tokens.radius.row
                 color: Theme.controlBg
                 clip: true
 
@@ -149,7 +149,7 @@ Rectangle {
                 anchors.margins: -3
                 width: 18
                 height: 18
-                radius: 9
+                radius: height / 2
                 color: root.popup ? Theme.islandBg : Theme.tileBg
                 visible: badge.status === Image.Ready && root.notification.image !== ""
 
@@ -180,7 +180,7 @@ Rectangle {
                     anchors.verticalCenter: parent.verticalCenter
                     width: 6
                     height: 6
-                    radius: 3
+                    radius: height / 2
                     color: Theme.danger
                     visible: root.critical
                 }
@@ -216,11 +216,11 @@ Rectangle {
                     Rectangle {
                         width: 20
                         height: 20
-                        radius: 10
+                        radius: height / 2
                         anchors.verticalCenter: parent.verticalCenter
                         color: closeMouse.containsMouse ? Theme.controlHover : Theme.controlBg
                         opacity: root.hovered || !root.popup ? 1 : 0
-                        Behavior on opacity { NumberAnimation { duration: 120 } }
+                        Behavior on opacity { Anim { duration: Tokens.duration.press } }
 
                         Text {
                             anchors.centerIn: parent

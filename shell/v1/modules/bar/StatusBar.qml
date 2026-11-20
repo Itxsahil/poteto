@@ -81,7 +81,7 @@ PanelWindow {
         border.width: 1
         opacity: recordingWidget.shown ? 1 : 0
         visible: opacity > 0
-        Behavior on opacity { NumberAnimation { duration: 180 } }
+        Behavior on opacity { Anim {} }
 
         RecordingWidget {
             id: recordingWidget
@@ -107,15 +107,15 @@ PanelWindow {
         anchors.topMargin: root.gapTop
         width: showMedia ? media.implicitWidth + 32 : content.implicitWidth + 24
         height: showMedia ? media.implicitHeight + 28 : Layout.pillHeight
-        radius: showMedia ? 26 : height / 2
+        radius: showMedia ? Tokens.radius.panel : height / 2
         color: Theme.islandBg
         border.color: Theme.islandBorder
         border.width: 1
         clip: true
 
-        Behavior on width { NumberAnimation { duration: 320; easing.type: Easing.OutCubic } }
-        Behavior on height { NumberAnimation { duration: 320; easing.type: Easing.OutCubic } }
-        Behavior on radius { NumberAnimation { duration: 250 } }
+        Behavior on width { Anim { duration: Tokens.duration.page } }
+        Behavior on height { Anim { duration: Tokens.duration.page } }
+        Behavior on radius { Anim {} }
 
         HoverHandler {
             onHoveredChanged: {
@@ -144,7 +144,7 @@ PanelWindow {
             spacing: 10
             opacity: pill.showMedia ? 0 : 1
             visible: opacity > 0
-            Behavior on opacity { NumberAnimation { duration: 150 } }
+            Behavior on opacity { Anim { duration: Tokens.duration.fade } }
 
             MpdWidget {
                 id: mpd
@@ -172,7 +172,7 @@ PanelWindow {
             height: implicitHeight
             opacity: pill.showMedia ? 1 : 0
             visible: opacity > 0
-            Behavior on opacity { NumberAnimation { duration: 200 } }
+            Behavior on opacity { Anim {} }
         }
     }
 }

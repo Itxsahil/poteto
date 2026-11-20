@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell.Io
 import qs.config
+import qs.components
 import qs.services
 
 Item {
@@ -107,9 +108,9 @@ Item {
         readonly property bool selected: root.filter === value
         width: chipText.implicitWidth + 22
         height: 28
-        radius: 14
+        radius: height / 2
         color: selected ? Theme.wsActiveBg : chipMouse.containsMouse ? Theme.controlBg : Theme.tileBg
-        Behavior on color { ColorAnimation { duration: 140 } }
+        Behavior on color { CAnim { duration: Tokens.duration.fade } }
 
         Text {
             id: chipText
@@ -138,7 +139,7 @@ Item {
         id: search
         width: parent.width
         height: 48
-        radius: 18
+        radius: Tokens.radius.field
         color: Theme.tileBg
 
         Canvas {
@@ -286,14 +287,14 @@ Item {
 
                 width: ListView.view.width
                 height: modelData.isImage ? 64 : 44
-                radius: 12
+                radius: Tokens.radius.row
                 color: isSelected ? Theme.tileHover : rowMouse.containsMouse ? Qt.alpha(Theme.tileHover, 0.5) : "transparent"
-                Behavior on color { ColorAnimation { duration: 90 } }
+                Behavior on color { CAnim {} }
 
                 Rectangle {
                     width: 3
                     height: parent.height - 20
-                    radius: 1.5
+                    radius: width / 2
                     anchors.left: parent.left
                     anchors.leftMargin: 4
                     anchors.verticalCenter: parent.verticalCenter
@@ -306,7 +307,7 @@ Item {
                     visible: row.modelData.isImage
                     width: 72
                     height: 48
-                    radius: 8
+                    radius: Tokens.radius.tiny
                     anchors.left: parent.left
                     anchors.leftMargin: 14
                     anchors.verticalCenter: parent.verticalCenter
@@ -367,7 +368,7 @@ Item {
             anchors.leftMargin: 10
             anchors.right: parent.right
             height: parent.height
-            radius: 18
+            radius: Tokens.radius.field
             color: Theme.tileBg
             clip: true
             visible: root.current !== null
@@ -454,10 +455,10 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             width: wipeText.implicitWidth + 22
             height: 26
-            radius: 13
+            radius: height / 2
             color: root.confirmWipe ? Theme.danger : wipeMouse.containsMouse ? Theme.controlBg : "transparent"
             visible: Clipboard.entries.length > 0
-            Behavior on color { ColorAnimation { duration: 140 } }
+            Behavior on color { CAnim { duration: Tokens.duration.fade } }
 
             Text {
                 id: wipeText

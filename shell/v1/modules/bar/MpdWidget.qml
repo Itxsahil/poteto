@@ -1,5 +1,6 @@
 import QtQuick
 import qs.config
+import qs.components
 import qs.services
 
 Item {
@@ -31,7 +32,7 @@ Item {
             width: Mpd.playing ? Cava.barCount * 3 + (Cava.barCount - 1) * 2 : 12
             height: 18
             clip: true
-            Behavior on width { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+            Behavior on width { Anim {} }
             anchors.verticalCenter: parent.verticalCenter
 
             // Bars while playing; paused, only the play glyph (what a click does), not a row of
@@ -40,7 +41,7 @@ Item {
                 anchors.bottom: parent.bottom
                 spacing: 2
                 opacity: Mpd.playing ? 1 : 0
-                Behavior on opacity { NumberAnimation { duration: 200 } }
+                Behavior on opacity { Anim {} }
 
                 Repeater {
                     model: Cava.barCount
@@ -50,7 +51,7 @@ Item {
                         anchors.bottom: parent.bottom
                         width: 3
                         height: Math.max(3, visualizer.height * (Cava.bars[index] ?? 0))
-                        radius: 1.5
+                        radius: width / 2
                         color: Theme.accent
                         Behavior on height { NumberAnimation { duration: 70 } }
                     }
@@ -60,7 +61,7 @@ Item {
             Text {
                 anchors.centerIn: parent
                 opacity: Mpd.playing ? 0 : 1
-                Behavior on opacity { NumberAnimation { duration: 200 } }
+                Behavior on opacity { Anim {} }
                 text: "󰐊"
                 color: Theme.textPrimary
                 font.pixelSize: 15

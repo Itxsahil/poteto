@@ -103,12 +103,12 @@ PanelWindow {
         color: "transparent"
         border.color: Theme.screenshotBorder
         border.width: 2
-        radius: Screenshot.mode === "window" ? 10 : 2
+        radius: Screenshot.mode === "window" ? Tokens.radius.small : 2
 
-        Behavior on x { enabled: Screenshot.mode === "window"; NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
-        Behavior on y { enabled: Screenshot.mode === "window"; NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
-        Behavior on width { enabled: Screenshot.mode === "window"; NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
-        Behavior on height { enabled: Screenshot.mode === "window"; NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+        Behavior on x { enabled: Screenshot.mode === "window"; Anim { duration: Tokens.duration.press } }
+        Behavior on y { enabled: Screenshot.mode === "window"; Anim { duration: Tokens.duration.press } }
+        Behavior on width { enabled: Screenshot.mode === "window"; Anim { duration: Tokens.duration.press } }
+        Behavior on height { enabled: Screenshot.mode === "window"; Anim { duration: Tokens.duration.press } }
 
         Repeater {
             model: Screenshot.mode === "region" ? [[0, 0], [1, 0], [0, 1], [1, 1]] : []
@@ -117,7 +117,7 @@ PanelWindow {
                 required property var modelData
                 width: 10
                 height: 10
-                radius: 5
+                radius: height / 2
                 color: Theme.screenshotBorder
                 x: modelData[0] * selection.width - width / 2
                 y: modelData[1] * selection.height - height / 2
@@ -133,7 +133,7 @@ PanelWindow {
         y: below ? root.ry + root.rh + 10 : Math.max(8, root.ry - height - 10)
         width: labelText.implicitWidth + 20
         height: 26
-        radius: 13
+        radius: height / 2
         color: Theme.islandBg
         border.color: Theme.islandBorder
 
@@ -227,11 +227,11 @@ PanelWindow {
         anchors.topMargin: 14
         width: toolRow.implicitWidth + 12
         height: 44
-        radius: 22
+        radius: height / 2
         color: Theme.islandBg
         border.color: Theme.islandBorder
         opacity: root.dragging ? 0.25 : 1
-        Behavior on opacity { NumberAnimation { duration: 150 } }
+        Behavior on opacity { Anim { duration: Tokens.duration.fade } }
 
         Row {
             id: toolRow
@@ -252,9 +252,9 @@ PanelWindow {
 
                     width: btnRow.implicitWidth + 26
                     height: 32
-                    radius: 16
+                    radius: height / 2
                     color: selected ? Theme.wsActiveBg : btnMouse.containsMouse ? Theme.controlBg : "transparent"
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    Behavior on color { CAnim { duration: Tokens.duration.fade } }
 
                     Row {
                         id: btnRow
@@ -332,7 +332,7 @@ PanelWindow {
             Rectangle {
                 width: 32
                 height: 32
-                radius: 16
+                radius: height / 2
                 color: closeMouse.containsMouse ? Theme.controlBg : "transparent"
 
                 Text {
@@ -360,11 +360,11 @@ PanelWindow {
         anchors.bottomMargin: 24
         width: hint.implicitWidth + 28
         height: 30
-        radius: 15
+        radius: height / 2
         color: Theme.islandBg
         border.color: Theme.islandBorder
         opacity: root.dragging ? 0 : 0.9
-        Behavior on opacity { NumberAnimation { duration: 150 } }
+        Behavior on opacity { Anim { duration: Tokens.duration.fade } }
 
         Text {
             id: hint

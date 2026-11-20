@@ -1,5 +1,6 @@
 import QtQuick
 import qs.config
+import qs.components
 import qs.services
 
 Item {
@@ -21,7 +22,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             width: 9
             height: 9
-            radius: 4.5
+            radius: height / 2
             color: Theme.danger
 
             SequentialAnimation on opacity {
@@ -46,10 +47,10 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             width: 22
             height: 22
-            radius: 11
+            radius: height / 2
             visible: Recorder.recording
             color: stopMouse.containsMouse ? Theme.danger : Theme.controlBg
-            Behavior on color { ColorAnimation { duration: 120 } }
+            Behavior on color { CAnim {} }
 
             Rectangle {
                 anchors.centerIn: parent

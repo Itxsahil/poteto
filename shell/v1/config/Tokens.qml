@@ -36,6 +36,9 @@ Singleton {
         readonly property real card: 20 * scale
         // control center tiles, the screenshot and recorder toolbars (Tile)
         readonly property real tile: 22 * scale
+        // large surfaces: the island's open views and control center, the bar's drop-down panel,
+        // the music pill opened into its panel
+        readonly property real panel: 30 * scale
     }
 
     // Animation lengths in milliseconds. scale slows everything down (1.5) or speeds it up (0.7).

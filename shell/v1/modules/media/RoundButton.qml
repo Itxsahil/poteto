@@ -1,5 +1,6 @@
 import QtQuick
 import qs.config
+import qs.components
 
 // A round icon button: a quick toggle at the top of the control center, a session or transport
 // button at the bottom, the header buttons of a page
@@ -25,8 +26,8 @@ Rectangle {
         : flat ? (mouse.containsMouse ? Theme.tileBg : "transparent")
         : mouse.containsMouse ? Theme.tileHover : Theme.tileBg
     scale: mouse.pressed ? 0.92 : 1
-    Behavior on color { ColorAnimation { duration: 140 } }
-    Behavior on scale { NumberAnimation { duration: 90 } }
+    Behavior on color { CAnim { duration: Tokens.duration.fade } }
+    Behavior on scale { Anim { duration: Tokens.duration.press } }
 
     Text {
         anchors.centerIn: parent

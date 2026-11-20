@@ -53,8 +53,9 @@ The repo is grouped by role. Moving a top-level folder breaks symlinks in `$HOME
   apply and on every wallpaper change while active; a new per-app file needs a line there too.
 - Sizes and timings come from `config/Tokens.qml` by role (`Tokens.radius.row`, `Tokens.duration.view`),
   never new literals; animate with `components/Anim.qml` / `CAnim.qml` (`Behavior on x { Anim {} }`).
-  Spinner loops, half-height pills (`height / 2`) and drawn icons stay literal. Modules still being
-  converted keep their numbers until their turn (docs/plan.txt, Phase 3).
+  Circles and pills are `height / 2` (or `width / 2`). Only functional timings and drawn shapes stay
+  literal: spinner and pulse loops, the polkit shake, the camera flash, the visualizer bars, icon
+  corners of a few pixels.
 - Theme colors in `config/Theme.qml` fade (`Behavior` + `Theme.fade`); `Theme.preview` holds the
   theme picker's preview. Read colors through `Theme`, never from `colors.json` directly.
 - User settings live in `~/.config/poteto/shell.json`, read and written only by `config/Settings.qml`

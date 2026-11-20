@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import "../../utils/Calc.js" as Calc
 import qs.config
+import qs.components
 import qs.services
 
 Item {
@@ -120,7 +121,7 @@ Item {
         id: search
         width: parent.width
         height: 48
-        radius: 18
+        radius: Tokens.radius.field
         color: Theme.tileBg
 
         Canvas {
@@ -210,12 +211,12 @@ Item {
         anchors.topMargin: 10
         width: parent.width
         height: 68
-        radius: 18
+        radius: Tokens.radius.field
         visible: root.calc !== null
         color: isSelected ? Theme.tileHover : Theme.tileBg
         border.width: 1
         border.color: isSelected ? Theme.accent : "transparent"
-        Behavior on color { ColorAnimation { duration: 90 } }
+        Behavior on color { CAnim {} }
 
         property var shown: null
         Connections {
@@ -227,7 +228,7 @@ Item {
             id: calcBadge
             width: 36
             height: 36
-            radius: 18
+            radius: height / 2
             anchors.left: parent.left
             anchors.leftMargin: 16
             anchors.verticalCenter: parent.verticalCenter
@@ -300,18 +301,18 @@ Item {
         anchors.topMargin: 10
         width: parent.width
         height: 52
-        radius: 18
+        radius: Tokens.radius.field
         visible: root.wantsKeys
         color: isSelected ? Theme.tileHover : Theme.tileBg
         border.width: 1
         border.color: isSelected ? Theme.accent : "transparent"
-        Behavior on color { ColorAnimation { duration: 90 } }
+        Behavior on color { CAnim {} }
 
         Rectangle {
             id: keysBadge
             width: 36
             height: 36
-            radius: 12
+            radius: Tokens.radius.row
             anchors.left: parent.left
             anchors.leftMargin: 16
             anchors.verticalCenter: parent.verticalCenter
@@ -375,7 +376,7 @@ Item {
         anchors.topMargin: 10
         width: parent.width
         height: root.results.length === 0 ? (root.calc ? 0 : 70) : Math.min(root.results.length, root.maxRows) * (root.rowHeight + list.spacing) - list.spacing
-        Behavior on height { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+        Behavior on height { Anim {} }
 
         Text {
             anchors.centerIn: parent
@@ -405,20 +406,20 @@ Item {
 
                 width: ListView.view.width
                 height: root.rowHeight
-                radius: 14
+                radius: Tokens.radius.chip
                 color: isSelected ? Theme.tileHover : "transparent"
-                Behavior on color { ColorAnimation { duration: 90 } }
+                Behavior on color { CAnim {} }
 
                 Rectangle {
                     width: 3
                     height: 20
-                    radius: 1.5
+                    radius: width / 2
                     anchors.left: parent.left
                     anchors.leftMargin: 4
                     anchors.verticalCenter: parent.verticalCenter
                     color: Theme.accent
                     opacity: row.isSelected ? 1 : 0
-                    Behavior on opacity { NumberAnimation { duration: 90 } }
+                    Behavior on opacity { Anim { duration: Tokens.duration.press } }
                 }
 
                 Item {
@@ -441,7 +442,7 @@ Item {
 
                     Rectangle {
                         anchors.fill: parent
-                        radius: 9
+                        radius: Tokens.radius.small
                         color: Theme.controlBg
                         visible: iconImage.status !== Image.Ready
 

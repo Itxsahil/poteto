@@ -331,7 +331,7 @@ PHASE 3 — DESIGN SYSTEM (about 1 week)
       Optionally read overrides from ~/.config/poteto/tokens.json.
   3.2 [done] components/Anim.qml and CAnim.qml (Number/ColorAnimation with a `type` that picks a
       token).
-  3.3 [started: modules/wallpaper done] Replace v1's ~172 duration and ~132 radius literals, one module per commit.
+  3.3 [done 2026-11-20: every module; ~20 functional timings and drawn shapes stay literal] Replace v1's ~172 duration and ~132 radius literals, one module per commit.
       Grep for them: `grep -rnE 'duration: *[0-9]+|radius: *[0-9]+' quickshell/`.
   3.4 Base components, extracted from what modules already draw inline:
       - StyledRect and StyledText (Theme colors, animated color);

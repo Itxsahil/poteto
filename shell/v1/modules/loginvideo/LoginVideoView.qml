@@ -53,7 +53,7 @@ Item {
         id: search
         width: parent.width
         height: 48
-        radius: 18
+        radius: Tokens.radius.field
         color: Theme.tileBg
 
         TextInput {
@@ -159,16 +159,16 @@ Item {
             Rectangle {
                 anchors.fill: parent
                 anchors.margins: 5
-                radius: 14
+                radius: Tokens.radius.chip
                 color: cell.isSelected ? Theme.tileHover : Theme.tileBg
                 scale: cellMouse.pressed ? 0.97 : 1
                 border.width: 2
                 border.color: cell.isSelected ? Theme.textPrimary
                     : cell.isCurrent ? Theme.accent
                     : "transparent"
-                Behavior on scale { NumberAnimation { duration: 130; easing.type: Easing.OutCubic } }
-                Behavior on color { ColorAnimation { duration: 120 } }
-                Behavior on border.color { ColorAnimation { duration: 140 } }
+                Behavior on scale { Anim { duration: Tokens.duration.press } }
+                Behavior on color { CAnim {} }
+                Behavior on border.color { CAnim { duration: Tokens.duration.fade } }
 
                 Rectangle {
                     id: preview
@@ -177,7 +177,7 @@ Item {
                     anchors.top: parent.top
                     anchors.margins: 4
                     height: width * 0.5625
-                    radius: 10
+                    radius: Tokens.radius.small
                     color: Theme.controlBg
                     clip: true
 
@@ -193,7 +193,7 @@ Item {
                         asynchronous: true
                         smooth: true
                         opacity: status === Image.Ready ? 1 : 0
-                        Behavior on opacity { NumberAnimation { duration: 200 } }
+                        Behavior on opacity { Anim {} }
                     }
 
                     // While the poster frame is still being made, or the swap is running
@@ -211,7 +211,7 @@ Item {
                         anchors.margins: 6
                         width: currentLabel.implicitWidth + 14
                         height: 20
-                        radius: 10
+                        radius: height / 2
                         color: Theme.accent
                         visible: cell.isCurrent
 

@@ -15,7 +15,7 @@ Tile {
 
     padding: 12
     color: tileMouse.containsMouse ? Theme.tileHover : Theme.tileBg
-    Behavior on color { ColorAnimation { duration: 120 } }
+    Behavior on color { CAnim {} }
 
     MouseArea {
         id: tileMouse
@@ -30,14 +30,14 @@ Tile {
         id: badge
         width: 40
         height: 40
-        radius: 20
+        radius: height / 2
         anchors.left: parent.left
         anchors.verticalCenter: parent.verticalCenter
         color: root.active ? (badgeMouse.containsMouse ? Qt.lighter(Theme.accent, 1.12) : Theme.accent)
             : (badgeMouse.containsMouse ? Theme.controlHover : Theme.controlBg)
         scale: badgeMouse.pressed ? 0.92 : 1
-        Behavior on color { ColorAnimation { duration: 180 } }
-        Behavior on scale { NumberAnimation { duration: 100 } }
+        Behavior on color { CAnim { duration: Tokens.duration.view } }
+        Behavior on scale { Anim { duration: Tokens.duration.press } }
 
         Item {
             id: iconSlot

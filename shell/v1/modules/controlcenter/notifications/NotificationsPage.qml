@@ -90,7 +90,7 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             width: 56
             height: 56
-            radius: 28
+            radius: height / 2
             color: Theme.tileBg
 
             BellIcon {
@@ -133,10 +133,10 @@ Item {
         model: Notifications.history
 
         remove: Transition {
-            NumberAnimation { property: "opacity"; to: 0; duration: 160 }
+            Anim { property: "opacity"; to: 0; duration: Tokens.duration.fade }
         }
         displaced: Transition {
-            NumberAnimation { property: "y"; duration: 220; easing.type: Easing.OutCubic }
+            Anim { property: "y" }
         }
 
         delegate: NotificationCard {

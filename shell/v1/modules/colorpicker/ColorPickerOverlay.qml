@@ -146,7 +146,7 @@ PanelWindow {
             id: frame
             width: parent.width
             height: width
-            radius: 18
+            radius: Tokens.radius.field
             color: Theme.islandBg
             border.color: Theme.islandBorder
             border.width: 1
@@ -204,7 +204,7 @@ PanelWindow {
             anchors.horizontalCenter: frame.horizontalCenter
             width: infoRow.implicitWidth + 20
             height: 34
-            radius: 17
+            radius: height / 2
             color: Theme.islandBg
             border.color: Theme.islandBorder
 
@@ -217,7 +217,7 @@ PanelWindow {
                     anchors.verticalCenter: parent.verticalCenter
                     width: 18
                     height: 18
-                    radius: 9
+                    radius: height / 2
                     color: root.hex
                     border.width: 1
                     border.color: Qt.alpha(Theme.textPrimary, 0.3)
@@ -246,7 +246,7 @@ PanelWindow {
         anchors.topMargin: 14
         width: toolRow.implicitWidth + 12
         height: 44
-        radius: 22
+        radius: height / 2
         color: Theme.islandBg
         border.color: Theme.islandBorder
 
@@ -265,9 +265,9 @@ PanelWindow {
 
                     width: 52
                     height: 32
-                    radius: 16
+                    radius: height / 2
                     color: selected ? Theme.wsActiveBg : fmtMouse.containsMouse ? Theme.controlBg : "transparent"
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    Behavior on color { CAnim { duration: Tokens.duration.fade } }
 
                     Text {
                         anchors.centerIn: parent
@@ -308,7 +308,7 @@ PanelWindow {
                     anchors.verticalCenter: parent.verticalCenter
                     width: 26
                     height: 26
-                    radius: 13
+                    radius: height / 2
                     color: modelData
                     border.width: swatchMouse.containsMouse ? 2 : 1
                     border.color: swatchMouse.containsMouse ? Theme.textPrimary : Qt.alpha(Theme.textPrimary, 0.25)
@@ -337,7 +337,7 @@ PanelWindow {
             Rectangle {
                 width: 32
                 height: 32
-                radius: 16
+                radius: height / 2
                 color: closeMouse.containsMouse ? Theme.controlBg : "transparent"
 
                 Text {
@@ -365,7 +365,7 @@ PanelWindow {
         anchors.bottomMargin: 24
         width: hint.implicitWidth + 28
         height: 30
-        radius: 15
+        radius: height / 2
         color: Theme.islandBg
         border.color: Theme.islandBorder
         opacity: 0.9

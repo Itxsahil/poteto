@@ -86,7 +86,7 @@ Item {
         id: header
         width: parent.width
         height: 48
-        radius: 18
+        radius: Tokens.radius.field
         color: Theme.tileBg
 
         Text {
@@ -136,7 +136,7 @@ Item {
         width: parent.width
         height: visible ? setupText.implicitHeight + 20 : 0
         visible: LoginTheme.themesDir !== "" && !LoginTheme.helperInstalled
-        radius: 14
+        radius: Tokens.radius.chip
         color: Qt.alpha(Theme.danger, 0.12)
 
         Text {
@@ -211,14 +211,14 @@ Item {
 
             width: list.cardWidth
             height: list.height
-            radius: 16
+            radius: Tokens.radius.button
             color: Theme.tileBg
             border.width: 2
             border.color: isSelected ? Theme.accent : "transparent"
             opacity: isSelected ? 1 : 0.9 - 0.5 * distance
             scale: cardMouse.pressed ? 0.97 : 1
-            Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
-            Behavior on border.color { ColorAnimation { duration: 140 } }
+            Behavior on scale { Anim { duration: Tokens.duration.press } }
+            Behavior on border.color { CAnim { duration: Tokens.duration.fade } }
 
             // ClippingRectangle, unlike clip on a Rectangle, cuts the image to the rounded corners.
             ClippingRectangle {
@@ -228,7 +228,7 @@ Item {
                 anchors.top: parent.top
                 anchors.margins: 6
                 height: list.imageHeight
-                radius: 10
+                radius: Tokens.radius.small
                 color: Theme.controlBg
 
                 Image {
@@ -239,7 +239,7 @@ Item {
                     asynchronous: true
                     smooth: true
                     opacity: status === Image.Ready ? 1 : 0
-                    Behavior on opacity { NumberAnimation { duration: 200 } }
+                    Behavior on opacity { Anim {} }
                 }
 
                 Rectangle {
@@ -249,7 +249,7 @@ Item {
                     anchors.margins: 8
                     width: 22
                     height: 22
-                    radius: 11
+                    radius: height / 2
                     color: Theme.accent
 
                     CheckIcon {

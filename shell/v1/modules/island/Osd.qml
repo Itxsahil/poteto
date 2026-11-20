@@ -1,5 +1,6 @@
 import QtQuick
 import qs.config
+import qs.components
 
 Item {
     id: root
@@ -43,7 +44,7 @@ Item {
         anchors.rightMargin: 8
         anchors.verticalCenter: parent.verticalCenter
         height: 6
-        radius: 3
+        radius: height / 2
         color: Theme.controlBg
 
         Rectangle {
@@ -54,7 +55,7 @@ Item {
             radius: parent.radius
             color: Theme.controlFill
             opacity: root.dimmed ? 0.4 : 1
-            Behavior on width { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+            Behavior on width { Anim { duration: Tokens.duration.press } }
         }
 
         Rectangle {
@@ -66,7 +67,7 @@ Item {
             radius: parent.radius
             color: Theme.boost
             opacity: root.dimmed ? 0.4 : 1
-            Behavior on width { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+            Behavior on width { Anim { duration: Tokens.duration.press } }
         }
     }
 }

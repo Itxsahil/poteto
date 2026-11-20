@@ -113,7 +113,7 @@ Item {
         height: lineHeight + (expanded ? detail.implicitHeight + 12 : 0)
         clip: true
 
-        Behavior on height { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
+        Behavior on height { Anim {} }
 
         // Follows the expand animation so the password field never opens under the bottom fade.
         // Deferred, because the Column relays out (and the content grows) after this height change.
@@ -151,9 +151,9 @@ Item {
             y: 4
             width: parent.width - 8
             height: parent.height - 8
-            radius: 12
+            radius: Tokens.radius.row
             color: row.expanded || rowMouse.containsMouse ? Theme.tileHover : "transparent"
-            Behavior on color { ColorAnimation { duration: 120 } }
+            Behavior on color { CAnim {} }
         }
 
         MouseArea {
@@ -227,7 +227,7 @@ Item {
             spacing: 8
             opacity: row.expanded ? 1 : 0
             visible: opacity > 0
-            Behavior on opacity { NumberAnimation { duration: 180 } }
+            Behavior on opacity { Anim {} }
 
             Row {
                 spacing: 8
@@ -236,7 +236,7 @@ Item {
                 Rectangle {
                     width: detail.width - joinBtn.width - 8
                     height: 36
-                    radius: 12
+                    radius: Tokens.radius.row
                     color: Theme.controlBg
                     border.width: 1
                     border.color: input.activeFocus ? Theme.accent : row.hasError ? Theme.danger : "transparent"
@@ -297,7 +297,7 @@ Item {
                     id: joinBtn
                     anchors.verticalCenter: parent.verticalCenter
                     height: 36
-                    radius: 12
+                    radius: Tokens.radius.row
                     text: row.isConnecting ? "Joining…" : "Join"
                     primary: true
                     enabled: input.text.length >= 8 && !row.isConnecting
@@ -343,7 +343,7 @@ Item {
         property alias model: repeater.model
         width: parent.width
         height: rows.height
-        radius: 18
+        radius: Tokens.radius.field
         color: Theme.tileBg
 
         Column {
@@ -471,13 +471,13 @@ Item {
                 visible: root.current !== null
                 width: parent.width
                 height: 68 + (expanded ? heroActions.height + 12 : 0)
-                radius: 18
+                radius: Tokens.radius.field
                 color: Qt.alpha(Theme.accent, heroMouse.containsMouse || expanded ? 0.2 : 0.14)
                 border.width: 1
                 border.color: Qt.alpha(Theme.accent, 0.3)
                 clip: true
-                Behavior on height { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
-                Behavior on color { ColorAnimation { duration: 120 } }
+                Behavior on height { Anim {} }
+                Behavior on color { CAnim {} }
 
                 MouseArea {
                     id: heroMouse
@@ -494,7 +494,7 @@ Item {
                     y: 14
                     width: 40
                     height: 40
-                    radius: 20
+                    radius: height / 2
                     color: Theme.accent
 
                     WifiIcon {
@@ -544,7 +544,7 @@ Item {
                     color: Theme.textSecondary
                     font.pixelSize: 20
                     font.family: Theme.fontFamily
-                    Behavior on rotation { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+                    Behavior on rotation { Anim {} }
                 }
 
                 Row {
@@ -554,7 +554,7 @@ Item {
                     spacing: 8
                     opacity: hero.expanded ? 1 : 0
                     visible: opacity > 0
-                    Behavior on opacity { NumberAnimation { duration: 180 } }
+                    Behavior on opacity { Anim {} }
 
                     PillButton {
                         text: "Disconnect"

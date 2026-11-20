@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
+import qs.config
 import qs.components
 import qs.services
 
@@ -44,15 +45,15 @@ PanelWindow {
 
         add: Transition {
             ParallelAnimation {
-                NumberAnimation { property: "opacity"; from: 0; to: 1; duration: 220 }
-                NumberAnimation { property: "y"; from: -40; duration: 320; easing.type: Easing.OutBack; easing.overshoot: 1.1 }
+                Anim { property: "opacity"; from: 0; to: 1 }
+                Anim { property: "y"; from: -40; duration: Tokens.duration.page; easing.type: Easing.OutBack; easing.overshoot: 1.1 }
             }
         }
         remove: Transition {
-            NumberAnimation { property: "opacity"; to: 0; duration: 180 }
+            Anim { property: "opacity"; to: 0 }
         }
         displaced: Transition {
-            NumberAnimation { property: "y"; duration: 260; easing.type: Easing.OutCubic }
+            Anim { property: "y"; duration: Tokens.duration.page }
         }
 
         // The card is wrapped so the shadow can sit behind it: inside the card it would be drawn

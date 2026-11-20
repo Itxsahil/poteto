@@ -66,7 +66,7 @@ Item {
                 id: art
                 width: 112
                 height: 112
-                radius: 18
+                radius: Tokens.radius.field
                 color: Theme.tileBg
 
                 Image {
@@ -77,7 +77,7 @@ Item {
                     fillMode: Image.PreserveAspectCrop
                     asynchronous: true
                     opacity: status === Image.Ready ? 1 : 0
-                    Behavior on opacity { NumberAnimation { duration: 250 } }
+                    Behavior on opacity { Anim {} }
                 }
 
                 Text {
@@ -136,7 +136,7 @@ Item {
                     height: 30
                     spacing: 3
                     opacity: Mpd.playing ? 1 : 0.35
-                    Behavior on opacity { NumberAnimation { duration: 200 } }
+                    Behavior on opacity { Anim {} }
 
                     Repeater {
                         model: Cava.barCount
@@ -179,7 +179,7 @@ Item {
                     height: seek.engaged ? 6 : 4
                     radius: height / 2
                     color: Qt.alpha(Theme.textPrimary, 0.12)
-                    Behavior on height { NumberAnimation { duration: 120 } }
+                    Behavior on height { Anim { duration: Tokens.duration.press } }
 
                     Rectangle {
                         width: parent.width * seek.ratio
@@ -196,7 +196,7 @@ Item {
                     height: width
                     radius: width / 2
                     color: Theme.accent
-                    Behavior on width { NumberAnimation { duration: 120 } }
+                    Behavior on width { Anim { duration: Tokens.duration.press } }
                 }
 
                 MouseArea {

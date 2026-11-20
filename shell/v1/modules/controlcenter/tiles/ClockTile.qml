@@ -11,7 +11,7 @@ Tile {
     signal openRequested()
 
     color: mouse.containsMouse ? Theme.tileHover : Theme.tileBg
-    Behavior on color { ColorAnimation { duration: 120 } }
+    Behavior on color { CAnim {} }
 
     MouseArea {
         id: mouse

@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell.Services.Pipewire
 import qs.config
+import qs.components
 import qs.components.icons
 import qs.services
 
@@ -68,7 +69,7 @@ Item {
         label: muted ? "Mute" : Math.round(volume * 100) + "%"
         opacity: root.shown && root.kind === "volume" ? 1 : 0
         visible: opacity > 0
-        Behavior on opacity { NumberAnimation { duration: 200 } }
+        Behavior on opacity { Anim {} }
 
         SpeakerIcon {
             anchors.fill: parent
@@ -86,7 +87,7 @@ Item {
         label: muted ? "Off" : Math.round(level * 100) + "%"
         opacity: root.shown && root.kind === "mic" ? 1 : 0
         visible: opacity > 0
-        Behavior on opacity { NumberAnimation { duration: 200 } }
+        Behavior on opacity { Anim {} }
 
         MicIcon {
             anchors.fill: parent
@@ -100,7 +101,7 @@ Item {
         level: Brightness.value
         opacity: root.shown && root.kind === "brightness" ? 1 : 0
         visible: opacity > 0
-        Behavior on opacity { NumberAnimation { duration: 200 } }
+        Behavior on opacity { Anim {} }
 
         SunIcon {
             anchors.fill: parent

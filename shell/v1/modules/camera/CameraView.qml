@@ -176,7 +176,7 @@ Item {
         anchors.topMargin: 12
         width: parent.width
         height: Math.round(width * 9 / 16)
-        radius: 16
+        radius: Tokens.radius.button
         color: "black"
         clip: true
 
@@ -206,7 +206,7 @@ Item {
             visible: root.counting > 0
             width: 96
             height: 96
-            radius: 48
+            radius: height / 2
             color: Qt.alpha(Theme.islandBg, 0.55)
 
             Text {
@@ -254,7 +254,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             width: 56
             height: 44
-            radius: 10
+            radius: Tokens.radius.small
             color: Theme.tileBg
             clip: true
             visible: Webcam.lastShot !== ""
@@ -294,18 +294,18 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 width: 58
                 height: 58
-                radius: 29
+                radius: height / 2
                 color: shutterMouse.containsMouse ? Qt.lighter(Theme.accent, 1.12) : Theme.accent
                 opacity: Webcam.available ? 1 : 0.4
                 scale: shutterMouse.pressed ? 0.93 : 1
-                Behavior on color { ColorAnimation { duration: 120 } }
-                Behavior on scale { NumberAnimation { duration: 90 } }
+                Behavior on color { CAnim {} }
+                Behavior on scale { Anim { duration: Tokens.duration.press } }
 
                 Rectangle {
                     anchors.centerIn: parent
                     width: 44
                     height: 44
-                    radius: 22
+                    radius: height / 2
                     color: "transparent"
                     border.color: Theme.onAccent
                     border.width: 2

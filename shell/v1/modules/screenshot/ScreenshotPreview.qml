@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import qs.config
+import qs.components
 import qs.services
 
 PanelWindow {
@@ -73,7 +74,7 @@ PanelWindow {
         height: Math.round(Math.min(root.cardWidth * 0.75, Math.max(90, root.cardWidth / aspect)))
         y: root.margin
         x: root.open ? root.margin : -width - root.margin
-        radius: 14
+        radius: Tokens.radius.chip
         color: Theme.islandBg
         border.color: hover.hovered ? Qt.alpha(Theme.textPrimary, 0.35) : Theme.islandBorder
         border.width: 1
@@ -83,14 +84,14 @@ PanelWindow {
         Behavior on x {
             NumberAnimation {
                 id: slideOut
-                duration: 380
+                duration: Tokens.duration.morph
                 easing.type: root.open ? Easing.OutBack : Easing.InCubic
                 easing.overshoot: 1.1
             }
         }
-        Behavior on opacity { NumberAnimation { duration: 300 } }
-        Behavior on scale { NumberAnimation { duration: 120 } }
-        Behavior on border.color { ColorAnimation { duration: 150 } }
+        Behavior on opacity { Anim { duration: Tokens.duration.page } }
+        Behavior on scale { Anim { duration: Tokens.duration.press } }
+        Behavior on border.color { CAnim { duration: Tokens.duration.fade } }
 
         HoverHandler { id: hover }
 
@@ -98,7 +99,7 @@ PanelWindow {
             id: frame
             anchors.fill: parent
             anchors.margins: 4
-            radius: 10
+            radius: Tokens.radius.small
             color: Theme.tileBg
             clip: true
 
@@ -165,16 +166,16 @@ PanelWindow {
             property alias iconItem: iconSlot.data
             width: 26
             height: 26
-            radius: 13
+            radius: height / 2
             color: cbMouse.containsMouse ? Theme.controlHover : Qt.alpha(Theme.tileBg, 0.9)
             border.color: Qt.alpha(Theme.textPrimary, 0.2)
             border.width: 1
             opacity: hover.hovered ? 1 : 0
             scale: hover.hovered ? 1 : 0.6
             visible: opacity > 0
-            Behavior on opacity { NumberAnimation { duration: 150 } }
-            Behavior on scale { NumberAnimation { duration: 180; easing.type: Easing.OutBack } }
-            Behavior on color { ColorAnimation { duration: 100 } }
+            Behavior on opacity { Anim { duration: Tokens.duration.fade } }
+            Behavior on scale { Anim { easing.type: Easing.OutBack } }
+            Behavior on color { CAnim {} }
 
             Item {
                 id: iconSlot
@@ -252,11 +253,11 @@ PanelWindow {
             anchors.bottomMargin: 10
             width: tipText.implicitWidth + 18
             height: 22
-            radius: 11
+            radius: height / 2
             color: Qt.alpha(Theme.tileBg, 0.9)
             border.color: Qt.alpha(Theme.textPrimary, 0.2)
             opacity: hover.hovered && !dragArea.drag.active ? 1 : 0
-            Behavior on opacity { NumberAnimation { duration: 150 } }
+            Behavior on opacity { Anim { duration: Tokens.duration.fade } }
 
             Text {
                 id: tipText

@@ -86,7 +86,7 @@ PanelWindow {
         y: below ? root.ry + root.rh + 10 : Math.max(8, root.ry - height - 10)
         width: sizeText.implicitWidth + 20
         height: 26
-        radius: 13
+        radius: height / 2
         color: Theme.islandBg
         border.color: Theme.islandBorder
 
@@ -169,10 +169,10 @@ PanelWindow {
 
         width: btnRow.implicitWidth + 24
         height: 32
-        radius: 16
+        radius: height / 2
         color: selected ? (accentWhenSelected ? Theme.accent : Theme.wsActiveBg)
             : btnMouse.containsMouse ? Theme.controlBg : "transparent"
-        Behavior on color { ColorAnimation { duration: 150 } }
+        Behavior on color { CAnim { duration: Tokens.duration.fade } }
 
         readonly property color contentColor: selected ? (accentWhenSelected ? Theme.onAccent : Theme.wsActiveText) : Theme.textPrimary
 
@@ -226,11 +226,11 @@ PanelWindow {
         anchors.topMargin: 14
         width: toolRow.implicitWidth + 12
         height: 44
-        radius: 22
+        radius: height / 2
         color: Theme.islandBg
         border.color: Theme.islandBorder
         opacity: root.dragging ? 0.25 : 1
-        Behavior on opacity { NumberAnimation { duration: 150 } }
+        Behavior on opacity { Anim { duration: Tokens.duration.fade } }
 
         Row {
             id: toolRow
@@ -281,7 +281,7 @@ PanelWindow {
                 anchors.verticalCenter: parent.verticalCenter
                 width: recRow.implicitWidth + 26
                 height: 32
-                radius: 16
+                radius: height / 2
                 color: recMouse.containsMouse && enabledNow ? Qt.lighter(Theme.danger, 1.1) : Theme.danger
                 opacity: enabledNow ? 1 : 0.4
 
@@ -294,7 +294,7 @@ PanelWindow {
                         anchors.verticalCenter: parent.verticalCenter
                         width: 10
                         height: 10
-                        radius: 5
+                        radius: height / 2
                         color: Theme.islandBg
                     }
 
@@ -320,7 +320,7 @@ PanelWindow {
             Rectangle {
                 width: 32
                 height: 32
-                radius: 16
+                radius: height / 2
                 anchors.verticalCenter: parent.verticalCenter
                 color: closeMouse.containsMouse ? Theme.controlBg : "transparent"
 
@@ -349,11 +349,11 @@ PanelWindow {
         anchors.bottomMargin: 24
         width: hint.implicitWidth + 28
         height: 30
-        radius: 15
+        radius: height / 2
         color: Theme.islandBg
         border.color: Theme.islandBorder
         opacity: root.dragging ? 0 : 0.9
-        Behavior on opacity { NumberAnimation { duration: 150 } }
+        Behavior on opacity { Anim { duration: Tokens.duration.fade } }
 
         Text {
             id: hint

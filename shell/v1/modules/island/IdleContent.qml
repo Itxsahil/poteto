@@ -34,7 +34,7 @@ Row {
         anchors.verticalCenter: parent.verticalCenter
         width: 8
         height: 8
-        radius: 4
+        radius: height / 2
         color: Theme.danger
         visible: Recorder.recording || Recorder.finishing
 
