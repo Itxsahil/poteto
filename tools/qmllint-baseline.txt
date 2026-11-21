@@ -19,7 +19,6 @@ modules/keybinds/KeybindsView.qml: Id for object Item shadows property "footer".
 modules/keybinds/KeybindsView.qml: Note: Id defined here [id-shadows-member]
 modules/loginvideo/LoginVideoView.qml: Id for object Item shadows property "footer". Rename one or the other. [id-shadows-member]
 modules/loginvideo/LoginVideoView.qml: Note: Id defined here [id-shadows-member]
-modules/notifications/NotificationPopups.qml: Could not find property "top". [missing-property]
 modules/player/PlayerWindow.qml: == and != may perform type coercion, use === or !== to avoid it. [equality-type-coercion]
 modules/videos/VideosView.qml: Id for object Item shadows property "footer". Rename one or the other. [id-shadows-member]
 modules/videos/VideosView.qml: Note: Id defined here [id-shadows-member]

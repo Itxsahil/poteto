@@ -7,7 +7,6 @@ import qs.modules.bar
 import qs.modules.island
 import qs.modules.overview
 import qs.modules.screenshot
-import qs.modules.notifications
 import qs.modules.colorpicker
 import qs.modules.recorder
 import qs.modules.player
@@ -65,9 +64,6 @@ ShellRoot {
                 targetScreen: screenScope.modelData
             }
 
-            NotificationPopups {
-                targetScreen: screenScope.modelData
-            }
         }
     }
 }

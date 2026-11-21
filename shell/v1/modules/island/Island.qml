@@ -24,6 +24,7 @@ import qs.modules.media
 import qs.modules.polkit
 import qs.modules.bar
 import qs.modules.settings
+import qs.modules.notifications
 
 PanelWindow {
     id: root
@@ -62,6 +63,7 @@ PanelWindow {
     // only the island shows (no frame, no side pills)
     readonly property bool fullscreen: Hyprland.monitorFor(targetScreen)?.activeWorkspace?.hasFullscreen ?? false
     visible: !fullscreen || pill.viewOpen || pill.showPanel || pill.showOsd || settingsDrawer.open
+        || notificationPanel.visible
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "dynamic-island"
     WlrLayershell.keyboardFocus: pill.viewOpen || pill.showPanel || settingsDrawer.open ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
@@ -85,6 +87,10 @@ PanelWindow {
         }
         Region {
             item: settingsDrawer.visible ? settingsDrawer : nothing
+            intersection: Intersection.Combine
+        }
+        Region {
+            item: notificationPanel.visible ? notificationPanel : nothing
             intersection: Intersection.Combine
         }
     }
@@ -149,7 +155,7 @@ PanelWindow {
 
         Surface {
             anchors.fill: parent
-            pills: [pill, workspacesBar.pill, statusBar.pill, statusBar.recPill, settingsDrawer]
+            pills: [pill, workspacesBar.pill, statusBar.pill, statusBar.recPill, settingsDrawer, notificationPanel]
             // No frame over a fullscreen window
             frameWidth: root.fullscreen ? 0 : Tokens.frameWidth
             frameRadius: root.fullscreen ? 0 : Tokens.radius.screen
@@ -176,6 +182,12 @@ PanelWindow {
         anchors.fill: parent
         targetScreen: root.targetScreen
         suppressed: root.fullscreen
+    }
+
+    // Notification popups, growing out of the bottom-right corner
+    NotificationPanel {
+        id: notificationPanel
+        active: pill.focused
     }
 
     // Slides in from the right edge, below the pills at the top and clear of the bottom

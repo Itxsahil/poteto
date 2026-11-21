@@ -20,7 +20,8 @@ import qs.config
 ShaderEffect {
     id: root
 
-    // Up to six. Each hangs from the top edge unless it has `property int edge: 1` (the right)
+    // Up to six. Each hangs from the top edge unless it has `property int edge`: 1 the right,
+    // 2 the bottom-right corner
     property list<Item> pills
     property real frameWidth: Tokens.frameWidth
     property real frameRadius: Tokens.radius.screen

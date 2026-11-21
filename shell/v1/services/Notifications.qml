@@ -57,6 +57,16 @@ Singleton {
             notification.expire();
     }
 
+    // Every popup off the screen; they stay in the history. keepCritical leaves the critical ones
+    // (and the shell's own warnings), which Do Not Disturb would still show
+    function clearPopups(keepCritical: bool): void {
+        for (const n of [...root.popups]) {
+            if (keepCritical && (n.urgency === NotificationUrgency.Critical || n.hints[root.showInDndHint] === true))
+                continue;
+            root.hidePopup(n);
+        }
+    }
+
     function dismiss(notification) {
         popups = popups.filter(n => n !== notification);
         notification.dismiss();

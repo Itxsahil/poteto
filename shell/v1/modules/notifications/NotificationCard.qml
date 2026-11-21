@@ -11,20 +11,32 @@ Rectangle {
 
     required property var notification
     property bool popup: false
-    property int bodyLines: popup ? 4 : 6
+    // A popup starts compact (the title and one line) and opens with the chevron or by dragging
+    // down on it; the history page always shows everything
+    property bool expanded: !popup
+    property int bodyLines: !expanded ? 1 : popup ? 4 : 6
     readonly property bool hovered: cardHover.hovered
     readonly property bool critical: notification.urgency === NotificationUrgency.Critical
     readonly property var buttons: notification.actions.filter(a => a.identifier !== "default" && a.text)
+    // More than the compact popup shows: a body or action buttons
+    readonly property bool hasMore: buttons.length > 0 || (notification.body ?? "") !== ""
 
     signal timedOut()
+    // Swiped sideways far enough to throw away (a popup only)
+    signal swiped()
 
     implicitHeight: content.implicitHeight + 28
     radius: Tokens.radius.card
-    color: popup ? Theme.islandBg : Theme.tileBg
-    border.width: 1
     // Critical gets a small red dot by the app name, not a red border around the whole card:
     // browsers send their web pushes as critical, and a wall of red reads as alarming.
-    border.color: popup ? Theme.islandBorder : "transparent"
+    color: Theme.tileBg
+    // A popup follows a sideways drag and fades as it goes; let go short of 30% and it springs back
+    opacity: popup ? 1 - 0.8 * Math.min(1, Math.abs(x) / width) : 1
+    Behavior on x {
+        enabled: !dragArea.drag.active
+        Anim { duration: Tokens.duration.view }
+    }
+    Behavior on implicitHeight { Anim { duration: Tokens.duration.view } }
 
     function relativeTime(ms) {
         const s = Math.floor((clock.date - ms) / 1000);
@@ -86,7 +98,7 @@ Rectangle {
     // web pushes as critical with "never expire", which otherwise pins them to the screen forever.
     Timer {
         id: expireTimer
-        running: root.popup && !root.hovered
+        running: root.popup && !root.hovered && !dragArea.pressed
         interval: root.notification.expireTimeout > 0 ? root.notification.expireTimeout
             : root.critical ? Notifications.criticalTimeout
             : Notifications.defaultTimeout
@@ -97,10 +109,49 @@ Rectangle {
         id: cardHover
     }
 
+    // Click: the app's default action. A popup can also be swiped sideways to throw it away,
+    // dragged down to open it (up to close it again), or middle-clicked to dismiss it.
     MouseArea {
+        id: dragArea
+
+        property real startY: 0
+        property bool moved: false
+
         anchors.fill: parent
-        cursorShape: Qt.PointingHandCursor
-        onClicked: Notifications.invokeDefault(root.notification)
+        acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+        cursorShape: root.popup && drag.active ? Qt.ClosedHandCursor : Qt.PointingHandCursor
+        drag.target: root.popup ? root : null
+        drag.axis: Drag.XAxis
+
+        onPressed: event => {
+            startY = event.y;
+            moved = false;
+            if (event.button === Qt.MiddleButton)
+                Notifications.dismiss(root.notification);
+        }
+        onPositionChanged: event => {
+            if (!root.popup || !pressed)
+                return;
+            if (Math.abs(root.x) > 4)
+                moved = true;
+            const dy = event.y - startY;
+            if (Math.abs(dy) > 20 && Math.abs(root.x) < 12) {
+                root.expanded = dy > 0;
+                moved = true;
+            }
+        }
+        onReleased: {
+            if (!root.popup)
+                return;
+            if (Math.abs(root.x) > root.width * 0.3)
+                root.swiped();
+            else
+                root.x = 0;
+        }
+        onClicked: event => {
+            if (event.button === Qt.LeftButton && !moved)
+                Notifications.invokeDefault(root.notification);
+        }
     }
 
     Row {
@@ -150,7 +201,7 @@ Rectangle {
                 width: 18
                 height: 18
                 radius: height / 2
-                color: root.popup ? Theme.islandBg : Theme.tileBg
+                color: Theme.tileBg
                 visible: badge.status === Image.Ready && root.notification.image !== ""
 
                 Image {
@@ -213,6 +264,23 @@ Rectangle {
                         font.family: Theme.fontFamily
                     }
 
+                    // Open or close a compact popup
+                    CircleButton {
+                        width: 20
+                        height: 20
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible: root.popup && root.hasMore
+                        baseColor: Theme.controlBg
+                        hoverColor: Theme.controlHover
+                        glyph: root.expanded ? "\uf077" : "\uf078"
+                        glyphFont: Theme.monoFamily
+                        glyphSize: 9
+                        glyphColor: Theme.textSecondary
+                        glyphOffset: 0
+                        hitMargin: 4
+                        onClicked: root.expanded = !root.expanded
+                    }
+
                     CircleButton {
                         width: 20
                         height: 20
@@ -264,7 +332,7 @@ Rectangle {
                 width: parent.width
                 spacing: 6
                 topPadding: 6
-                visible: root.buttons.length > 0
+                visible: root.buttons.length > 0 && root.expanded
 
                 Repeater {
                     model: root.buttons

@@ -39,7 +39,7 @@ poteto/
 | **Bluetooth page** | Scan, pair + connect, disconnect, forget, device battery |
 | **OSD** | Volume, brightness and mic changes (including the Fn mic-mute key) briefly turn the island into a level bar |
 | **Low-battery warnings** | On battery, a notification at 15% and a critical one at 5%, both shown even in Do Not Disturb, once per discharge; plugging in resets them. Levels are `batteryLow` / `batteryCritical` in `shell.json` (0 turns one off) |
-| **Notifications** | Popups under the island with icons, images, actions and markup; history page and Do Not Disturb in the control center (remembered across restarts; also in the settings drawer); unread dot in the island |
+| **Notifications** | Popups grow out of the bottom-right corner of the frame as part of the surface, newest nearest the corner. Each starts compact (title and one line): its chevron or a drag down opens it to the full text and its action buttons; swipe it sideways or middle-click it to dismiss; it times out on its own, pausing while the pointer is on it. A header with the count, a Do Not Disturb toggle and Clear all shows while the pointer is on the panel or two or more are up (Clear all only takes the popups off the screen; the history keeps them, and turning Do Not Disturb on there also clears the non-critical ones). Icons, images and markup are shown; history page and Do Not Disturb in the control center (remembered across restarts; also in the settings drawer); unread dot in the island |
 | **Workspaces** | Separate notch top-left: click to switch, scroll to cycle. Settings (`Super + ,`) → Workspaces turns it off |
 | **Music pill** | Small pill left of the center island: circular MPD album art (music icon when unavailable), four live visualizer bars while playing; click for media controls, right click for play/pause, Esc or click outside to close. Shown in island mode |
 | **Status pill** | A notch top-right: MPD track with a live cava visualizer (click play/pause, right click next, middle click previous) and the date. Settings → Music and date turns it off; while recording, the stop button stays |
@@ -470,7 +470,7 @@ shell/v1/
     │                          that replaces all three in bar mode
     ├── island/                island window, idle row, volume/brightness OSD
     ├── controlcenter/         grid, tiles/, controls/, wifi/, bluetooth/, notifications/, audio/
-    ├── notifications/         notification card + popup stack
+    ├── notifications/         notification card + the popup panel in the bottom-right corner
     ├── launcher/  clipboard/  emoji/  wallpaper/  themes/  power/
     ├── logintheme/            login screen (SDDM) theme switcher
     ├── loginvideo/            login screen background video picker
