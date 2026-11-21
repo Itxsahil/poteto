@@ -7,7 +7,7 @@ import qs.config
 
 // Night light: while it is on, hyprsunset warms the screens to `temperature` (kelvin); off stops
 // it, which hands the colors back. The setting lives in config/Settings.qml (nightLight and
-// nightTemperature in ~/.config/poteto/shell.json), which the Poteto settings app edits too.
+// nightTemperature in ~/.config/poteto/shell.json), which the settings drawer edits.
 //
 // hyprsunset runs on its own (it outlives a shell restart), so this only ever brings it in line:
 // start it, retune the one already running through hyprctl, or stop it.

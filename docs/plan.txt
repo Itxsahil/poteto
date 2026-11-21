@@ -343,9 +343,11 @@ PHASE 3 — DESIGN SYSTEM (about 1 week)
       comment saying why it stays (e.g. a recording dot).
   Done when: no hard-coded radius left, and new modules can be built from components only.
 
-PHASE 4 — CONFIG BACKEND + IN-SHELL SETTINGS (1–2 weeks; after Phase 3, since it reuses the
+PHASE 4 — CONFIG BACKEND + IN-SHELL SETTINGS (DONE 2026-11-20: a settings drawer from the right edge,
+  drawn as part of the surface; the Python app is retired)
   new components)
-  4.1 Rewrite v1's config/Settings.qml (today it only reads, and only 2 keys) on
+  4.1 [skipped: config/Settings.qml already writes atomically and keeps keys it does not know,
+       which JsonAdapter would drop] Rewrite v1's config/Settings.qml (today it only reads, and only 2 keys) on
       FileView + JsonAdapter, so the shell can write too. Each setting becomes a typed
       property with its default, in grouped JsonObjects (bar, pill, notifications,
       nightLight, battery, appearance...):
@@ -354,7 +356,7 @@ PHASE 4 — CONFIG BACKEND + IN-SHELL SETTINGS (1–2 weeks; after Phase 3, sinc
       - debounce writes with a 300–500 ms Timer;
       - write atomically: write to a .tmp file and rename (a small Process), or rely on
         FileView's atomic write if your Quickshell version has it.
-  4.2 modules/settings/, modelled on Nexus:
+  4.2 [done, as modules/settings/SettingsDrawer.qml: one scrolling drawer, not a window] modules/settings/, modelled on Nexus:
       - SettingsRegistry.qml: a list of {label, icon, description, category, component};
         one list instead of their two.
       - SettingsState.qml: current page plus a sub-page stack, one per window.
@@ -365,9 +367,9 @@ PHASE 4 — CONFIG BACKEND + IN-SHELL SETTINGS (1–2 weeks; after Phase 3, sinc
       - WindowFactory: a FloatingWindow created on demand and destroyed on close.
       - Opened with `qs ipc call settings open`, a bind in hypr/bindings.lua, and a
         launcher entry.
-  4.3 Remove settings/poteto-settings (the Python app) once the QML version covers its
+  4.3 [done] Remove settings/poteto-settings (the Python app) once the QML version covers its
       pages; keep dev.poteto.Settings.desktop pointing at `qs ipc call settings open`.
-  4.4 README: Features, Keybinds, IPC, and "Caches and state" (the config path).
+  4.4 [done] README: Features, Keybinds, IPC, and "Caches and state" (the config path).
   Done when: there's one definition per setting, and no Python/GTK dependency.
 
 PHASE 5 — STRUCTURE AND PERFORMANCE (ongoing; do each when you next touch the file)

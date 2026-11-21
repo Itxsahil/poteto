@@ -2,7 +2,8 @@ import QtQuick
 import qs.config
 
 // The shell's surface, drawn as one shape by shaders/surface.frag: the frame around the screen
-// and up to four pills hanging from the top edge. Where a pill's side meets the frame it flows in
+// and up to six pieces hanging from it (the top edge, or the right for a drawer). Where a
+// piece's side meets the frame it flows in
 // with a round curve as wide as the frame's own corners, so the wallpaper showing through reads as
 // one hole with every corner rounded alike (computed, not drawn, so it holds at any size and
 // through every animation). Fill a whole screen-sized
@@ -19,7 +20,7 @@ import qs.config
 ShaderEffect {
     id: root
 
-    // Up to four
+    // Up to six. Each hangs from the top edge unless it has `property int edge: 1` (the right)
     property list<Item> pills
     property real frameWidth: Tokens.frameWidth
     property real frameRadius: Tokens.radius.screen
@@ -43,8 +44,14 @@ ShaderEffect {
     readonly property vector4d rect1: rectOf(1)
     readonly property vector4d rect2: rectOf(2)
     readonly property vector4d rect3: rectOf(3)
+    readonly property vector4d rect4: rectOf(4)
+    readonly property vector4d rect5: rectOf(5)
     readonly property vector4d radii: Qt.vector4d(radiusOf(0), radiusOf(1), radiusOf(2), radiusOf(3))
+    readonly property vector4d radii2: Qt.vector4d(radiusOf(4), radiusOf(5), 0, 0)
     readonly property vector4d alphas: Qt.vector4d(alphaOf(0), alphaOf(1), alphaOf(2), alphaOf(3))
+    readonly property vector4d alphas2: Qt.vector4d(alphaOf(4), alphaOf(5), 0, 0)
+    readonly property vector4d edges: Qt.vector4d(edgeOf(0), edgeOf(1), edgeOf(2), edgeOf(3))
+    readonly property vector4d edges2: Qt.vector4d(edgeOf(4), edgeOf(5), 0, 0)
 
     // Reading x, y, width and height here makes the bindings follow them
     function rectOf(i: int): vector4d {
@@ -52,6 +59,10 @@ ShaderEffect {
         if (!it)
             return Qt.vector4d(0, 0, 0, 0);
         return Qt.vector4d(it.x, it.y, it.width, it.height);
+    }
+
+    function edgeOf(i: int): real {
+        return pills[i]?.edge ?? 0;
     }
 
     function radiusOf(i: int): real {

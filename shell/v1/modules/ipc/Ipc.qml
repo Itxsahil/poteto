@@ -110,7 +110,7 @@ Scope {
         function panel(): string { ShellState.panel = !ShellState.panel; return ShellState.panel ? "open" : "closed"; }
     }
 
-    // pill / bar: the names shell.json and Poteto use for the shape; hypr/bindings.lua calls this
+    // pill / bar: the names shell.json uses for the shape; hypr/bindings.lua calls this
     // target (Alt + Shift + B)
     IpcHandler {
         target: "layout"
@@ -134,6 +134,14 @@ Scope {
         function on(): bool { NightLight.setEnabled(true); return true; }
         function off(): bool { NightLight.setEnabled(false); return false; }
         function status(): bool { return NightLight.enabled; }
+    }
+
+    // qs ipc call settings toggle|open|close: the settings drawer (Super + ,)
+    IpcHandler {
+        target: "settings"
+        function toggle(): void { ShellState.toggleSettings(); }
+        function open(): void { ShellState.openSettings(); }
+        function close(): void { ShellState.settings = false; }
     }
 
     // qs ipc call battery status | testLow | testCritical: the level and the warning levels, and

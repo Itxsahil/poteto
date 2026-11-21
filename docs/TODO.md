@@ -28,7 +28,7 @@ Last updated 2026-11-20. quickshell v2 was removed; it is kept in the `v2-final`
 - [x] Keybind cheatsheet: binds over several lines and comments wrapping onto a second line
       are read whole, so no more stray ")" or half commands (2026-11-20).
 - [x] `SimpleBar.qml` MouseArea warning — already fixed earlier (commit d137e0f).
-- [x] Open Poteto from the shell: `Super + ,` (2026-11-20).
+- [x] Settings drawer in the shell (`Super + ,`), replacing the Python Poteto app (2026-11-20).
 - [x] Low-battery warnings at 15% and 5%, shown even in Do Not Disturb (2026-11-20).
 - [x] `dotfiles/hypr/hyprlock.conf` no longer changes with every wallpaper pick — the path lives in
       `~/.cache/quickshell/hyprlock-wallpaper.conf` (2026-11-20).

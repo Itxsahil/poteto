@@ -23,7 +23,7 @@ Item {
     readonly property bool pillShown: visible && Settings.showMusic
 
     // the simple bar carries all of this when it is on. The music and date pill can be turned
-    // off (Poteto → Music & date); the recording pill stays while recording, for the stop button
+    // off (Settings → Music and date); the recording pill stays while recording, for the stop button
     visible: !Layout.bar && (Settings.showMusic || recordingWidget.shown) && !suppressed
 
     SystemClock {

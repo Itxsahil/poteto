@@ -1,6 +1,7 @@
 #version 440
-// The shell's surface: the frame around the screen and every pill hanging from the top edge
-// (the island, the workspaces, the status and recording pills), drawn as one shape.
+// The shell's surface: the frame around the screen and every piece hanging from it (the island,
+// the workspaces, status and recording pills from the top edge, the settings drawer from the
+// right), drawn as one shape.
 //
 // Each piece is a signed distance field (negative inside, positive outside), joined with a smooth
 // minimum: where a pill's side meets the frame the join is a round curve `smoothing` wide, the same
@@ -30,14 +31,21 @@ layout(std140, binding = 0) uniform buf {
     vec4 wall;
     // How wide the round join between a pill and the frame is
     float smoothing;
-    // Up to four pills: x, y, width, height in pixels (width 0: unused)
+    // Up to six pieces: x, y, width, height in pixels (width 0: unused)
     vec4 rect0;
     vec4 rect1;
     vec4 rect2;
     vec4 rect3;
-    // Their corner radii, and how present each is (0 to 1: a pill fading out recedes)
+    vec4 rect4;
+    vec4 rect5;
+    // Their corner radii, how present each is (0 to 1: one fading out recedes) and the edge each
+    // hangs from (0: the top, 1: the right); pieces 0-3 in the first, 4-5 in the second
     vec4 radii;
+    vec4 radii2;
     vec4 alphas;
+    vec4 alphas2;
+    vec4 edges;
+    vec4 edges2;
 };
 
 float sdRoundedBox(vec2 p, vec2 center, vec2 halfSize, float radius) {
@@ -46,14 +54,19 @@ float sdRoundedBox(vec2 p, vec2 center, vec2 halfSize, float radius) {
     return length(max(d, vec2(0.0))) + min(max(d.x, d.y), 0.0) - radius;
 }
 
-// A box rounded at its bottom corners only, its top run far up (into the frame, out of sight),
-// so nothing pulls away from the edge it hangs from
-float sdHanging(vec2 p, vec4 r, float radius) {
-    vec2 topLeft = r.xy - vec2(0.0, 64.0);
+// A box rounded only on the side away from the edge it hangs from, that side run far out (into
+// the frame, out of sight), so nothing pulls away from the edge. edge 0: the top, 1: the right
+float sdHanging(vec2 p, vec4 r, float radius, float edge) {
+    vec2 topLeft = r.xy;
     vec2 bottomRight = r.xy + r.zw;
+    if (edge > 0.5)
+        bottomRight.x += 64.0;
+    else
+        topLeft.y -= 64.0;
     vec2 halfSize = (bottomRight - topLeft) * 0.5;
     vec2 q = p - (topLeft + bottomRight) * 0.5;
-    float rad = q.y > 0.0 ? min(radius, min(r.z * 0.5, r.w * 0.5)) : 0.0;
+    bool away = edge > 0.5 ? q.x < 0.0 : q.y > 0.0;
+    float rad = away ? min(radius, min(r.z * 0.5, r.w * 0.5)) : 0.0;
     vec2 d = abs(q) - halfSize + vec2(rad);
     return length(max(d, vec2(0.0))) + min(max(d.x, d.y), 0.0) - rad;
 }
@@ -65,13 +78,13 @@ float smin(float a, float b, float k) {
     return max(k, min(a, b)) - length(max(vec2(k) - vec2(a, b), vec2(0.0)));
 }
 
-// A pill: its rectangle hanging from the top, rounded at the bottom corners. Absent ones are far
-// away; a fading one recedes into the band it hangs from.
-float pill(vec2 p, vec4 r, float radius, float alpha) {
+// A piece: its rectangle hanging from its edge, rounded on the far side. Absent ones are far away;
+// a fading one recedes into the edge it hangs from.
+float pill(vec2 p, vec4 r, float radius, float alpha, float edge) {
     if (r.z <= 0.0 || r.w <= 0.0 || alpha <= 0.0)
         return 1e5;
-    float d = sdHanging(p, r, radius);
-    return d + (1.0 - alpha) * (r.w + smoothing);
+    float d = sdHanging(p, r, radius, edge);
+    return d + (1.0 - alpha) * ((edge > 0.5 ? r.z : r.w) + smoothing);
 }
 
 void main() {
@@ -94,11 +107,13 @@ void main() {
         d = min(d, band + (1.0 - wall.z) * 1e3);
     }
 
-    // Each pill flows into the frame in a round curve
-    d = smin(d, pill(p, rect0, radii.x, alphas.x), smoothing);
-    d = smin(d, pill(p, rect1, radii.y, alphas.y), smoothing);
-    d = smin(d, pill(p, rect2, radii.z, alphas.z), smoothing);
-    d = smin(d, pill(p, rect3, radii.w, alphas.w), smoothing);
+    // Each piece flows into the frame in a round curve
+    d = smin(d, pill(p, rect0, radii.x, alphas.x, edges.x), smoothing);
+    d = smin(d, pill(p, rect1, radii.y, alphas.y, edges.y), smoothing);
+    d = smin(d, pill(p, rect2, radii.z, alphas.z, edges.z), smoothing);
+    d = smin(d, pill(p, rect3, radii.w, alphas.w, edges.w), smoothing);
+    d = smin(d, pill(p, rect4, radii2.x, alphas2.x, edges2.x), smoothing);
+    d = smin(d, pill(p, rect5, radii2.y, alphas2.y, edges2.y), smoothing);
 
     // A soft edge one pixel wide
     float aa = max(fwidth(d), 0.0001);

@@ -4,14 +4,14 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// The user's settings: ~/.config/poteto/shell.json, the file the Poteto settings app
-// (apps/settings/poteto-settings) uses too. This is the only place in the shell
+// The user's settings: ~/.config/poteto/shell.json, edited in the settings drawer
+// (modules/settings/SettingsDrawer.qml). This is the only place in the shell
 // that reads or writes it: services bind to the properties below and change them with set().
 //
-// The file is followed live, so a change made in Poteto or by hand shows up straight away.
+// The file is followed live, so a change made by hand shows up straight away too.
 // Anything missing or malformed counts as its default. A file that does not parse is never
 // written over (that would drop every other setting in it); a missing one is created on the first
-// change. Writes are atomic, so the shell and Poteto never read half a file.
+// change. Writes are atomic, so nothing ever reads half a file.
 Singleton {
     id: root
 
@@ -24,12 +24,12 @@ Singleton {
     // The shell's shape (services/Layout.qml): "pill", the floating island, or "bar", one flat strip
     readonly property string style: data.style === "bar" ? "bar" : "pill"
 
-    // The workspaces pill, top left (Poteto → Workspaces)
+    // The workspaces pill, top left (Settings → Workspaces)
     readonly property bool showWorkspaces: data.showWorkspaces !== false
-    // The music and date pill, top right (Poteto → Music & date)
+    // The music and date pill, top right (Settings → Music and date)
     readonly property bool showMusic: data.showMusic !== false
 
-    // Do Not Disturb (Poteto → Quiet): notifications go straight to history; critical ones still
+    // Do Not Disturb (Settings → Do Not Disturb): notifications go straight to history; critical ones still
     // pop up (services/Notifications.qml)
     readonly property bool quiet: data.quiet === true
 

@@ -12,8 +12,8 @@ import qs.config
 // the launcher, the control center, the OSD and every other view are drawn in; in bar mode it just
 // has nothing to show until you open something.
 //
-// The choice is `style` in config/Settings.qml ("pill" or "bar" in shell.json, the names Poteto
-// uses; "pill" is this shell's "island"), so Poteto's layout switch works here too.
+// The choice is `style` in config/Settings.qml ("pill" or "bar" in shell.json, the names the
+// settings drawer uses; "pill" is this shell's "island").
 Singleton {
     id: root
 

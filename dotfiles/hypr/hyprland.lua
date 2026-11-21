@@ -192,8 +192,8 @@ hl.config({
 })
 
 -- Environment variables
--- ~/.local/bin on PATH for everything started from Hyprland and the shell (the launcher, keybinds,
--- poteto-settings); a login through a display manager does not add it. Only once, so a reload
+-- ~/.local/bin on PATH for everything started from Hyprland and the shell (the launcher,
+-- keybinds); a login through a display manager does not add it. Only once, so a reload
 -- does not keep prepending it.
 local local_bin = os.getenv("HOME") .. "/.local/bin"
 local path = os.getenv("PATH") or "/usr/local/bin:/usr/bin"
@@ -214,16 +214,6 @@ hl.window_rule({
     float = true,
     size = "200 100",
     move = "monitor_w-window_w-6 monitor_h-window_h-6",
-})
-
--- Shell settings app (apps/settings/poteto-settings): a small floating window, not a tile
-hl.window_rule({
-    name = "poteto-settings",
-    match = {
-        class = "dev.poteto.Settings",
-    },
-    float = true,
-    size = "560 600",
 })
 
 -- Gesture settings

@@ -21,6 +21,8 @@ The repo is grouped by role. Moving a top-level folder breaks symlinks in `$HOME
   - `modules/island/Island.qml` — one full-screen Overlay window per screen: the island, the side pills
     (`modules/bar/WorkspacesBar.qml`, `StatusBar.qml`) and the shell's surface; `Reservations.qml`
     keeps tiled windows clear of the top and the frame
+  - `modules/settings/` — the settings drawer, sliding in from the right as part of the surface
+    (`edge: 1`); a new setting is a `SettingRow` in a `SettingsSection` bound to `Settings`
   - `shaders/` — `surface.frag` (the frame and pills as one shape) and its compiled `.qsb`; run
     `tools/build-shaders` after editing a shader, then restart Quickshell: Qt caches shaders by
     file, so a hot reload keeps the old one
@@ -32,7 +34,7 @@ The repo is grouped by role. Moving a top-level folder breaks symlinks in `$HOME
   `vscode/theme`, `wallpaper/wall.*`
 - `login/` — SDDM login themes (`metadata.desktop` + `Main.qml` + video), `setup` script, and
   `system/` (root-owned helper `poteto-login-theme` + polkit policy)
-- `apps/settings/` — Poteto, the GTK settings app (`poteto-settings`, `.desktop`, icon)
+- `apps/settings/` — the launcher entry ("Settings", opens the drawer) and its icon
 - `tools/` — `check` (every check, run before committing), `build-shaders` (compiles `shell/v1/shaders`), `qmllint-baseline.txt` (its known
   qmllint false alarms), `notif-test` (sends test notifications of every shape)
 - `docs/` — `TODO.md`, `plan.txt` (the improvement plan)
@@ -69,13 +71,13 @@ The repo is grouped by role. Moving a top-level folder breaks symlinks in `$HOME
   the top of a view is `SearchField` (keys reach the view through `onKeyPressed`, extras declared
   inside it sit at its right end); a pill hanging from the top edge lives in the island's window, is
   transparent, and is listed in the `Surface`'s `pills` (it draws the background and the shadow; at
-  most four) and in the window's input `mask`; a round icon button is `CircleButton` (flat with
+  most six, and a piece hanging from the right edge has `property int edge: 1`) and in the window's input `mask`; a round icon button is `CircleButton` (flat with
   `baseColor: "transparent"`, `active` for the accent fill, `glyphFont: Theme.monoFamily` for a Nerd
   Font icon).
 - Theme colors in `config/Theme.qml` fade (`Behavior` + `Theme.fade`); `Theme.preview` holds the
   theme picker's preview. Read colors through `Theme`, never from `colors.json` directly.
 - User settings live in `~/.config/poteto/shell.json`, read and written only by `config/Settings.qml`
-  (shared with Poteto, so keep its key names). Services bind to `Settings.<key>` and change
+  (written by the settings drawer, `modules/settings/`). Services bind to `Settings.<key>` and change
   it with `Settings.set(key, value)`; never give a setting its own file or `FileView`.
 - Cache/state goes under `~/.cache/quickshell/`; list new paths in the README "Caches and state" table.
 - New user-facing features and keys go in the README tables (Features, Keybinds, IPC, Customizing).

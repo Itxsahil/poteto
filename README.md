@@ -16,7 +16,7 @@ poteto/
 ├── themes/            color schemes + default wallpapers (found by the shell, no link)
 ├── login/             SDDM login themes, their setup script and root helper
 ├── apps/
-│   └── settings/      Poteto, the settings app                → ~/.local/bin/poteto-settings
+│   └── settings/      the Settings launcher entry and icon    → ~/.local/share/applications
 ├── tools/             check (run before committing), notif-test
 └── docs/              TODO.md, plan.txt
 ```
@@ -27,7 +27,8 @@ poteto/
 
 | | |
 |---|---|
-| **Simple bar mode** | `mod + Shift + B` swaps the notches for one flat bar across the top — workspaces, the playing track and status in a single strip that reserves its own space. The bar is the top of the screen frame, which carries on below it; everything the island opens still opens, hanging from the bottom of the bar; click the right of the bar for the control center. The choice is remembered (`style` in `~/.config/poteto/shell.json`, so Poteto's layout switch works too) |
+| **Simple bar mode** | `mod + Shift + B` swaps the notches for one flat bar across the top — workspaces, the playing track and status in a single strip that reserves its own space. The bar is the top of the screen frame, which carries on below it; everything the island opens still opens, hanging from the bottom of the bar; click the right of the bar for the control center. The choice is remembered (`style` in `~/.config/poteto/shell.json`; also in the settings drawer) |
+| **Settings drawer** (`Super + ,`) | Slides in from the right edge as part of the surface: layout (island or bar), the workspaces and music pills, the theme and the dynamic theme's mode and style, night light and its warmth, Do Not Disturb and test notifications, and the low-battery warning levels. Every change is saved to `~/.config/poteto/shell.json` at once; Esc or a click outside closes it |
 | **One surface** | A 10px frame around the whole screen with rounded inside corners, and the island and the side pills hanging from it, drawn as one shape by a shader (`shell/v1/shaders/surface.frag`): where a pill meets the frame it flows in with a round curve the size of the screen's corners, so the wallpaper showing through reads as one hole with every corner rounded alike, computed so it holds at any size and through every animation, under one shared shadow. Windows keep clear of the frame; it is not drawn over a fullscreen window. `Tokens.frameWidth` sets the width (0 turns it off), `Tokens.radius.screen` the corners, `Tokens.radius.flare` the curves where pills meet it |
 | **Island (idle)** | A notch hanging from the top edge, flowing into the frame in round curves at both sides. The 12-hour clock, plus a red mic icon while the mic is muted and a pulsing dot while recording. Wi-Fi, battery and unread notifications are in the control center (and in bar mode, on the bar) |
 | **Control center** (rest the pointer on the island, or click it to keep it open) | A compact bento grid: clock (click it for the calendar), battery with health, Wi-Fi, Bluetooth, Notifications and Night Light tiles (Night Light opens a warmth slider), and brightness, volume and microphone sliders (click the mic icon or right click to mute). The button beside volume and mic opens the Sound page, which lists every output and input, with unplugged ones greyed out |
@@ -38,10 +39,10 @@ poteto/
 | **Bluetooth page** | Scan, pair + connect, disconnect, forget, device battery |
 | **OSD** | Volume, brightness and mic changes (including the Fn mic-mute key) briefly turn the island into a level bar |
 | **Low-battery warnings** | On battery, a notification at 15% and a critical one at 5%, both shown even in Do Not Disturb, once per discharge; plugging in resets them. Levels are `batteryLow` / `batteryCritical` in `shell.json` (0 turns one off) |
-| **Notifications** | Popups under the island with icons, images, actions and markup; history page and Do Not Disturb in the control center (remembered across restarts; Poteto's Quiet switch); unread dot in the island |
-| **Workspaces** | Separate notch top-left: click to switch, scroll to cycle. Poteto → Workspaces turns it off |
+| **Notifications** | Popups under the island with icons, images, actions and markup; history page and Do Not Disturb in the control center (remembered across restarts; also in the settings drawer); unread dot in the island |
+| **Workspaces** | Separate notch top-left: click to switch, scroll to cycle. Settings (`Super + ,`) → Workspaces turns it off |
 | **Music pill** | Small pill left of the center island: circular MPD album art (music icon when unavailable), four live visualizer bars while playing; click for media controls, right click for play/pause, Esc or click outside to close. Shown in island mode |
-| **Status pill** | A notch top-right: MPD track with a live cava visualizer (click play/pause, right click next, middle click previous) and the date. Poteto → Music & date turns it off; while recording, the stop button stays |
+| **Status pill** | A notch top-right: MPD track with a live cava visualizer (click play/pause, right click next, middle click previous) and the date. Settings → Music and date turns it off; while recording, the stop button stays |
 | **Media panel** (hover the status pill) | Album art, track, seek bar, play/pause, next/previous, shuffle, repeat (all / one) and MPD volume |
 | **Launcher** | Fuzzy app search, terminal apps open in kitty, built-in calculator, and a **Keybindings** card when you type `key` |
 | **Keybindings** | Searchable cheatsheet parsed live from `dotfiles/hypr/bindings.lua` plus the shell's own keys; flags combos bound twice |
@@ -79,7 +80,7 @@ poteto/
 | `mod + /` | Keybinding cheatsheet |
 | `Super + M` | Performance monitor |
 | `Super + P` | Music player on its own: Space play/pause, ← → seek, N / P skip |
-| `Super + ,` | Poteto, the settings app |
+| `Super + ,` | Settings drawer, from the right edge |
 | `Super + V` | Clipboard history |
 | `Super + .` | Emoji picker |
 | `Super + Shift + C` | Color picker |
@@ -172,10 +173,9 @@ ln -s "$PWD/dotfiles/hypr" ~/.config/hypr
 `themes/` and `login/` do **not** need a link. The shell finds them at the repo root, two folders
 up from its own (`shell/v1/../../themes`, `shell/v1/../../login`).
 
-Poteto, the settings app (`~/.config/poteto/shell.json`), with its launcher entry and icon:
+The settings drawer is part of the shell (`Super + ,`). For a "Settings" entry in the launcher too:
 
 ```sh
-ln -s "$PWD/apps/settings/poteto-settings" ~/.local/bin/poteto-settings
 ln -s "$PWD/apps/settings/dev.poteto.Settings.desktop" ~/.local/share/applications/
 ln -s "$PWD/apps/settings/dev.poteto.Settings.svg" ~/.local/share/icons/hicolor/scalable/apps/
 ```
@@ -526,7 +526,8 @@ qs ipc call camera     toggle|open|close
 qs ipc call bar        toggle|simple|island|status|panel
 qs ipc call layout     toggle|pill|bar|status       # Alt + Shift + B
 qs ipc call controlcenter toggle|open|close        # Super + C
-qs ipc call nightlight toggle|on|off|status        # shared with Poteto (shell.json)
+qs ipc call nightlight toggle|on|off|status        # saved in shell.json
+qs ipc call settings   toggle|open|close           # the settings drawer (Super + ,)
 qs ipc call battery    status|testLow|testCritical  # level and warning levels; send a sample warning
 qs ipc call player     play <path>|stop|next|previous|loop|status
 qs ipc call player     speed 1        # or -1, steps 0.5×…2×
@@ -575,7 +576,7 @@ The same actions are registered as Hyprland global shortcuts named `quickshell:l
 | `~/.cache/quickshell/video-thumbs/` | video poster frames and durations |
 | `~/.cache/quickshell/album-art/` | album art extracted from the playing track |
 | `~/.cache/quickshell/border` | `on` / `off` for the focused window's border (`mod + B`) |
-| `~/.config/poteto/shell.json` | settings, shared with Poteto: `style` (`pill` / `bar`, `mod + Shift + B`), `quiet` (Do Not Disturb), `nightLight`, `nightTemperature`, `showWorkspaces`, `showMusic`, `batteryLow`, `batteryCritical`. Read and written only by `config/Settings.qml`. The older `~/.cache/quickshell/layout` is carried over once and removed |
+| `~/.config/poteto/shell.json` | settings, written by the settings drawer and the shell: `style` (`pill` / `bar`, `mod + Shift + B`), `quiet` (Do Not Disturb), `nightLight`, `nightTemperature`, `showWorkspaces`, `showMusic`, `batteryLow`, `batteryCritical`. Read and written only by `config/Settings.qml`. The older `~/.cache/quickshell/layout` is carried over once and removed |
 | `~/.cache/quickshell/hypr-layout` | `dwindle` / `scrolling`, Hyprland's window layout (`mod + S`) |
 | `$XDG_RUNTIME_DIR/qs-cliphist/` | decoded clipboard images (private: folder 0700, files 0600, cleared at logout) |
 

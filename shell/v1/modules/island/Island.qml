@@ -23,6 +23,7 @@ import qs.modules.perf
 import qs.modules.media
 import qs.modules.polkit
 import qs.modules.bar
+import qs.modules.settings
 
 PanelWindow {
     id: root
@@ -60,10 +61,10 @@ PanelWindow {
     // surface stays out of the way of a fullscreen video or game; when something opens over one,
     // only the island shows (no frame, no side pills)
     readonly property bool fullscreen: Hyprland.monitorFor(targetScreen)?.activeWorkspace?.hasFullscreen ?? false
-    visible: !fullscreen || pill.viewOpen || pill.showPanel || pill.showOsd
+    visible: !fullscreen || pill.viewOpen || pill.showPanel || pill.showOsd || settingsDrawer.open
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "dynamic-island"
-    WlrLayershell.keyboardFocus: pill.viewOpen || pill.showPanel ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: pill.viewOpen || pill.showPanel || settingsDrawer.open ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
     // Input only on the pills; the frame and everything between them let clicks through
     mask: Region {
@@ -80,6 +81,10 @@ PanelWindow {
         }
         Region {
             item: statusBar.visible ? statusBar.recPill : nothing
+            intersection: Intersection.Combine
+        }
+        Region {
+            item: settingsDrawer.visible ? settingsDrawer : nothing
             intersection: Intersection.Combine
         }
     }
@@ -106,7 +111,7 @@ PanelWindow {
         interval: 150
         // showPanel, not ShellState.panel: the flag is shared by every screen, and a grab armed on
         // a screen that is not showing the panel would clear the shared state and close it
-        onTriggered: focusGrab.active = pill.viewOpen || pill.showPanel
+        onTriggered: focusGrab.active = pill.viewOpen || pill.showPanel || settingsDrawer.open
     }
 
     // The panel opened from the bar closes the same way a view does: click away, or Esc
@@ -116,7 +121,14 @@ PanelWindow {
             if (pill.showPanel)
                 grabArm.restart();
             else
-                focusGrab.active = pill.viewOpen;
+                focusGrab.active = pill.viewOpen || settingsDrawer.open;
+        }
+        // The settings drawer too: click away, or Esc
+        function onSettingsChanged() {
+            if (settingsDrawer.open)
+                grabArm.restart();
+            else
+                focusGrab.active = pill.viewOpen || pill.showPanel;
         }
     }
 
@@ -137,7 +149,7 @@ PanelWindow {
 
         Surface {
             anchors.fill: parent
-            pills: [pill, workspacesBar.pill, statusBar.pill, statusBar.recPill]
+            pills: [pill, workspacesBar.pill, statusBar.pill, statusBar.recPill, settingsDrawer]
             // No frame over a fullscreen window
             frameWidth: root.fullscreen ? 0 : Tokens.frameWidth
             frameRadius: root.fullscreen ? 0 : Tokens.radius.screen
@@ -164,6 +176,15 @@ PanelWindow {
         anchors.fill: parent
         targetScreen: root.targetScreen
         suppressed: root.fullscreen
+    }
+
+    // Slides in from the right edge, below the pills at the top and clear of the bottom
+    SettingsDrawer {
+        id: settingsDrawer
+        open: pill.focused && ShellState.settings
+        y: (Layout.bar ? Layout.barHeight : Layout.pillHeight) + 40
+        height: parent.height - y - Tokens.frameWidth - 40
+        onCloseRequested: ShellState.settings = false
     }
 
     Rectangle {

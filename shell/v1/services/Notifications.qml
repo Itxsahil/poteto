@@ -13,11 +13,19 @@ Singleton {
     readonly property int defaultTimeout: 5000
     readonly property int criticalTimeout: 20000
 
-    // Do Not Disturb: kept in config/Settings.qml ("quiet" in shell.json, Poteto's Quiet switch),
+    // Do Not Disturb: kept in config/Settings.qml ("quiet" in shell.json, the settings drawer's switch),
     // so it survives a restart. Change it with setDnd() / toggleDnd(), not by assigning.
     readonly property bool dnd: Settings.quiet
     property var popups: []
     readonly property string showInDndHint: "x-poteto-show-in-dnd"
+
+    // Sample notifications of every shape (tools/notif-test in the repo): one kind, or all of
+    // them a few seconds apart when kind is ""
+    readonly property string testScript: Quickshell.shellDir + "/../../tools/notif-test"
+
+    function sendTests(kind: string): void {
+        Quickshell.execDetached(kind ? [testScript, kind] : [testScript]);
+    }
 
     function setDnd(on) {
         Settings.set("quiet", !!on);

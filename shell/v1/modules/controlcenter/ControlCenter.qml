@@ -253,7 +253,7 @@ Item {
         }
     }
 
-    // Night light's warmth, on the scale Poteto uses: further right is warmer
+    // Night light's warmth, on the same scale as the settings drawer: further right is warmer
     Page {
         name: "nightlight"
 

@@ -17,7 +17,7 @@ Item {
     readonly property int gapLeft: Tokens.frameWidth + Tokens.radius.screen + Tokens.radius.flare + 8
     readonly property alias pill: workspaces
 
-    // the simple bar carries all of this when it is on; and it can be turned off (Poteto →
+    // the simple bar carries all of this when it is on; and it can be turned off (Settings →
     // Workspaces)
     visible: !Layout.bar && Settings.showWorkspaces && !suppressed
 

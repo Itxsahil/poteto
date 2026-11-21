@@ -1,11 +1,10 @@
 [Desktop Entry]
 Type=Application
-Name=Poteto
+Name=Settings
 GenericName=Shell Settings
-Comment=Settings for the poteto shell: layout and more
-Exec=poteto-settings
+Comment=The poteto shell's settings drawer: layout, theme, night light, notifications, battery
+Exec=qs ipc call settings open
 Icon=dev.poteto.Settings
 Terminal=false
 Categories=Settings;
-Keywords=poteto;quickshell;shell;settings;bar;pill;layout;config;workspaces;music;night;nightlight;warmth;notifications;quiet;dnd;do not disturb;
-StartupWMClass=dev.poteto.Settings
+Keywords=poteto;quickshell;shell;settings;bar;pill;layout;config;theme;dynamic;workspaces;music;night;nightlight;warmth;notifications;quiet;dnd;do not disturb;battery;
