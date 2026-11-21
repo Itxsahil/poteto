@@ -2,7 +2,7 @@ import QtQuick
 import qs.config
 
 // The shell's surface, drawn as one shape by shaders/surface.frag: the frame around the screen
-// and up to six pieces hanging from it (the top edge, or the right for a drawer). Where a
+// and up to six pieces hanging from it (the top edge, the left for the settings drawer, a corner). Where a
 // piece's side meets the frame it flows in
 // with a round curve as wide as the frame's own corners, so the wallpaper showing through reads as
 // one hole with every corner rounded alike (computed, not drawn, so it holds at any size and
@@ -21,7 +21,7 @@ ShaderEffect {
     id: root
 
     // Up to six. Each hangs from the top edge unless it has `property int edge`: 1 the right,
-    // 2 the bottom-right corner
+    // 2 the bottom-right corner, 3 the left
     property list<Item> pills
     property real frameWidth: Tokens.frameWidth
     property real frameRadius: Tokens.radius.screen

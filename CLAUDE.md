@@ -23,8 +23,8 @@ The repo is grouped by role. Moving a top-level folder breaks symlinks in `$HOME
     keeps tiled windows clear of the top and the frame
   - `modules/notifications/NotificationPanel.qml` — notification popups, growing out of the frame's
     bottom-right corner as part of the surface (`edge: 2`), in the island's window
-  - `modules/settings/` — the settings drawer, sliding in from the right as part of the surface
-    (`edge: 1`); a new setting is a `SettingRow` in a `SettingsSection` bound to `Settings`
+  - `modules/settings/` — the settings drawer, sliding in from the left as part of the surface
+    (`edge: 3`); a new setting is a `SettingRow` in a `SettingsSection` bound to `Settings`
   - `shaders/` — `surface.frag` (the frame and pills as one shape) and its compiled `.qsb`; run
     `tools/build-shaders` after editing a shader, then restart Quickshell: Qt caches shaders by
     file, so a hot reload keeps the old one
@@ -74,7 +74,7 @@ The repo is grouped by role. Moving a top-level folder breaks symlinks in `$HOME
   inside it sit at its right end); a pill hanging from the top edge lives in the island's window, is
   transparent, and is listed in the `Surface`'s `pills` (it draws the background and the shadow; at
   most six, a piece hanging from the right edge has `property int edge: 1`, one in the bottom-right
-  corner `edge: 2`) and in the window's input `mask`; a round icon button is `CircleButton` (flat with
+  corner `edge: 2`, one from the left edge `edge: 3`) and in the window's input `mask`; a round icon button is `CircleButton` (flat with
   `baseColor: "transparent"`, `active` for the accent fill, `glyphFont: Theme.monoFamily` for a Nerd
   Font icon).
 - Theme colors in `config/Theme.qml` fade (`Behavior` + `Theme.fade`); `Theme.preview` holds the

@@ -190,7 +190,7 @@ PanelWindow {
         active: pill.focused
     }
 
-    // Slides in from the right edge, below the pills at the top and clear of the bottom
+    // Slides in from the left edge, below the pills at the top and clear of the bottom
     SettingsDrawer {
         id: settingsDrawer
         open: pill.focused && ShellState.settings

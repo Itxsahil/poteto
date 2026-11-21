@@ -5,7 +5,7 @@ import qs.config
 import qs.components
 import qs.services
 
-// The settings drawer: slides in from the right edge of the screen and is drawn as part of the
+// The settings drawer: slides in from the left edge of the screen and is drawn as part of the
 // shell's one surface (components/Surface.qml), flowing into the frame like the island does from
 // the top. It lives in the island's window (modules/island/Island.qml), which positions it
 // vertically and draws its background; it holds the content and is transparent itself.
@@ -17,8 +17,8 @@ Rectangle {
     id: root
 
     property bool open: false
-    // Hangs from the right edge (read by Surface)
-    readonly property int edge: 1
+    // Hangs from the left edge (read by Surface)
+    readonly property int edge: 3
     // 0 hidden, 1 fully out; it slides by animating this
     property real progress: open ? 1 : 0
     readonly property int fullWidth: 440
@@ -26,7 +26,7 @@ Rectangle {
     signal closeRequested()
 
     width: fullWidth
-    x: (parent?.width ?? 0) - Tokens.frameWidth - fullWidth * progress
+    x: Tokens.frameWidth - fullWidth * (1 - progress)
     visible: progress > 0
     radius: Tokens.radius.panel
     color: "transparent"

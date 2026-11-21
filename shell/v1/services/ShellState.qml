@@ -9,7 +9,7 @@ Singleton {
     property string view: ""
     // The control center, opened by clicking the simple bar rather than hovering the island
     property bool panel: false
-    // The settings drawer, sliding in from the right (modules/settings/SettingsDrawer.qml). Opening
+    // The settings drawer, sliding in from the left (modules/settings/SettingsDrawer.qml). Opening
     // it closes any view, and opening a view closes it
     property bool settings: false
 

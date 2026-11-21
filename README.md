@@ -28,7 +28,7 @@ poteto/
 | | |
 |---|---|
 | **Simple bar mode** | `mod + Shift + B` swaps the notches for one flat bar across the top — workspaces, the playing track and status in a single strip that reserves its own space. The bar is the top of the screen frame, which carries on below it; everything the island opens still opens, hanging from the bottom of the bar; click the right of the bar for the control center. The choice is remembered (`style` in `~/.config/poteto/shell.json`; also in the settings drawer) |
-| **Settings drawer** (`Super + ,`) | Slides in from the right edge as part of the surface: layout (island or bar), the workspaces and music pills, the theme and the dynamic theme's mode and style, night light and its warmth, Do Not Disturb and test notifications, and the low-battery warning levels. Every change is saved to `~/.config/poteto/shell.json` at once; Esc or a click outside closes it |
+| **Settings drawer** (`Super + ,`) | Slides in from the left edge as part of the surface: layout (island or bar), the workspaces and music pills, the theme and the dynamic theme's mode and style, night light and its warmth, Do Not Disturb and test notifications, and the low-battery warning levels. Every change is saved to `~/.config/poteto/shell.json` at once; Esc or a click outside closes it |
 | **One surface** | A 10px frame around the whole screen with rounded inside corners, and the island and the side pills hanging from it, drawn as one shape by a shader (`shell/v1/shaders/surface.frag`): where a pill meets the frame it flows in with a round curve the size of the screen's corners, so the wallpaper showing through reads as one hole with every corner rounded alike, computed so it holds at any size and through every animation, under one shared shadow. Windows keep clear of the frame; it is not drawn over a fullscreen window. `Tokens.frameWidth` sets the width (0 turns it off), `Tokens.radius.screen` the corners, `Tokens.radius.flare` the curves where pills meet it |
 | **Island (idle)** | A notch hanging from the top edge, flowing into the frame in round curves at both sides. The 12-hour clock, plus a red mic icon while the mic is muted and a pulsing dot while recording. Wi-Fi, battery and unread notifications are in the control center (and in bar mode, on the bar) |
 | **Control center** (rest the pointer on the island, or click it to keep it open) | A compact bento grid: clock (click it for the calendar), battery with health, Wi-Fi, Bluetooth, Notifications and Night Light tiles (Night Light opens a warmth slider), and brightness, volume and microphone sliders (click the mic icon or right click to mute). The button beside volume and mic opens the Sound page, which lists every output and input, with unplugged ones greyed out |
@@ -80,7 +80,7 @@ poteto/
 | `mod + /` | Keybinding cheatsheet |
 | `Super + M` | Performance monitor |
 | `Super + P` | Music player on its own: Space play/pause, ← → seek, N / P skip |
-| `Super + ,` | Settings drawer, from the right edge |
+| `Super + ,` | Settings drawer, from the left edge |
 | `Super + V` | Clipboard history |
 | `Super + .` | Emoji picker |
 | `Super + Shift + C` | Color picker |
